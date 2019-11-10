@@ -444,12 +444,14 @@ Identified in Version B.1:
 ## -changed file name passing so that qsar files can be found in onefile mode
 
 import ifs_model_read
-import Tkinter as tk
-import tkMessageBox
-import tkFileDialog
-import textwrap
-import time
-from idlelib.WidgetRedirector import WidgetRedirector
+try:
+    import Tkinter as tk
+    import tkFileDialog as filedialog
+    from idlelib.WidgetRedirector import WidgetRedirector
+except ImportError:
+    import tkinter as tk
+    from tkinter import filedialog
+    from idlelib.redirector import WidgetRedirector
 import sys, os
 
 class ReadOnlyText(tk.Text):
@@ -732,14 +734,14 @@ class app_manager_class():
     def select_input_file(self):
         """Spawn a load file popup."""
         ##create popup to select output file
-        self.inputfilename = tkFileDialog.askopenfilename(title='Select Input File',filetypes=[('tab-delimited txt files','*.txt'),('csv files','*.csv')])
+        self.inputfilename = filedialog.askopenfilename(title='Select Input File',filetypes=[('tab-delimited txt files','*.txt'),('csv files','*.csv')])
         self.textinput.delete('1.0', tk.END)
         self.textinput.insert('1.0',self.inputfilename)
 
     def select_output_file(self):
         """Spawn a save file popup."""
         ##create popup to select input file
-        self.outputfilename = tkFileDialog.asksaveasfilename(title='Select Output File',defaultextension='.txt',filetypes=[('tab-delimited txt files','*.txt')])
+        self.outputfilename = filedialog.asksaveasfilename(title='Select Output File',defaultextension='.txt',filetypes=[('tab-delimited txt files','*.txt')])
         self.textoutput.delete('1.0', tk.END)
         self.textoutput.insert('1.0',self.outputfilename)
 

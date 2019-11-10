@@ -35,6 +35,7 @@
 import numpy as np
 import openbabel as ob
 import base64
+import pickle
 
 def normcdfapprox(x):
     ##approximation from:
@@ -215,7 +216,7 @@ class model():
                     self.model_namespace['f'+line[1]] = ob.OBSmartsPattern()
                     self.model_namespace['f'+line[1]].Init(line[2])
                 except:
-                    print line[2]
+                    print(line[2])
                     raise
             elif line[0] == '<holi>':
                 self.model_namespace['fragment_counts'].resize((1,int(line[1])+1))
@@ -254,7 +255,7 @@ class model():
         ##load xtxi matrix for calculating leverages
         for line in file_lines:
             if line[0] == '<xtxi>':
-                self.model_namespace['xtxi'] = np.loads(base64.b64decode(line[1]))
+                self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1]), encoding='latin1')
 
         ##read commands into the model namespace converting types
         self.model_namespace['command_sequence'] = []
@@ -359,7 +360,7 @@ class model():
                 self.model_namespace[key].Match(molecule)
                 self.model_namespace['fragment_counts'][0,f] = len(self.model_namespace[key].GetUMapList())
         ##parse through command sequence
-##        if self.model_namespace['svalue_name'] in ['L','fhlb']: print self.model_namespace['svalue_name'] + '\t',
+##        if self.model_namespace['svalue_name'] in ['L','fhlb']: print(self.model_namespace['svalue_name'] + '\t',end=' ')
         blocks = [True]
         for command in self.model_namespace['command_sequence']:
             ##variable definitions
@@ -446,22 +447,22 @@ class model():
                     for i in range(topn):
                         css *= (topgroup[i][0]*(1-topgroup[i][1]))**0.5
                 css = css**(1/float(topn))
-##                print 'css', css
+##                print('css', css)
                 if command[3] == '<addto>':
                     self.model_namespace[command[4]] += css
                 elif command[3] == '<subfrom>':
                     self.model_namespace[command[4]] -= css
-##                if self.model_namespace['svalue_name'] in ['L','fhlb']: print str(css) + '\t',
+##                if self.model_namespace['svalue_name'] in ['L','fhlb']: print(str(css) + '\t',end=' ')
             ##calculate leverage
             elif blocks[0] and command[0] == '<calculateleverage>':
                 x = np.mat(self.model_namespace['fragment_counts'][0,command[1]:command[2]])
                 leverage = (x * self.model_namespace['xtxi'] * x.T)[0,0]
-##                print 'leverage', leverage
+##                print('leverage', leverage)
                 if command[3] == '<addto>':
                     self.model_namespace[command[4]] += leverage
                 elif command[3] == '<subfrom>':
                     self.model_namespace[command[4]] -= leverage
-##                if self.model_namespace['svalue_name'] in ['L','fhlb']: print str(leverage) + '\t',
+##                if self.model_namespace['svalue_name'] in ['L','fhlb']: print(str(leverage) + '\t',end ==' ')
             ##check atom coverage to see if prediction is valid
             elif blocks[0] and command[0] == '<checkatomviolations>':
                 violations = []
@@ -576,7 +577,7 @@ class model():
                 else:
                     right = command[2]
                 self.model_namespace[command[1]] = np.log(right)
-##        if self.model_namespace['svalue_name'] == 'fhlb': print
+##        if self.model_namespace['svalue_name'] == 'fhlb': print()
         if 'WARN' in self.model_namespace and 'ERROR' in self.model_namespace:
             return self.model_namespace['RETURN'], int(self.model_namespace['WARN']), self.model_namespace['ERROR'], self.model_namespace['NOTE']
         else:
@@ -592,7 +593,7 @@ def apply_model_to_file(model,filename,outfilename=False):
     try:
         infile = open(filename,'r')
     except IOError:
-        print 'File not found:', filename
+        print('File not found:', filename)
         return
     
     ##read fields from header file then parse file contents
@@ -607,7 +608,7 @@ def apply_model_to_file(model,filename,outfilename=False):
             try:
                 assert 'smiles' in columns
             except:
-                print '"smiles" missing from column header of file!'
+                print('"smiles" missing from column header of file!')
                 infile.close()
                 return
             header = columns
@@ -638,6 +639,6 @@ if __name__ == "__main__":
     m = model('D:\\work\Modelling_Interface\\IFS_Interface\\version_0.0.5\\ifs_models\\ifs_qsar_bradley_mp_linr.txt')
     filename = 'D:\\work\\Modelling_Interface\\IFS_Interface\\version_0.0.5\\ifs_datasets\\dataset_enamine_mp2.txt'
     apply_model_to_file(m,filename)
-##    print m.apply_model('O=CN1c2cc(OC)c(cc2C23C1C(O)(C(=O)OC)C(OC(=O)C)C1(C3N(CC2)CC=C1)CC)C1(CC2CN(CCc3c1[nH]c1c3cccc1)CC(C2)(O)CC)C(=O)OC')
-##    print
-##    print m.apply_model('CC(=O)OC1C(=O)C2(C)C(O)CC3C(C2C(C2(C(C1=C(C)C(OC(=O)C(C(c1ccccc1)NC(=O)c1ccccc1)O)C2)(C)C)O)OC(=O)c1ccccc1)(CO3)OC(=O)C')
+##    print(m.apply_model('O=CN1c2cc(OC)c(cc2C23C1C(O)(C(=O)OC)C(OC(=O)C)C1(C3N(CC2)CC=C1)CC)C1(CC2CN(CCc3c1[nH]c1c3cccc1)CC(C2)(O)CC)C(=O)OC'))
+##    print()
+##    print(m.apply_model('CC(=O)OC1C(=O)C2(C)C(O)CC3C(C2C(C2(C(C1=C(C)C(OC(=O)C(C(c1ccccc1)NC(=O)c1ccccc1)O)C2)(C)C)O)OC(=O)c1ccccc1)(CO3)OC(=O)C'))
