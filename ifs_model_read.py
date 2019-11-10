@@ -21,9 +21,7 @@ def normcdfapprox(x):
 
 
 def get_holistic_descriptor(descriptor, molecule):
-    """get_holistic_descriptor(molecule)
-    -calculate a holistic descriptor for a molecule passed as a openbabel molecule
-    v0.0.3 - original coding"""
+    """Calculate a holistic descriptor for a molecule passed as a openbabel molecule."""
     # lssr
     if descriptor == '!lssr':
         return len(molecule.OBMol.GetLSSR())
@@ -33,6 +31,7 @@ def get_holistic_descriptor(descriptor, molecule):
 
 
 def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, simil_cut=None):
+    """Calculate Tanimoto similarity coefficient between two arrays of fragment counts."""
     # all b-values = 1 meaning:
     #  1) a-values * b-values = a-values
     #  2) b-values**2 = b-values
@@ -200,12 +199,8 @@ class Model:
             elif line[0] == '<frag>':
                 self.model_namespace['fragment_counts'].resize((1, int(line[1])+1))
                 self.model_namespace['fragment_counts'][0, int(line[1])] = 0.
-                try:
-                    self.model_namespace['f'+line[1]] = ob.OBSmartsPattern()
-                    self.model_namespace['f'+line[1]].Init(line[2])
-                except:
-                    print(line[2])
-                    raise
+                self.model_namespace['f'+line[1]] = ob.OBSmartsPattern()
+                self.model_namespace['f'+line[1]].Init(line[2])
             elif line[0] == '<holi>':
                 self.model_namespace['fragment_counts'].resize((1, int(line[1])+1))
                 self.model_namespace['fragment_counts'][0, int(line[1])] = 0.
@@ -315,9 +310,7 @@ class Model:
                 self.model_namespace['command_sequence'].append(line)
             
     def apply_model(self, smiles):
-        """apply_model(self,molecule)
-        -take a openbabel molecule, apply the Model and return the result
-        v0.0.3 - original coding"""
+        """Take an openbabel molecule, apply the Model and return the result."""
         # error checking of the smiles
         if smiles[0] in '()#=-+]1234567890':
             return '-', '-', '-', 'SMILES error'
@@ -374,6 +367,7 @@ class Model:
                 for i in range(1, len(self.model_namespace['train_arrays'])+1):
                     fold = self.model_namespace['train_arrays'][i]
                     foldvalues = self.model_namespace['train_values'][i]
+                    print(foldvalues, foldvalues.shape)
                     max_simil = 0.
                     max_sum = 0.
                     max_n = 0.
@@ -433,7 +427,7 @@ class Model:
                         else:
                             findmedian.append(1-topgroup[i][1])
                     findmedian.sort()
-                    median = findmedian[len(findmedian)/2]
+                    median = findmedian[len(findmedian)//2]
                     for i in range(topn-n):
                         css *= (topgroup[topn-1][0]*median)**0.5
                 # old method of calculating CSS; if there is a tie in fragment similarity use the
@@ -573,7 +567,7 @@ class Model:
                 else:
                     right = command[2]
                 self.model_namespace[command[1]] = np.log(right)
-#         if self.model_namespace['svalue_name'] == 'fhlb': print()
+        # if self.model_namespace['svalue_name'] == 'fhlb': print()
         if 'WARN' in self.model_namespace and 'ERROR' in self.model_namespace:
             return self.model_namespace['RETURN'], int(self.model_namespace['WARN']), \
                    self.model_namespace['ERROR'], self.model_namespace['NOTE']
@@ -582,10 +576,7 @@ class Model:
 
 
 def apply_model_to_file(model, filename, outfilename=False):
-    """apply_model_to_file(Model,filename)
-    -take a Model object and apply it to smiles in a file
-    -output a new file with the results
-    v0.0.3 - original coding"""
+    """Take a Model object and apply it to smiles in a file, output a new file with the results."""
 
     # open file
     try:
