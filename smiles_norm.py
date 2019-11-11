@@ -1,5 +1,6 @@
-"""
-
+"""smiles_norm.py
+Implements a convert function that takes a chemical structure as a SMILES and converts it to a standardized
+representation.
 """
 
 import openbabel as ob

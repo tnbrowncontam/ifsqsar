@@ -1,19 +1,14 @@
 ********************************************************************************
-
-This is a beta version of the software not intended for general release.
-
-********************************************************************************
-IFSAPP - A simple program for applying QSARs
-Coded by Trevor N. Brown
-Version B.2, 2018
+**IFSAPP - A simple program for applying QSARs**\
+Coded by Trevor N. Brown\
+Version 0.0, Nov. 2019
 
 IFSAPP is free to use and redistribute, but is provided "as is" with no implied
 warranties or guarantees. The user accepts responsibility for using the software
 properly, as outlined in this user guide.
 
 IFSAPP was coded using only open source python modules, and the QSARs have all
-been published in peer-reviewed literature. Therefore, although the software has
-been packaged for convenience, users may request the source code from the author
+been published in peer-reviewed literature.
 ********************************************************************************
 
 CONTENTS
@@ -29,10 +24,10 @@ CONTENTS
 1. SOFTWARE OVERVIEW AND USAGE
 ********************************************************************************
 
-In this section:
-**Overview of IFSAPP single mode interface**
-**Overview of IFSAPP batch mode interface**
-**Information about SMILES strings**
+In this section:  
+-Overview of IFSAPP single mode interface  
+-Overview of IFSAPP batch mode interface  
+-Information about SMILES strings
 
 **Overview of IFSAPP single mode interface**
 
@@ -46,17 +41,17 @@ until the "Apply IFS QSARs" button is clicked. Any results in the results
 window will be lost when a new calculation is performed. The results cannot be
 edited in the results window, this is intentional. If the user switches to batch
 mode any SMILES structures or results in the interface will be lost.
-
-                           ______________________________________
-Enter SMILES string here ->| Enter a SMILES [_________________] |
-                           |                [                 ] |
-QSAR results window      ->| Model Results  [                 ] |
-                           |                [_________________] |
-Switch to batch mode     ->|[ Batch mode ]                      |
-Show this info popup     ->|[    Info    ]   [Apply IFS QSARs]  |
-                           ______________________________________
-                            Begin single calculation ^
-
+<pre>
+                            ______________________________________
+Enter SMILES string here  ->| Enter a SMILES [_________________] |
+                            |                [                 ] |
+QSAR results window       ->| Model Results  [                 ] |
+                            |                [_________________] |
+Switch to batch mode      ->|[ Batch mode ]                      |
+Show this info as a popup ->|[    Info    ]   [Apply IFS QSARs]  |
+                            |____________________________________|
+                             Begin single calculation ^
+</pre>
 **Overview of IFSAPP batch mode interface**
 
 In batch mode QSARs can be applied to many structures in series loaded from one
@@ -86,15 +81,15 @@ Two file formats are recognized:
 1. tab-delimited text files: files with a .txt file extension. Columns are
    separated by tabs.
 2. csv files: files with a .csv file extension. Columns are separated by commas.
-
-                          __________________________________________
-Select input file here  ->|[Select Input File ][_________________] |
-Select output file here ->|[Select Output File][_________________] |
-Switch to single mode   ->|[    Single mode   ]                    |
-Show this info popup    ->|[       Info       ] [Apply IFS QSARs]  |
-                          __________________________________________
-                               Begin batch calculations ^
-
+<pre>
+                            __________________________________________
+Select input file here    ->|[Select Input File ][_________________] |
+Select output file here   ->|[Select Output File][_________________] |
+Switch to single mode     ->|[    Single mode   ]                    |
+Show this info as a popup ->|[       Info       ] [Apply IFS QSARs]  |
+                            |________________________________________|
+                                 Begin batch calculations ^
+</pre>
 **Information about SMILES strings**
 
 Simplified Molecular Input Line Entry System (SMILES) is a way of representing
@@ -119,15 +114,16 @@ be displayed.
 2. QSAR DESCRIPTIONS AND INTERPRETATION
 ********************************************************************************
 
-In this section:
-**General description of IFSAPP QSARs**
-**FHLB - QSAR for fish biotransformation half-life**
-**HHLB - QSAR for human biotransformation half-life**
-**HHLT - QSAR for human total elimination half-life**
-**dSm - QSPR for Entropy of Melting**
-**Tm - QSPR for Melting Point**
+In this section:  
+-General description of IFSAPP QSARs  
+-FHLB - QSAR for fish biotransformation half-life  
+-HHLB - QSAR for human biotransformation half-life  
+-HHLT - QSAR for human total elimination half-life  
+-dSm - QSPR for Entropy of Melting  
+-Tm - QSPR for Melting Point
 
 **General description of IFSAPP QSARs**
+
 QSARs are developed using a group contribution model, in which specific
 substructures of a molecule are counted and their contributions are determined
 by coefficients that have been calculated by multiple linear regression. The
@@ -138,6 +134,7 @@ external model validation. All models have a defined domain of applicability,
 which is described in section 3. INTERPRETING QSAR DOMAIN INFORMATION.
 
 **FHLB - QSAR for fish biotransformation half-life**
+
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in fish (FHLB) measured in days for a reference 10g fish
 at a temperature of 288K. In IFSAPP the model outputs have been converted to
@@ -149,6 +146,7 @@ r-sq[external] = 0.748 and RMSE of predictions = 0.584, with the data spanning
 about 5 log units. Full details are available in reference [5].
 
 **HHLB - QSAR for human biotransformation half-life**
+
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in humans, (HHLB) measured in hours for a generic 70kg
 human. In IFSAPP the model outputs have been converted to linear (as opposed to
@@ -161,6 +159,7 @@ are r-sq[external] = 0.73 and RMSE of predictions = 0.75, with the data spanning
 about 7.5 log units. Full details are available in reference [8].
 
 **HHLT - QSAR for human total elimination half-life**
+
 The model predicts the base-10 logarithm of the whole-body total elimination
 half-life of chemicals in humans, (HHLT) measured in hours for a generic 70kg
 human. In IFSAPP the model outputs have been converted to linear (as opposed to
@@ -173,6 +172,7 @@ with the data spanning about 7.5 log units. Full details are available in
 reference [8].
 
 **dSm - QSPR for Entropy of Melting**
+
 The model predicts the entropy of melting (dSm) on a linear scale in units of
 kJ/mol. The QSPR is trained on the Jain 2004 dSm data set as described in
 reference [10]. The training and validation data sets contain 1056 and 528
@@ -181,6 +181,7 @@ of prediction = 11.82 kJ/mol, with the data spanning about 175 kJ/mol. Full
 details are found in reference [10].
 
 **Tm - QSPR for Melting Point**
+
 The model prdicts the melting point (Tm) on a linear scale in units of K. The
 QSPR is trained on the Bradley data set as described in reference [10]. The
 training and validation data sets contain 1922 and 964 chemicals, respectively.
@@ -191,12 +192,13 @@ with the data spanning about 500 K. Full details are found in reference [10].
 3. INTERPRETING QSAR DOMAIN INFORMATION
 ********************************************************************************
 
-In this section:
-**What is the domain of applicability?**
-**Domain of applicability for the IFSAPP QSARs**
-**Interpreting IFSAPP domain outputs**
+In this section:  
+-What is the domain of applicability?  
+-Domain of applicability for the IFSAPP QSARs  
+-Interpreting IFSAPP domain outputs
 
 **What is the domain of applicability?**
+
 Having a defined domain of applicability is one of the five OECD guidelines for
 developing QSARs. The OECD guidance document [7] gives more information on
 domain of applicability in general, and references [5] and [6] describe the
@@ -220,6 +222,7 @@ in cases where the 3D shape of the molecule might be important, e.g. due to
 steric effects, the models are expected to give less accurate results.
 
 **Domain of applicability for the IFSAPP QSARs**
+
 Two different methods of defining the domain are applied to the IFSAPP QSARs in
 conjunction:
 1. Chemical Similarity Score (CSS), as defined by the author in [5] and [6].
@@ -241,6 +244,7 @@ standard error of prediction of each UL is estimated from the prediction
 residuals of chemicals with that UL.
 
 **Interpreting IFSAPP domain outputs**
+
 For each property prediction three domain fields are included:
 -error: the estimated standard error of prediction as described above
 -UL: the uncertainty level, higher numbers indicate less reliable predictions
@@ -257,7 +261,7 @@ defined by prediction/X to prediciont*X, i.e. the 95% prediction interval of the
 QSAR. This is analogous to the confidence factor Cf.
 
 Uncertainty Level (UL) and Notes:
-
+<pre>
 Uncertain.   Note           Explanation
  Level
    0                        Molecule is considered to be within the domain by
@@ -311,7 +315,7 @@ Uncertain.   Note           Explanation
                             are set to the value of the closest boundary. The
                             error the same as the normal UL 0-3 the molecule
                             belongs to.
-
+</pre>
 ********************************************************************************
 4. SOFTWARE CODING EXPLANATION
 ********************************************************************************
@@ -320,66 +324,79 @@ IFSAPP was written with the open source resources listed below. Because two of
 these resources use the GNU General Public License interested users may request
 the source code for IFSAPP.
 
-Python:
--Python Programming Language, version 2.7.10, http://www.python.org/
--License: BeOpen.com GPL-compatible license.
+Python: GUI and general coding  
+-Python Programming Language, version 2.7.10, http://www.python.org/  
+-License: BeOpen.com GPL-compatible license.  
 
-NumPy:
--NumPy, version 1.13, http://www.numpy.org/
--License: Developer specific license. http://www.numpy.org/license.html
+NumPy: Mathematics  
+-NumPy, version 1.16.2, http://www.numpy.org/  
+-License: Developer specific license. http://www.numpy.org/license.html  
 
-Open Babel:
--The Open Babel Package, version 2.4.1, http://openbabel.org
--License: GNU GPL. http://www.gnu.org/licenses/gpl.html
+Open Babel: Chemical structure handling  
+-The Open Babel Package, version 2.4.1, http://openbabel.org  
+-License: GNU GPL. http://www.gnu.org/licenses/gpl.html  
 
-Pyinstaller:
--Pyinstaller, version 3.3.1, http://www.pyinstaller.org/
--License: GNU GPL. http://www.pyinstaller.org/license.html
+Pyinstaller: Packaging for .exe distribution  
+-Pyinstaller, version 3.3.1, http://www.pyinstaller.org/  
+-License: GNU GPL. http://www.pyinstaller.org/license.html  
 
 ********************************************************************************
 5. CHANGE LOG
 ********************************************************************************
 
-Version B.0 Completed February 2018.
--All major features implemented, including:
- -single mode for single calculations with output to IFSAPP
- -batch mode for reading and writing files
- -basic error checking for invalid or truncated SMILES
- -three QSARs implemented: FHLB, HHLB, HHLT
+Version B.0 Completed February 2018.  
+-All major features implemented, including:  
+ -single mode for single calculations with output to IFSAPP  
+ -batch mode for reading and writing files  
+ -basic error checking for invalid or truncated SMILES  
+ -three QSARs implemented: FHLB, HHLB, HHLT  
  -initial version of this user guide
-Version B.1 Completed ...
+ 
+Version B.1 Completed 2018  
 -Minor bug fixes to domain of applicability testing and output
- for FHLB, HHLB, and HHLT models
--Added QSPRs for Abraham LSER descriptors E, S, A, B, V and L
+ for FHLB, HHLB, and HHLT models  
+-Added QSPRs for Abraham LSER descriptors E, S, A, B, V and L  
 -Updated this user guide to include description of LSER QSPRs, and added
  section to outline known bugs and planned features
-Version B.2 Completed
+ 
+Version B.2 Completed 2019  
 -Removed QSPRs for Abraham LSER descriptors E, S, A, B, V and L to improve load
- time and run speed
--Added QSPRs for dSm and Tm
--Updated warning levels to reflect the new ULs from the dSm&Tm paper
+ time and run speed  
+-Added QSPRs for dSm and Tm  
+-Updated warning levels to reflect the new ULs from the dSm&Tm paper  
 -Updated this user guide to reflect changes
+
+Version 0.0 Completed Nov. 2019  
+-Updated code to run on python 3. Python 3 is now required  
+-General code cleanup and updating  
+-Migrated code to GitHub  
+-Converted IFSAPP docstring to readme.md file  
 
 ********************************************************************************
 6. KNOWN BUGS AND PLANNED FEATURES
 ********************************************************************************
 
-Identified in Version B.1:
--Code needs to be optimized to increase the speed of calculations
+Identified in Version B.1:  
+-Code needs to be optimized to increase the speed of calculations  
 -Updated versions of the LSER QSPRs need to be created and published
+  
+Identified in Version 0.0:  
+-The xtxi matrix for domain checking in the model files needs to be re-encoded
+ using python 3
+
 
 ********************************************************************************
 7. REFERENCES
 ********************************************************************************
 
- 1. Weininger D., 1988, J. Chem. Inf. Model. 28 (1): 31-6.
+ 1. Weininger D., 1988, J. Chem. Inf. Model. 28 (1): 31-6.  
     DOI:10.1021/ci00057a005
 
  2. O'Boyle N.M., Banck M., James C.A., Morley C., Vandermeersch T., 
-    Hutchison G.R. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3, 33.
+    Hutchison G.R. Open Babel: An open chemical toolbox. J. Cheminf. 2011, 3, 33.  
     DOI:10.1186/1758-2946-3-33
 
- 3. James, C.A. OpenSMILES Specification. 2016.
+ 3. James, C.A. OpenSMILES Specification. 2016.  
     http://opensmiles.org/
 
  4. E.P.A., U.S., Estimation Programs Interface (EPI) Suite for Microsoft(R)
@@ -388,12 +405,12 @@ Identified in Version B.1:
 
  5. Brown T.N., Arnot J.A., Wania F. Iterative Fragment Selection: A group
     contribution approach to predicting fish biotransformation half-lives.
-    Environmental Science & Technology, 2012, 46, 8253-8260.
+    Environmental Science & Technology, 2012, 46, 8253-8260.  
     DOI: 10.1021/es301182a
 
  6. Brown T.N. Predicting hexadecane-air equilibrium partition coefficients (L)
     with a group contribution approach constructed from high-quality data. SAR
-    and QSAR in Environmental Research, 2013.
+    and QSAR in Environmental Research, 2013.  
     DOI: 10.1080/1062936x.2013.841286
 
  7. OECD Guidance Document on the Validation of (Quantitative) Structure-
@@ -401,79 +418,17 @@ Identified in Version B.1:
     Cooperation and Development, Environment Directorate: Paris, 2007.
 
  8. Arnot J., Brown T.N., Wania F.; Estimating screening-level organic chemical
-    half-lives in humans. Environmental Science & Technology, 2013.
+    half-lives in humans. Environmental Science & Technology, 2013.  
     DOI: 10.1021/es4029414
 
  9. Ulrich, N., Endo, S., Brown, T.N., Watanabe, N., Bronner, G., Abraham, M.H.,
     Goss, K.-U., UFZ-LSER database v 3.2.1 [Internet], Leipzig, Germany,
-    Helmholtz Centre for Environmental Research-UFZ. 2017. Available from
+    Helmholtz Centre for Environmental Research-UFZ. 2017.  
     http://www.ufz.de/lserd
 
 10. Brown T.N., Armitage J.M., Arnot J.A.; Application of an iterative fragment
     selection (IFS) method to estimate entropies of fusion and melting points of
-    organic chemicals. Molecular Informatics, 2019. In Press.
+    organic chemicals. Molecular Informatics, 2019.  
+    DOI: 10.1002/minf.201800160
 
 ********************************************************************************
-
-ifsapp.py
-# Version A change log
-# ~26-29.12.2017
-# -wrote code to generate GUI
-# -worked out how to use pyinstaller to generate distributable
-# -started on alterations to ifs_model_read.py to support program
-# 30.12.2017
-# -tested version A on another computer
-# -figured out the openbabel hook file, should be able to bundle as a single file now
-# 31.12.2017
-# -documented methods etc. in ifsapp and redefined the info pop up to use the module docstring
-# -altered development code to output fragment std dev for domain testing
-# 01.01.2018
-# -fixed some bugs in development code uncovered while testing ifsapp
-# -updated development code to ouput predicted values to model files
-# Version B change log
-# 25.01.2018
-# -finished implementing domain testing code in development code
-# 26.01.2018
-# -updated single and batch calculations to support multiple models and domain info
-# 27.01.2018
-# -updated batch calculation to support header, search for smiles column
-# -made it so all widgets are disabled while a calculation is running
-# 30.01.2018
-# -finished writing user guide for info button
-# 31.01.2018
-# -changed file name passing so that qsar files can be found in onefile mode
-
-ifs_model_read.py
-# 10.2017
-# -copied from version 0.0.3
-# 05.11.2017
-# -changed all instances of AddHydrogens to DeleteHydrogens to accomodate changes
-#  in heavy lifting, switch from X token to D
-# 27.12.2017
-# -updated apply_model method of model to also accept smiles strings
-# -replaced scipy stats.norm.cdf with normcdfapprox so scipy is not needed
-# 29.12.2017
-# -altered model init to also load the validation dataset
-# 30.12.2017
-# -replaced all occurences of pybel with openbabel equivalent to make pyinstaller application easier
-# 31.12.2017
-# -updated to accommodate the presence of smarts in chemical data header for counts
-# 07.01.2018
-# -moved calc stats and load dataset functions from model_read into model_develop
-# 25.01.2018
-# -finished implementing domain testing code
-# 27.01.2018
-# -added option of passing openbabel converter to apply model
-# -built in some basic error checking for structures
-# -added rounding of outputs
-# 31.01.2018
-# -changed logarithm command to accept different bases
-# 08.03.2018
-# -added in old version of calculating CSS. confirmed accuracy vs. BAM calculator
-# 13.03.2018
-# -after several days of tinkering and testing confirmed that LSER qsars applied
-#  in ifsapp match the BAM calculators (except domain info of S, the BAM calculator
-#  has an unidentified error in its parameterization). decided to use highest
-#  value error instead of median in calculating CSS (old version)
-# 07.01.2019
-#  -some debugging in apply model to account for a model with zero fragments

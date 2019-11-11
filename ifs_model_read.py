@@ -1,5 +1,6 @@
-"""
-
+"""ifs_model_read.py
+Reads model files from the development code for group contribution QSARs (IFS) developed by Trevor N. Brown.
+Applies the QSARs and checks domain of applicability for single structures as SMILES or for a file of structures.
 """
 
 import numpy as np
@@ -18,16 +19,6 @@ def normcdfapprox(x):
     # in Engineering, vol. 2012, Article ID 124029, 22 pages, 2012.
     # doi:10.1155/2012/124029
     return 1./(np.exp(-x*358./23.+111*np.arctan(x*37./294.))+1.)
-
-
-def get_holistic_descriptor(descriptor, molecule):
-    """Calculate a holistic descriptor for a molecule passed as a openbabel molecule."""
-    # lssr
-    if descriptor == '!lssr':
-        return len(molecule.OBMol.GetLSSR())
-    # sssr
-    elif descriptor == '!sssr':
-        return molecule.sssr()
 
 
 def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, simil_cut=None):
@@ -65,6 +56,16 @@ def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, s
             asum = a1 + a.sum()
             tanimoto = asum / ((a1+(a**2).sum()) + b - asum)
     return tanimoto
+
+
+def get_holistic_descriptor(descriptor, molecule):
+    """Calculate a holistic descriptor for a molecule passed as a openbabel molecule."""
+    # lssr
+    if descriptor == '!lssr':
+        return len(molecule.OBMol.GetLSSR())
+    # sssr
+    elif descriptor == '!sssr':
+        return molecule.sssr()
 
 
 class Model:
@@ -624,12 +625,3 @@ def apply_model_to_file(model, filename, outfilename=False):
         outfile.write(data[i] + '\t'+str(results[i][0]) + '\t'+str(results[i][1]) +
                       '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
     outfile.close()
-
-
-if __name__ == "__main__":
-    m = Model('D:/work/Modelling_Interface/IFS_Interface/version_0.0.5/ifs_models/ifs_qsar_bradley_mp_linr.txt')
-    fn = 'D:/work/Modelling_Interface/IFS_Interface/version_0.0.5/ifs_datasets/dataset_enamine_mp2.txt'
-    apply_model_to_file(m, fn)
-#     print(m.apply_model('O=CN1c2cc(OC)c(cc2C23C1C(O)(C(=O)OC)C(OC(=O)C)C1(C3N(CC2)CC=C1)CC)C1(CC2CN(CCc3c1[nH]c1c3cccc1)CC(C2)(O)CC)C(=O)OC'))
-#     print()
-#     print(m.apply_model('CC(=O)OC1C(=O)C2(C)C(O)CC3C(C2C(C2(C(C1=C(C)C(OC(=O)C(C(c1ccccc1)NC(=O)c1ccccc1)O)C2)(C)C)O)OC(=O)c1ccccc1)(CO3)OC(=O)C'))
