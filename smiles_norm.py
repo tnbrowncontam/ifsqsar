@@ -4,6 +4,7 @@ representation.
 """
 
 import openbabel as ob
+import re
 
 
 def convert(smiles, returnstring=True, obconversion=None):
@@ -31,7 +32,16 @@ def convert(smiles, returnstring=True, obconversion=None):
     hydrosmarts = ob.OBSmartsPattern()
     hydrosmarts.Init('[*!+0!H0]')
 
+    # count aromatic atoms using string matching
+    aromatch = re.compile('((?<![SAT])c)|((?<![MZCISR])n)|((?<![MOHCPN])o)|((?<![DEAT])s)|((?<![N])p)')
+    aromaticbeforecount = len(re.findall(aromatch, smiles))
+
+    # read smiles into openbabel
     obconversion.ReadString(mol, smiles)
+
+    # check obmol to see if atoms were added, if not then there was a smiles error
+    if mol.NumAtoms() == 0:
+        return 'smiles error', 'error reading smiles'
 
     # remove all but the largest contiguous fragment
     obconversion.AddOption('r', obconversion.GENOPTIONS)
@@ -42,25 +52,32 @@ def convert(smiles, returnstring=True, obconversion=None):
     permsmarts.Match(mol)
     permchargeatoms = [i[0] for i in permsmarts.GetUMapList()]
 
-    # get list of non-permanently charged atoms
+    # get count of non-permanently charged atoms
     anysmarts.Match(mol)
-    anychargeatoms = list(set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms))
+    countanychargeatoms = len((set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms)))
 
-    # get list of non-permanently charged atoms with hydrogens
-    hydrosmarts.Match(mol)
-    hydrochargeatoms = list(set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms))
-
-    # if there charged atoms that are not permanently charged,
-    # then modify the molecule to neutralize them
-    if len(anychargeatoms):
+    # if there charged atoms that are not permanently charged, then modify the molecule to neutralize them
+    newsmiles = None
+    changes = ''
+    if countanychargeatoms:
         # setting begin modify prevents openbabel from re-evaluating
         # the structure as modifications are being made
         mol.BeginModify()
 
-        #  convert dative bonds
+        # convert dative bonds
         obconversion.AddOption('b', obconversion.GENOPTIONS)
         mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
         obconversion.RemoveOption('b', obconversion.GENOPTIONS)
+
+        # get new list of charged atoms after converting dative bonds
+        anysmarts.Match(mol)
+        anychargeatoms = list(set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms))
+        if len(anychargeatoms) < countanychargeatoms:
+            changes = 'dative bonds converted'
+
+        # get list of non-permanently charged atoms with hydrogens
+        hydrosmarts.Match(mol)
+        hydrochargeatoms = list(set([i[0] for i in hydrosmarts.GetUMapList()]).difference(permchargeatoms))
 
         # if there are non-permanently charged atoms with hydrogens then remove hydrogen atoms,
         # they will be added again after setting charges to zero so there are the correct number
@@ -80,6 +97,17 @@ def convert(smiles, returnstring=True, obconversion=None):
             atomid = atom.GetIdx()
             if atomid in anychargeatoms:
                 atom.SetFormalCharge(0)
+                if changes == '':
+                    changes = 'atom(s) neutralized'
+                elif 'atoms neutralized' not in changes:
+                    changes += ', atom(s) neutralized'
+
+        # check for permanently charged atoms
+        if len(permchargeatoms) > 0:
+            if changes == '':
+                changes = 'structure contains permanently charged atoms'
+            elif 'structure contains permanently charged atoms' not in changes:
+                changes += ', structure contains permanently charged atoms'
 
         # ending molecule modification causes openbabel to re-evaluate the
         # valence of the atoms with their charges now set to zero
@@ -92,10 +120,20 @@ def convert(smiles, returnstring=True, obconversion=None):
             mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
             obconversion.RemoveOption('h', obconversion.GENOPTIONS)
 
+        # count the aromatic atoms to check if aromaticity was broken by manipulations
+        newsmiles = obconversion.WriteString(mol).strip()
+        aromaticaftercount = len(re.findall(aromatch, smiles))
+        if aromaticaftercount < aromaticbeforecount:
+            changes = 'aromaticity broken'
+            newsmiles = 'smiles error'
+
     if returnstring:
-        return obconversion.WriteString(mol).strip()
+        if newsmiles is None:
+            return obconversion.WriteString(mol).strip(), changes
+        else:
+            return newsmiles, changes
     else:
-        return mol
+        return mol, changes
 
 
 # list for testing
@@ -108,6 +146,8 @@ test_list = [
     'C[NH+](C)C',
     # (N+) nitrobenzene (dative bond representation)
     'c1ccccc1[N+]([O-])=O',
+    # (P+) (dative bond representation)
+    'c1ccccc1[P+][O-]',
     # (P+) Diethyl hydrogen phosphate (dative bond representation)
     'CCO[P+]([O-])(O)OCC',
     # (S+) Dimethyl sulfite (dative bond representation)
@@ -144,7 +184,9 @@ test_list = [
     # (P+) bis(4-methylanilino)-oxophosphanium
     'CC1=CC=C(C=C1)N[P+](=O)NC2=CC=C(C=C2)C',
     # cis-1,2-dichloroethene
-    'Cl/C=C\Cl'
+    'Cl/C=C\Cl',
+    # erroneous smiles
+    'erroneous smiles'
 ]
 
 if __name__ == '__main__':

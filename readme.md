@@ -1,6 +1,6 @@
 ********************************************************************************
-**IFSAPP - A simple program for applying QSARs**\
-Coded by Trevor N. Brown\
+**IFSAPP - A simple program for applying QSARs**  
+Created and maintained by Trevor N. Brown  
 Version 0.0, Nov. 2019
 
 IFSAPP is free to use and redistribute, but is provided "as is" with no implied
@@ -8,7 +8,11 @@ warranties or guarantees. The user accepts responsibility for using the software
 properly, as outlined in this user guide.
 
 IFSAPP was coded using only open source python modules, and the QSARs have all
-been published in peer-reviewed literature.
+been published in peer-reviewed literature. See below for details on open source
+licensing.
+
+**Funding and Acknowledgements**  
+
 ********************************************************************************
 
 CONTENTS
@@ -371,13 +375,13 @@ Version 0.0 Completed Nov. 2019
 -General code cleanup and updating  
 -Migrated code to GitHub  
 -Converted IFSAPP docstring to readme.md file  
+-Added the ppLFER QSARs back into the program  
 
 ********************************************************************************
 6. KNOWN BUGS AND PLANNED FEATURES
 ********************************************************************************
 
 Identified in Version B.1:  
--Code needs to be optimized to increase the speed of calculations  
 -Updated versions of the LSER QSPRs need to be created and published
   
 Identified in Version 0.0:  
@@ -387,6 +391,8 @@ Identified in Version 0.0:
  software company named IFS exists and their suite of software is called
  IFS Applications  
 -Pycharm still gives some warnings but the code runs  
+-Code needs to be profiled and optimized to increase the speed of launching the
+ program  
 
 
 ********************************************************************************
