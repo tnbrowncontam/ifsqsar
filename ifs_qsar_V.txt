@@ -1,0 +1,89 @@
+<startmodelstructure>
+internal_validation	k-fold_cross-validation_by_value
+model_type	multiple_linear_regression
+regular_dependent_variables	v,
+k-folds	1
+round_digits	3
+units	0.01 cm^3/mol
+molecule_format	old_format
+<endmodelstructure>
+<startmodel>
+<setting>	value_name	V
+<setting>	round_digits	3
+<setting>	units	0.01 cm^3/mol
+<setting>	molecule_format	old_format
+<frag>	0	[#6]	no description
+<frag>	1	[#7]	no description
+<frag>	2	[#8]	no description
+<frag>	3	[#9]	no description
+<frag>	4	[#14]	no description
+<frag>	5	[#15]	no description
+<frag>	6	[#16]	no description
+<frag>	7	[#17]	no description
+<frag>	8	[#5]	no description
+<frag>	9	[#32]	no description
+<frag>	10	[#33]	no description
+<frag>	11	[#34]	no description
+<frag>	12	[#35]	no description
+<frag>	13	[#50]	no description
+<frag>	14	[#51]	no description
+<frag>	15	[#52]	no description
+<frag>	16	[#53]	no description
+<frag>	17	[*H1]	no description
+<frag>	18	[*H2]	no description
+<frag>	19	[*H3]	no description
+<frag>	20	[*H4]	no description
+<frag>	21	[*H5]	no description
+<frag>	22	[*H6]	no description
+<frag>	23	[!#1]~[!#1]	no description
+<coeff>	0	0.1635
+<coeff>	1	0.1439
+<coeff>	2	0.1243
+<coeff>	3	0.1048
+<coeff>	4	0.2683
+<coeff>	5	0.2487
+<coeff>	6	0.2291
+<coeff>	7	0.2095
+<coeff>	8	0.1832
+<coeff>	9	0.3102
+<coeff>	10	0.2942
+<coeff>	11	0.2781
+<coeff>	12	0.2621
+<coeff>	13	0.3935
+<coeff>	14	0.3744
+<coeff>	15	0.3614
+<coeff>	16	0.3453
+<coeff>	17	0.0215
+<coeff>	18	0.043
+<coeff>	19	0.0645
+<coeff>	20	0.086
+<coeff>	21	0.1075
+<coeff>	22	0.129
+<coeff>	23	-0.0656
+<fstdev>	0	0.0
+<fstdev>	1	0.0
+<fstdev>	2	0.0
+<fstdev>	3	0.0
+<fstdev>	4	0.0
+<fstdev>	5	0.0
+<fstdev>	6	0.0
+<fstdev>	7	0.0
+<fstdev>	8	0.0
+<fstdev>	9	0.0
+<fstdev>	10	0.0
+<fstdev>	11	0.0
+<fstdev>	12	0.0
+<fstdev>	13	0.0
+<fstdev>	14	0.0
+<fstdev>	15	0.0
+<fstdev>	16	0.0
+<fstdev>	17	0.0
+<fstdev>	18	0.0
+<fstdev>	19	0.0
+<fstdev>	20	0.0
+<fstdev>	21	0.0
+<fstdev>	22	0.0
+<fstdev>	23	0.0
+<define>	RETURN	0
+<applycoeff>	0	24	<addto>	RETURN
+<endmodel>

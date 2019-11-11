@@ -50,6 +50,12 @@ class AppManagerClass:
                            ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
                            ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
                            ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
+                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
                            ]
         else:
             self.models = [ifs_model_read.Model('ifs_qsar_fhlb_linr.txt'),
@@ -57,6 +63,12 @@ class AppManagerClass:
                            ifs_model_read.Model('ifs_qsar_hhlt_linr.txt'),
                            ifs_model_read.Model('ifs_qsar_dsm_linr.txt'),
                            ifs_model_read.Model('ifs_qsar_tm_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__E_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__S_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__A_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__B_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__L_linr.txt'),
+                           ifs_model_read.Model('ifs_qsar_V.txt'),
                            ]
         # set to single mode
         self.setup_single_mode()

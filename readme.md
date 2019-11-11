@@ -382,7 +382,11 @@ Identified in Version B.1:
   
 Identified in Version 0.0:  
 -The xtxi matrix for domain checking in the model files needs to be re-encoded
- using python 3
+ using python 3  
+-IFSAPP will likely need to be renamed and refactored, because an existing
+ software company named IFS exists and their suite of software is called
+ IFS Applications  
+-Pycharm still gives some warnings but the code runs  
 
 
 ********************************************************************************
