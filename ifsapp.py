@@ -2,7 +2,9 @@
 Implements a simple GUI for applying group contribution QSARS (IFS) developed by Trevor N. Brown.
 """
 
+import openbabel as ob
 import ifs_model_read
+import smiles_norm
 import tkinter as tk
 from tkinter import filedialog
 from idlelib.redirector import WidgetRedirector
@@ -70,6 +72,9 @@ class AppManagerClass:
                            ifs_model_read.Model('ifs_qsar_ADB_UFZ__L_linr.txt'),
                            ifs_model_read.Model('ifs_qsar_V.txt'),
                            ]
+        # setup openbabel converter
+        self.obcon = ob.OBConversion()
+        self.obcon.SetInAndOutFormats('smi', 'can')
         # set to single mode
         self.setup_single_mode()
 
@@ -256,11 +261,35 @@ class AppManagerClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(tk.DISABLED)
-        result = 'property (units)\tprediction\terror\tUL\tnote\n'
-        for m in self.models:
-            pred, warn, error, note = m.apply_model(smiles)
-            result += m.model_namespace['svalue_name'] + ' ('+m.model_namespace['sunits'] + ')' + '\t' + \
-                str(pred) + '\t' + str(error) + '\t' + str(warn) + '\t' + str(note) + '\n'
+        # convert smiles to standardized obmol
+        molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, obconversion=self.obcon)
+        # check conversion results and output smiles and conversion note
+        result = 'input SMILES: ' + smiles + '\n'
+        conversionsuccess = True
+        if 'error reading SMILES' in conversionnote:
+            conversionsuccess = False
+            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + '; check input\n'
+        elif 'aromaticity broken' in conversionnote:
+            conversionsuccess = False
+            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + \
+                      '; structure or conversion error\n'
+        elif 'structure contains permanently charged atoms' in conversionnote:
+            conversionsuccess = False
+            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + \
+                      '; QSARs only handle neutrals\n'
+        elif 'charged atom(s) neutralized' in conversionnote:
+            result += 'normalized SMILES: ' + newsmiles + '\nSMILES conversion note: ' + conversionnote + \
+                      '; QSARs only handle neutrals\n'
+        else:
+            result += 'normalized SMILES: ' + newsmiles + '\nSMILES conversion note: ' + conversionnote + '\n'
+        # prepare model outputs
+        if conversionsuccess:
+            result += '\nproperty (units)\tprediction\terror\tUL\tnote\n'
+            for m in self.models:
+                pred, warn, error, note = m.apply_model(molecule)
+                result += m.model_namespace['svalue_name'] + ' ('+m.model_namespace['sunits'] + ')' + '\t' + \
+                    str(pred) + '\t' + str(error) + '\t' + str(warn) + '\t' + str(note) + '\n'
+        # display results
         self.textresult.delete('1.0', tk.END)
         self.textresult.insert('1.0', str(result))
         self.toggle_disabled(tk.NORMAL)

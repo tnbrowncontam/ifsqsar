@@ -3,11 +3,10 @@ Reads model files from the development code for group contribution QSARs (IFS) d
 Applies the QSARs and checks domain of applicability for single structures as SMILES or for a file of structures.
 """
 
-import numpy as np
 import openbabel as ob
+import numpy as np
 import base64
 import pickle
-import smiles_norm
 
 
 def normcdfapprox(x):
@@ -58,29 +57,15 @@ def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, s
     return tanimoto
 
 
-def get_holistic_descriptor(descriptor, molecule):
-    """Calculate a holistic descriptor for a molecule passed as a openbabel molecule."""
-    # lssr
-    if descriptor == '!lssr':
-        return len(molecule.OBMol.GetLSSR())
-    # sssr
-    elif descriptor == '!sssr':
-        return molecule.sssr()
-
-
 class Model:
     """Class that loads an arbitrary Model from a Model file and applies it
-    to any molecules passed to it as openbabel mols or as SMILES"""
+    to any molecules passed to it as an openbabel mol"""
     
     def __init__(self, model_name):
         """Load Model from file, define variables."""
         
         # define Model namespace
         self.model_namespace = {}
-
-        # save converter
-        self.obcon = ob.OBConversion()
-        self.obcon.SetInAndOutFormats('smi', 'can')
 
         # read Model file
         modelfile = open(model_name, 'r')
@@ -310,18 +295,8 @@ class Model:
             elif line[0] in ['<concat>']:
                 self.model_namespace['command_sequence'].append(line)
             
-    def apply_model(self, smiles):
+    def apply_model(self, molecule):
         """Take an openbabel molecule, apply the Model and return the result."""
-        # error checking of the smiles
-        if smiles[0] in '()#=-+]1234567890':
-            return '-', '-', '-', 'SMILES error'
-        elif smiles.count('(') != smiles.count(')') or smiles.count('[') != smiles.count(']'):
-            return '-', '-', '-', 'SMILES error'
-        # convert smiles to obmol
-        molecule = smiles_norm.convert(smiles, returnstring=False, obconversion=self.obcon)
-        # error checking the molecule
-        if molecule.NumAtoms() == 0:
-            return '-', '-', '-', 'SMILES error'
         # add or delete hydrogens depending on model
         if self.model_namespace['smolecule_format'] == 'old_format':
             molecule.AddHydrogens()
@@ -336,15 +311,10 @@ class Model:
             key = 'f'+str(f)
             if self.model_namespace[key] is None:
                 pass
-            elif type(self.model_namespace[key]) == str:
-                self.model_namespace['fragment_counts'][0, f] = get_holistic_descriptor(self.model_namespace[key],
-                                                                                        molecule)
             else:
                 self.model_namespace[key].Match(molecule)
                 self.model_namespace['fragment_counts'][0, f] = len(self.model_namespace[key].GetUMapList())
         # parse through command sequence
-        # if self.model_namespace['svalue_name'] in ['L', 'fhlb']:
-        #     print(self.model_namespace['svalue_name'] + '\t', end=' ')
         blocks = [True]
         for command in self.model_namespace['command_sequence']:
             # variable definitions
@@ -362,33 +332,6 @@ class Model:
                     self.model_namespace[command[4]] += coeff_count
                 elif command[3] == '<subfrom>':
                     self.model_namespace[command[4]] -= coeff_count
-            # apply similarity read across
-            elif blocks[0] and command[0] == '<applysimil>':
-                prediction = 0.
-                for i in range(1, len(self.model_namespace['train_arrays'])+1):
-                    fold = self.model_namespace['train_arrays'][i]
-                    foldvalues = self.model_namespace['train_values'][i]
-                    print(foldvalues, foldvalues.shape)
-                    max_simil = 0.
-                    max_sum = 0.
-                    max_n = 0.
-                    for c in range(fold.shape[0]):
-                        this_simil = calculate_fragment_similarity(fold[c, :],
-                                                                   self.model_namespace['fragment_counts'][0, :],
-                                                                   self.model_namespace['fragment_stdev'][0, :],
-                                                                   max_simil)
-                        if this_simil > max_simil:
-                            max_simil = this_simil
-                            max_sum = foldvalues[c, 0]
-                            max_n = 1.
-                        elif this_simil == max_simil:
-                            max_sum += foldvalues[c, 0]
-                            max_n += 1.
-                    prediction += (max_sum / max_n) / float(len(self.model_namespace['train_arrays']))
-                if command[3] == '<addto>':
-                    self.model_namespace[command[4]] += prediction
-                elif command[3] == '<subfrom>':
-                    self.model_namespace[command[4]] -= prediction
             # sum counts
             elif blocks[0] and command[0] == '<sumcounts>':
                 count = (self.model_namespace['fragment_counts'][0, command[1]:command[2]]).sum()
@@ -438,12 +381,10 @@ class Model:
                     for i in range(topn):
                         css *= (topgroup[i][0]*(1-topgroup[i][1]))**0.5
                 css = css**(1/float(topn))
-                # print('css', css)
                 if command[3] == '<addto>':
                     self.model_namespace[command[4]] += css
                 elif command[3] == '<subfrom>':
                     self.model_namespace[command[4]] -= css
-                # if self.model_namespace['svalue_name'] in ['L', 'fhlb']: print(str(css) + '\t', end=' ')
             # calculate leverage
             elif blocks[0] and command[0] == '<calculateleverage>':
                 x = np.mat(self.model_namespace['fragment_counts'][0, command[1]:command[2]])
@@ -453,7 +394,6 @@ class Model:
                     self.model_namespace[command[4]] += leverage
                 elif command[3] == '<subfrom>':
                     self.model_namespace[command[4]] -= leverage
-                # if self.model_namespace['svalue_name'] in ['L', 'fhlb']: print(str(leverage) + '\t', end ==' ')
             # check atom coverage to see if prediction is valid
             elif blocks[0] and command[0] == '<checkatomviolations>':
                 violations = []
@@ -568,60 +508,9 @@ class Model:
                 else:
                     right = command[2]
                 self.model_namespace[command[1]] = np.log(right)
-        # if self.model_namespace['svalue_name'] == 'fhlb': print()
+
         if 'WARN' in self.model_namespace and 'ERROR' in self.model_namespace:
             return self.model_namespace['RETURN'], int(self.model_namespace['WARN']), \
                    self.model_namespace['ERROR'], self.model_namespace['NOTE']
         else:
             return self.model_namespace['RETURN'], None, None, None
-
-
-def apply_model_to_file(model, filename, outfilename=False):
-    """Take a Model object and apply it to smiles in a file, output a new file with the results."""
-
-    # open file
-    try:
-        infile = open(filename, 'r')
-    except IOError:
-        print('File not found:', filename)
-        return
-    
-    # read fields from header file then parse file contents
-    smiles = []
-    data = []
-    header = False
-    for line in infile:
-        columns = line.rstrip('\n').split('\t')
-
-        # read column header
-        if not header:
-            try:
-                assert 'smiles' in columns
-            except AssertionError:
-                print('"smiles" missing from column header of file!')
-                infile.close()
-                return
-            header = columns
-            continue
-
-        # add new chemical
-        smiles.append(columns[header.index('smiles')])
-        data.append(line.rstrip('\n'))
-
-    # close infile
-    infile.close()
-
-    # apply Model to the smiles
-    results = []
-    for s in smiles:
-        results.append(model.apply_model(s))
-
-    # output results to file
-    if outfilename:
-        outfile = open(outfilename, 'w')
-    else:
-        outfile = open(filename.replace('.txt', '') + '_' + model.model_namespace['svalue_name'] + '.txt', 'w')
-    for i in range(len(data)):
-        outfile.write(data[i] + '\t'+str(results[i][0]) + '\t'+str(results[i][1]) +
-                      '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
-    outfile.close()

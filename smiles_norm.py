@@ -7,19 +7,28 @@ import openbabel as ob
 import re
 
 
-def convert(smiles, returnstring=True, obconversion=None):
+def convert(smiles, obconversion=None):
     """Converts passed SMILES to a normalized form.
     By default returns a converted SMILES string, but can also return the new OBMol.
     An existing OBConversion instance can be passed so that one does not need to instantiated."""
 
+    # instantiate OBMol
+    mol = ob.OBMol()
+
+    # error checking of the smiles string
+    if smiles[0] in '()#=-+]1234567890':
+        return mol, '', 'error reading SMILES'
+    elif smiles.count('(') != smiles.count(')') or smiles.count('[') != smiles.count(']'):
+        return mol, '', 'error reading SMILES'
+
+    # instantiate obconversion if necessary
     if obconversion is None:
         obconversion = ob.OBConversion()
         obconversion.SetInAndOutFormats('smi', 'can')
-    # -i options removes isotopic data
+
+    # add -i option to remove isotopic data if necessary
     if obconversion.IsOption('i', obconversion.OUTOPTIONS) is None:
         obconversion.AddOption('i', obconversion.OUTOPTIONS)
-
-    mol = ob.OBMol()
 
     # initialize smarts for finding atoms with permanent charges
     permsmarts = ob.OBSmartsPattern()
@@ -41,7 +50,7 @@ def convert(smiles, returnstring=True, obconversion=None):
 
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
-        return 'smiles error', 'error reading smiles'
+        return mol, '', 'error reading SMILES'
 
     # remove all but the largest contiguous fragment
     obconversion.AddOption('r', obconversion.GENOPTIONS)
@@ -98,16 +107,9 @@ def convert(smiles, returnstring=True, obconversion=None):
             if atomid in anychargeatoms:
                 atom.SetFormalCharge(0)
                 if changes == '':
-                    changes = 'atom(s) neutralized'
+                    changes = 'charged atom(s) neutralized'
                 elif 'atoms neutralized' not in changes:
-                    changes += ', atom(s) neutralized'
-
-        # check for permanently charged atoms
-        if len(permchargeatoms) > 0:
-            if changes == '':
-                changes = 'structure contains permanently charged atoms'
-            elif 'structure contains permanently charged atoms' not in changes:
-                changes += ', structure contains permanently charged atoms'
+                    changes += ', charged atom(s) neutralized'
 
         # ending molecule modification causes openbabel to re-evaluate the
         # valence of the atoms with their charges now set to zero
@@ -120,20 +122,22 @@ def convert(smiles, returnstring=True, obconversion=None):
             mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
             obconversion.RemoveOption('h', obconversion.GENOPTIONS)
 
-        # count the aromatic atoms to check if aromaticity was broken by manipulations
-        newsmiles = obconversion.WriteString(mol).strip()
-        aromaticaftercount = len(re.findall(aromatch, smiles))
-        if aromaticaftercount < aromaticbeforecount:
-            changes = 'aromaticity broken'
-            newsmiles = 'smiles error'
+    # check for permanently charged atoms
+    if len(permchargeatoms) > 0:
+        if changes == '':
+            changes = 'structure contains permanently charged atoms'
+        elif 'structure contains permanently charged atoms' not in changes:
+            changes += ', structure contains permanently charged atoms'
 
-    if returnstring:
-        if newsmiles is None:
-            return obconversion.WriteString(mol).strip(), changes
-        else:
-            return newsmiles, changes
-    else:
-        return mol, changes
+    # count the aromatic atoms to check if aromaticity was broken by manipulations
+    newsmiles = obconversion.WriteString(mol).strip()
+    aromaticaftercount = len(re.findall(aromatch, newsmiles))
+    if aromaticaftercount < aromaticbeforecount:
+        changes = 'aromaticity broken'
+        newsmiles = ''
+
+    # return results
+    return mol, newsmiles, changes
 
 
 # list for testing
@@ -185,10 +189,14 @@ test_list = [
     'CC1=CC=C(C=C1)N[P+](=O)NC2=CC=C(C=C2)C',
     # cis-1,2-dichloroethene
     'Cl/C=C\Cl',
+    # false aromaticity
+    'c1cccc1',
     # erroneous smiles
     'erroneous smiles'
+
 ]
 
 if __name__ == '__main__':
     for smiles in test_list:
-        print(smiles, convert(smiles))
+        m, s, n = convert(smiles)
+        print(smiles, s, n)
