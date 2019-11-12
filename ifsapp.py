@@ -320,14 +320,14 @@ class AppManagerClass:
                     outline = ''
                     for field in strip:
                         outline += field + sep
-                    result = ''
+                    result = 'normalized SMILES' + sep + 'SMILES conversion note' + sep
                     for m in self.models:
                         result += m.model_namespace['svalue_name'] + ' (' + m.model_namespace['sunits'] + ')' + \
                                   sep + 'error' + sep + 'UL' + sep + 'note' + sep
                     outfile.write(outline+result[:-1] + '\n')
                     continue
                 else:
-                    result = 'smiles' + sep
+                    result = 'smiles' + sep + 'normalized SMILES' + sep + 'SMILES conversion note' + sep
                     for m in self.models:
                         result += m.model_namespace['svalue_name'] + ' (' + m.model_namespace['sunits'] + ')' + \
                                   sep + 'error' + sep + 'UL' + sep + 'note' + sep
@@ -336,10 +336,31 @@ class AppManagerClass:
             for field in strip:
                 outline += field + sep
             smiles = strip[smiles_index]
-            result = ''
-            for m in self.models:
-                pred, warn, error, note = m.apply_model(smiles)
-                result += str(pred) + sep + str(error) + sep + str(warn) + sep + str(note) + sep
+            # convert smiles to standardized obmol
+            molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, obconversion=self.obcon)
+            # check conversion results and output smiles and conversion note
+            result = newsmiles + sep + conversionnote
+            conversionsuccess = True
+            if 'error reading SMILES' in conversionnote:
+                conversionsuccess = False
+                result += '; check input' + sep
+            elif 'aromaticity broken' in conversionnote:
+                conversionsuccess = False
+                result += '; structure or conversion error' + sep
+            elif 'structure contains permanently charged atoms' in conversionnote:
+                conversionsuccess = False
+                result += '; QSARs only handle neutrals' + sep
+            elif 'charged atom(s) neutralized' in conversionnote:
+                result += '; QSARs only handle neutrals' + sep
+            else:
+                result += sep
+            if conversionsuccess:
+                for m in self.models:
+                    pred, warn, error, note = m.apply_model(molecule)
+                    result += str(pred) + sep + str(error) + sep + str(warn) + sep + str(note) + sep
+            else:
+                for m in range(len(self.models)):
+                    result += 'Prediction not possible' + sep + 'None' + sep + 'None' + sep + 'None' + sep
             outfile.write(outline+result[:-1] + '\n')
         self.toggle_disabled(tk.NORMAL)
         self.textinput.delete('1.0', tk.END)

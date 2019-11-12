@@ -14,6 +14,7 @@ def convert(smiles, obconversion=None):
 
     # instantiate OBMol
     mol = ob.OBMol()
+    changes = ''
 
     # error checking of the smiles string
     if smiles[0] in '()#=-+]1234567890':
@@ -42,7 +43,7 @@ def convert(smiles, obconversion=None):
     hydrosmarts.Init('[*!+0!H0]')
 
     # count aromatic atoms using string matching
-    aromatch = re.compile('((?<![SAT])c)|((?<![MZCISR])n)|((?<![MOHCPN])o)|((?<![DEAT])s)|((?<![N])p)')
+    aromatch = re.compile('(?<!\[[A-Z])[cnosp]')
     aromaticbeforecount = len(re.findall(aromatch, smiles))
 
     # read smiles into openbabel
@@ -51,6 +52,12 @@ def convert(smiles, obconversion=None):
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
         return mol, '', 'error reading SMILES'
+
+    if '.' in smiles:
+        if changes == '':
+            changes = 'salts stripped'
+        else:
+            changes += ', salts stripped'
 
     # remove all but the largest contiguous fragment
     obconversion.AddOption('r', obconversion.GENOPTIONS)
@@ -67,7 +74,6 @@ def convert(smiles, obconversion=None):
 
     # if there charged atoms that are not permanently charged, then modify the molecule to neutralize them
     newsmiles = None
-    changes = ''
     if countanychargeatoms:
         # setting begin modify prevents openbabel from re-evaluating
         # the structure as modifications are being made
@@ -82,7 +88,10 @@ def convert(smiles, obconversion=None):
         anysmarts.Match(mol)
         anychargeatoms = list(set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms))
         if len(anychargeatoms) < countanychargeatoms:
-            changes = 'dative bonds converted'
+            if changes == '':
+                changes = 'dative bonds converted'
+            else:
+                changes += ', dative bonds converted'
 
         # get list of non-permanently charged atoms with hydrogens
         hydrosmarts.Match(mol)
@@ -192,7 +201,9 @@ test_list = [
     # false aromaticity
     'c1cccc1',
     # erroneous smiles
-    'erroneous smiles'
+    'erroneous smiles',
+    'Cc1ncc(N(=O)=O)n1CCO',
+    'S(c(ccc(N)c1)c1)c(ccc(N)c2)c2',
 
 ]
 
