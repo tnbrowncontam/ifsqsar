@@ -1898,12 +1898,9 @@ units	kJ/mol
 <define>	CHECKCOUNTS	0
 <sumcounts>	1	80	<addto>	CHECKCOUNTS
 <if>	CHECKCOUNTS	<equalto>	0
-<if>	WARN	<greaterthan>	0
-<concat>	NOTE	NOTE	, 
-<endif>
 <define>	WARN	4
 <define>	ERROR	11.8062805529
-<concat>	NOTE	NOTE	no fragment overlap with training dataset
+<define>	NOTE	no fragment overlap with training dataset
 <endif>
 <checkatomviolations>	ATOMVIOLATION	ATOMNOTE
 <if>	ATOMVIOLATION	<equalto>	1

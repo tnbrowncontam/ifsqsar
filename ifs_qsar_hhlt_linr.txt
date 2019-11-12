@@ -1392,12 +1392,9 @@ molecule_format	old_format
 <define>	CHECKCOUNTS	0
 <sumcounts>	1	64	<addto>	CHECKCOUNTS
 <if>	CHECKCOUNTS	<equalto>	0
-<if>	WARN	<greaterthan>	0
-<concat>	NOTE	NOTE	, 
-<endif>
 <define>	WARN	4
 <define>	ERROR	0.977245178522
-<concat>	NOTE	NOTE	no fragment overlap with training dataset
+<define>	NOTE	no fragment overlap with training dataset
 <endif>
 <checkatomviolations>	ATOMVIOLATION	ATOMNOTE
 <if>	ATOMVIOLATION	<equalto>	1
