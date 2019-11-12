@@ -396,7 +396,7 @@ Open Babel: Chemical structure handling
 - License: GNU GPL. http://www.gnu.org/licenses/gpl.html  
 
 Pyinstaller: Packaging for .exe distribution  
-- Pyinstaller, version 3.3.1, http://www.pyinstaller.org/  
+- Pyinstaller, version 3.5, http://www.pyinstaller.org/  
 - License: GNU GPL. http://www.pyinstaller.org/license.html  
 
 ********************************************************************************
@@ -446,6 +446,9 @@ Version 0.0.0 Completed November 2019
 - Pycharm IDE still gives some warnings but the code runs  
 - Code needs to be profiled and optimized to increase the speed of launching and
   running the program  
+- Self-contained windows version of the updated program still needs to be
+  compiled with pyinstaller. The win32 version provided in the dist folder is
+  IFSAPP version B.2  
 
 ********************************************************************************
 **7. REFERENCES**
