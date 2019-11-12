@@ -249,7 +249,7 @@ class AppManagerClass:
         text = ReadOnlyText(popup, font='Consolas 10')
         with open('readme.md', 'r') as file:
             infostring = file.read()
-        infostring = infostring.replace('<pre>', '').replace('</pre>', '')
+        infostring = infostring.replace('<pre>', '').replace('</pre>', '').replace('\[', '[')
         text.insert('1.0', infostring)
         text.pack(side=tk.LEFT)
         scrbar.config(command=text.yview)

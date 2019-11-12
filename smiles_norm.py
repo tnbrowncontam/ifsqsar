@@ -43,7 +43,7 @@ def convert(smiles, obconversion=None):
     hydrosmarts.Init('[*!+0!H0]')
 
     # count aromatic atoms using string matching
-    aromatch = re.compile('(?<!^[A-Z])(?<!\[[A-Z])[cnosp]')
+    aromatch = re.compile('(?<!\[[A-Z])[cnosp]')
     aromaticbeforecount = len(re.findall(aromatch, smiles))
 
     # read smiles into openbabel
@@ -204,6 +204,10 @@ test_list = [
     'erroneous smiles',
     'Cc1ncc(N(=O)=O)n1CCO',
     'S(c(ccc(N)c1)c1)c(ccc(N)c2)c2',
+    'N(=O)(=O)c(ccc(N)c1)c1',
+    'CC34CCC1C(CCc2cc(O)ccc12)C3CCC4O',
+    '[Sn]c1ccccc1',
+
 
 ]
 

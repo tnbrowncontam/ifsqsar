@@ -1,7 +1,7 @@
 ********************************************************************************
 **IFSAPP - A simple program for applying QSARs**  
 Created and maintained by Trevor N. Brown  
-Version 0.0, Nov. 2019
+Version 0.0.0, Nov. 2019
 
 IFSAPP is free to use and redistribute, but is provided "as is" with no implied
 warranties or guarantees. The user accepts responsibility for using the software
@@ -12,26 +12,42 @@ been published in peer-reviewed literature. See below for details on open source
 licensing.
 
 **Funding and Acknowledgements**  
+Prof. Dr. Frank Wania, Prof. Dr. Kai-Uwe Goss, and Dr. Jon A. Arnot are
+acknowledged as coauthors on past, and hopefully future, publications and for
+supporting this work as my Ph.D. supervisor, Postdoc supervisor, and P.I.,
+respectively.
+
+Funding sources that have supported relevant publications include:  
+- CEFIC-LRI (ECO13, ECO30)  
+- ACC-LRI  
+- ECETOC
+- Alexander von Humboldt Foundation Fellowship 
+
+Prof. Dr. Michael H. Abraham, Dr. Nadine Ulrich, Dr. Satoshi Endo, and
+Dr. Angelika Stenzel are all acknowledged for providing and helping to curate
+the data used to generate the LSER QSPRs, and as likely coauthors on forthcoming
+publications for these.
 
 ********************************************************************************
-
-CONTENTS
+**CONTENTS**
+********************************************************************************
 
 1. SOFTWARE OVERVIEW AND USAGE
 2. QSAR DESCRIPTIONS AND INTERPRETATION
 3. INTERPRETING QSAR DOMAIN INFORMATION
 4. SOFTWARE CODING EXPLANATION
 5. CHANGE LOG
-6. REFERENCES
+6. KNOWN BUGS AND PLANNED FEATURES
+7. REFERENCES
 
 ********************************************************************************
-1. SOFTWARE OVERVIEW AND USAGE
+**1. SOFTWARE OVERVIEW AND USAGE**
 ********************************************************************************
 
 In this section:  
--Overview of IFSAPP single mode interface  
--Overview of IFSAPP batch mode interface  
--Information about SMILES strings
+- Overview of IFSAPP single mode interface  
+- Overview of IFSAPP batch mode interface  
+- Information about SMILES strings
 
 **Overview of IFSAPP single mode interface**
 
@@ -110,21 +126,37 @@ N[H] or [NH], and counter ions without brackets or disconnected structures,
 eg. CC(=O)ONa instead of CC(=O)[O-].[Na+]. In the second example the ONa group
 is interpreted as a covalent bond instead of an ion pair, which is incorrect. A
 newer alternative also released by the USEPA is the Chemistry Dashboard (found
-at https://comptox.epa.gov/dashboard). If an erroneous SMILES is entered into
-IFSAPP QSAR predictions will not be made, only the message "SMILES error" will
-be displayed.
+at https://comptox.epa.gov/dashboard).
+
+IFSAPP standardizes passed SMILES strings to a canonical format, and attempts to
+correct some common issues that would cause the QSAR predictions to fail. The
+current QSARs do not make predictions for charged molecules, so IFSAPP attempts
+to neutralize any charged molecules passed to it. The convert dative bonds
+option of openbabel (e.g. nitro groups C\[N+](-\[O-])=O to CN(=O)=O ) is first
+applied, any remaining charged atoms are neutralized and any counter ions
+are removed. If permanent charges are present (e.g. quaternary amines) then no
+predictions are made and an error message is printed. Some aromatic structures
+may result in an error. In most cases this is because there is some error in
+the SMILES and atoms have been flagged as aromatic when they should not have
+been, or a valid aromatic structure has been invalidated by other modifications
+such as adding counter-ions onto the charged atoms. However, in rare cases for
+exotic structures there may be errors in the openbabel aromatic structure
+handling. An error message is printed in these cases and no predictions are
+made. The modified SMILES to which the QSARs are applied is provided in the
+output and any modifications to structures are noted.
 
 ********************************************************************************
-2. QSAR DESCRIPTIONS AND INTERPRETATION
+**2. QSAR DESCRIPTIONS AND INTERPRETATION**
 ********************************************************************************
 
 In this section:  
--General description of IFSAPP QSARs  
--FHLB - QSAR for fish biotransformation half-life  
--HHLB - QSAR for human biotransformation half-life  
--HHLT - QSAR for human total elimination half-life  
--dSm - QSPR for Entropy of Melting  
--Tm - QSPR for Melting Point
+- General description of IFSAPP QSARs  
+- FHLB - QSAR for fish biotransformation half-life  
+- HHLB - QSAR for human biotransformation half-life  
+- HHLT - QSAR for human total elimination half-life  
+- E, S, A, B, V, L - QSPRs for Abraham LSER solute descriptors  
+- dSm - QSPR for Entropy of Melting  
+- Tm - QSPR for Melting Point
 
 **General description of IFSAPP QSARs**
 
@@ -175,6 +207,19 @@ validation statistics are r-sq[external] = 0.72 and RMSE of predictions = 0.70,
 with the data spanning about 7.5 log units. Full details are available in
 reference [8].
 
+**E, S, A, B, V, L - QSPRs for Abraham LSER solute descriptors**
+A separate IFS QSPR has been developed for each descriptor, excluding V which is
+calculated from the chemical structure and has been provided here for
+convenience. Two of the QSPRs, A and B, have been constrained to give
+predictions that are always >= 0, because values less than zero are not
+meaningful. The QSPRs were developed on a single training dataset of 5498
+chemicals and a validated with a validation dataset of 2755 chemicals. The
+validation statistics are good with r-sq[external] at least 0.8 and relative
+errors at most 50% and typically better than this. The QSPRs should be
+considered preliminary and have so far only been released on the UFZ LSER
+database [9]. Some more information on the LSER QSPRs is available in the help
+file of the database.
+
 **dSm - QSPR for Entropy of Melting**
 
 The model predicts the entropy of melting (dSm) on a linear scale in units of
@@ -193,13 +238,13 @@ The validation statistics are q-sq = 0.658 and std.err. of prediction = 46.9 K,
 with the data spanning about 500 K. Full details are found in reference [10].
 
 ********************************************************************************
-3. INTERPRETING QSAR DOMAIN INFORMATION
+**3. INTERPRETING QSAR DOMAIN INFORMATION**
 ********************************************************************************
 
 In this section:  
--What is the domain of applicability?  
--Domain of applicability for the IFSAPP QSARs  
--Interpreting IFSAPP domain outputs
+- What is the domain of applicability?  
+- Domain of applicability for the IFSAPP QSARs  
+- Interpreting IFSAPP domain outputs
 
 **What is the domain of applicability?**
 
@@ -250,19 +295,28 @@ residuals of chemicals with that UL.
 **Interpreting IFSAPP domain outputs**
 
 For each property prediction three domain fields are included:
--error: the estimated standard error of prediction as described above
--UL: the uncertainty level, higher numbers indicate less reliable predictions
--note: explanation for UL
+- error: the estimated standard error of prediction as described above
+- UL: the uncertainty level, higher numbers indicate less reliable predictions
+- note: explanation for UL
     
 Error:
 For the FHLB, HHLB, and HHLT QSARs the original estimated standard errors of
 prediction on the log scale have been converted to factor errors, also called
 dispersion. The error is multiplied by 1.96 and then transformed to linear 
-scale. This gives the factor X in the equation:
-     P { prediction/X < actual < prediction*X } = 0.95
+scale. This gives the factor X in the equation:  
+<pre>
+     P ( prediction/X < actual < prediction*X ) = 0.95
+</pre>  
 where the P is the probablility of the actual value being in the interval
-defined by prediction/X to prediciont*X, i.e. the 95% prediction interval of the
+defined by prediction/X to prediction*X, i.e. the 95% prediction interval of the
 QSAR. This is analogous to the confidence factor Cf.
+
+For several of the LSER QSPRs (E, S, A, B) the intercept of the model has been
+set to zero, and many chemicals do not have any fragment overlap with the
+training dataset (warning level 4 below). These are in fact good predictions,
+and the low estimated prediction errors reflect this. These LSER descriptors are
+essentially normalized to aliphatic hydrocarbons and so predictions for these
+types of chemicals will typically have a warning level 4.
 
 Uncertainty Level (UL) and Notes:
 <pre>
@@ -307,8 +361,9 @@ Uncertain.   Note           Explanation
                             unique atom types that are not present in the
                             training dataset. The features of the atom that are
                             unique will be listed, e.g. element type, number of
-                            hydrogens attached, etc. The error is set to the
-                            same value as UL 3.
+                            hydrogens attached, etc. The error is calculated
+                            from any such chemicals in the validation dataset.
+                            Otherwise, error is set to the same value as UL 3.
 
    6    prediction less/    For some datasets predictions outside of the
         greater than        experimental range do not make sense. For example,
@@ -317,11 +372,11 @@ Uncertain.   Note           Explanation
         dataset             elimination is not reasonable. In these "bounded"
                             QSARs predictions outside of the experimental range
                             are set to the value of the closest boundary. The
-                            error the same as the normal UL 0-3 the molecule
+                            error is the same as the normal UL 0-3 the molecule
                             belongs to.
 </pre>
 ********************************************************************************
-4. SOFTWARE CODING EXPLANATION
+**4. SOFTWARE CODING EXPLANATION**
 ********************************************************************************
 
 IFSAPP was written with the open source resources listed below. Because two of
@@ -329,74 +384,71 @@ these resources use the GNU General Public License interested users may request
 the source code for IFSAPP.
 
 Python: GUI and general coding  
--Python Programming Language, version 2.7.10, http://www.python.org/  
--License: BeOpen.com GPL-compatible license.  
+- Python Programming Language, version 3.7.2, http://www.python.org/  
+- License: BeOpen.com GPL-compatible license.  
 
 NumPy: Mathematics  
--NumPy, version 1.16.2, http://www.numpy.org/  
--License: Developer specific license. http://www.numpy.org/license.html  
+- NumPy, version 1.16.2, http://www.numpy.org/  
+- License: Developer specific license. http://www.numpy.org/license.html  
 
 Open Babel: Chemical structure handling  
--The Open Babel Package, version 2.4.1, http://openbabel.org  
--License: GNU GPL. http://www.gnu.org/licenses/gpl.html  
+- The Open Babel Package, version 2.4.1, http://openbabel.org  
+- License: GNU GPL. http://www.gnu.org/licenses/gpl.html  
 
 Pyinstaller: Packaging for .exe distribution  
--Pyinstaller, version 3.3.1, http://www.pyinstaller.org/  
--License: GNU GPL. http://www.pyinstaller.org/license.html  
+- Pyinstaller, version 3.3.1, http://www.pyinstaller.org/  
+- License: GNU GPL. http://www.pyinstaller.org/license.html  
 
 ********************************************************************************
-5. CHANGE LOG
+**5. CHANGE LOG**
 ********************************************************************************
 
 Version B.0 Completed February 2018.  
--All major features implemented, including:  
- -single mode for single calculations with output to IFSAPP  
- -batch mode for reading and writing files  
- -basic error checking for invalid or truncated SMILES  
- -three QSARs implemented: FHLB, HHLB, HHLT  
- -initial version of this user guide
+- All major features implemented, including:  
+- single mode for single calculations with output to IFSAPP  
+- batch mode for reading and writing files  
+- basic error checking for invalid or truncated SMILES  
+- three QSARs implemented: FHLB, HHLB, HHLT  
+- initial version of this user guide
  
-Version B.1 Completed 2018  
--Minor bug fixes to domain of applicability testing and output
- for FHLB, HHLB, and HHLT models  
--Added QSPRs for Abraham LSER descriptors E, S, A, B, V and L  
--Updated this user guide to include description of LSER QSPRs, and added
- section to outline known bugs and planned features
+Version B.1 Completed late 2018  
+- Minor bug fixes to domain of applicability testing and output
+  for FHLB, HHLB, and HHLT models  
+- Added QSPRs for Abraham LSER descriptors E, S, A, B, V and L  
+- Updated this user guide to include description of LSER QSPRs, and added
+  section to outline known bugs and planned features
  
-Version B.2 Completed 2019  
--Removed QSPRs for Abraham LSER descriptors E, S, A, B, V and L to improve load
- time and run speed  
--Added QSPRs for dSm and Tm  
--Updated warning levels to reflect the new ULs from the dSm&Tm paper  
--Updated this user guide to reflect changes
+Version B.2 Completed early 2019  
+- Removed QSPRs for Abraham LSER descriptors E, S, A, B, V and L to improve load
+  time and run speed  
+- Added QSPRs for dSm and Tm  
+- Updated warning levels to reflect the new ULs from the dSm&Tm paper  
+- Updated this user guide to reflect changes
 
-Version 0.0 Completed Nov. 2019  
--Updated code to run on python 3. Python 3 is now required  
--General code cleanup and updating  
--Migrated code to GitHub  
--Converted IFSAPP docstring to readme.md file  
--Added the ppLFER QSARs back into the program  
-
-********************************************************************************
-6. KNOWN BUGS AND PLANNED FEATURES
-********************************************************************************
-
-Identified in Version B.1:  
--Updated versions of the LSER QSPRs need to be created and published
-  
-Identified in Version 0.0:  
--The xtxi matrix for domain checking in the model files needs to be re-encoded
- using python 3  
--IFSAPP will likely need to be renamed and refactored, because an existing
- software company named IFS exists and their suite of software is called
- IFS Applications  
--Pycharm still gives some warnings but the code runs  
--Code needs to be profiled and optimized to increase the speed of launching the
- program  
-
+Version 0.0.0 Completed November 2019  
+- Updated code to run on python 3. Python 3.4 is now required  
+- General code cleanup and updating  
+- Migrated code to GitHub  
+- Converted IFSAPP docstring to readme.md file  
+- Added the LSER QSARs back into the program  
+- Added smiles_norm.py to cleanup and normalize input SMILES
 
 ********************************************************************************
-7. REFERENCES
+**6. KNOWN BUGS AND PLANNED FEATURES**
+********************************************************************************
+
+- Updated versions of the LSER QSPRs need to be created and published
+- The xtxi matrix for domain checking in the model files needs to be re-encoded
+  using python 3  
+- IFSAPP will likely need to be renamed and refactored, because an existing
+  software company named IFS exists and their suite of software is called
+  IFS Applications  
+- Pycharm IDE still gives some warnings but the code runs  
+- Code needs to be profiled and optimized to increase the speed of launching and
+  running the program  
+
+********************************************************************************
+**7. REFERENCES**
 ********************************************************************************
 
  1. Weininger D., 1988, J. Chem. Inf. Model. 28 (1): 31-6.  
