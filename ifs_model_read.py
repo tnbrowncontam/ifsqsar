@@ -225,7 +225,12 @@ class Model:
         # load xtxi matrix for calculating leverages
         for line in file_lines:
             if line[0] == '<xtxi>':
-                self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1]), encoding='latin1')
+                # try to decode as python 3 string
+                try:
+                    self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1].encode('utf-8')))
+                # if that fails then decode as a python 2 string
+                except UnicodeDecodeError:
+                    self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1]), encoding='latin1')
 
         # read commands into the Model namespace converting types
         self.model_namespace['command_sequence'] = []
@@ -514,3 +519,71 @@ class Model:
                    self.model_namespace['ERROR'], self.model_namespace['NOTE']
         else:
             return self.model_namespace['RETURN'], None, None, None
+
+
+def apply_model_to_file(model, filename, outfilename=False):
+    """apply_model_to_file(model,filename)
+    -take a model object and apply it to smiles in a file
+    -output a new file with the results
+    v0.0.3 - original coding"""
+
+    ##open file
+    try:
+        infile = open(filename, 'r')
+    except IOError:
+        print('File not found:', filename)
+        return
+
+    ##read fields from header file then parse file contents
+    smiles = []
+    data = []
+    header = False
+    for line in infile:
+        columns = line.rstrip('\n').split('\t')
+
+        ##read column header
+        if not header:
+            try:
+                assert 'smiles' in columns
+            except:
+                print('"smiles" missing from column header of file!')
+                infile.close()
+                return
+            header = columns
+            continue
+
+        ##add new chemical
+        smiles.append(columns[header.index('smiles')])
+        data.append(line.rstrip('\n'))
+
+    ##close infile
+    infile.close()
+
+    ##apply model to the smiles
+    obconversion = ob.OBConversion()
+    obconversion.SetInAndOutFormats('smi', 'can')
+
+    results = []
+    for s in smiles:
+        # instantiate OBMol
+        mol = ob.OBMol()
+        # read smiles into openbabel
+        obconversion.ReadString(mol, s)
+        results.append(model.apply_model(mol))
+
+    ##output results to file
+    if outfilename:
+        outfile = open(outfilename, 'w')
+    else:
+        outfile = open(filename.replace('.txt', '') + '_' + model.model_namespace['svalue_name'] + '.txt', 'w')
+    headerline = ''
+    for h in header:
+        headerline += h + '\t'
+    outfile.write(headerline + 'prediction\tUL\terror\tnote\n')
+    for i in range(len(data)):
+        outfile.write(data[i] + '\t' + str(results[i][0]) + '\t' + str(results[i][1]) + '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
+    outfile.close()
+
+if __name__ == "__main__":
+    m = Model('./ifs_qsar_dsm_linr.txt')
+    apply_model_to_file(m, './dataset_ws.txt')
