@@ -5,78 +5,149 @@ Implements a simple GUI for applying group contribution QSARS (IFS) developed by
 import openbabel as ob
 import ifs_model_read
 import smiles_norm
-import tkinter as tk
-from tkinter import filedialog
-from idlelib.redirector import WidgetRedirector
 import sys
 import os
 
 
-class _ReadOnlyText(tk.Text):
-    """Subclass of tk.Text that is read-only."""
+def apply_qsar_to_file(qsar, filename, outfilename=False):
+    """apply_model_to_file(model,filename)
+    -take a model object and apply it to smiles in a file
+    -output a new file with the results
+    v0.0.3 - original coding"""
 
-    def __init__(self, *args, **kwargs):
-        """Replace insert and delete bindings."""
-        # subclass to tk.Text
-        tk.Text.__init__(self, *args, **kwargs)
-        self.redirector = WidgetRedirector(self)
-        # freeze user changes
-        self.insert = self.redirector.register('insert', lambda *args, **kw: 'break')
-        self.delete = self.redirector.register('delete', lambda *args, **kw: 'break')
-        # bind ctrl-a as select all
-        self.bind("<Control-Key-a>", self.select_all)
+    # open file
+    try:
+        infile = open(filename, 'r')
+    except IOError:
+        print('File not found:', filename)
+        return
 
-    def select_all(self, event):
-        """Select all event bound to ctrl-a."""
-        # select all text
-        self.tag_add(tk.SEL, '1.0', tk.END)
-        self.mark_set(tk.INSERT, '1.0')
-        self.see(tk.INSERT)
-        return 'break'
+    # read fields from header file then parse file contents
+    smiles = []
+    data = []
+    header = False
+    for line in infile:
+        columns = line.rstrip('\n').split('\t')
+
+        # read column header
+        if not header:
+            try:
+                assert 'smiles' in columns
+            except AssertionError:
+                print('"smiles" missing from column header of file!')
+                infile.close()
+                return
+            header = columns
+            continue
+
+        # add new chemical
+        smiles.append(columns[header.index('smiles')])
+        data.append(line.rstrip('\n'))
+
+    # close infile
+    infile.close()
+
+    # apply model to the smiles
+    obconversion = ob.OBConversion()
+    obconversion.SetInAndOutFormats('smi', 'can')
+
+    results = []
+    for s in smiles:
+        # instantiate OBMol
+        mol = ob.OBMol()
+        # read smiles into openbabel
+        obconversion.ReadString(mol, s)
+        results.append(qsar.apply_model(mol))
+
+    # output results to file
+    if outfilename:
+        outfile = open(outfilename, 'w')
+    else:
+        outfile = open(filename.replace('.txt', '') + '_' + qsar.model_namespace['svalue_name'] + '.txt', 'w')
+    headerline = ''
+    for h in header:
+        headerline += h + '\t'
+    outfile.write(headerline + 'prediction\tUL\terror\tnote\n')
+    for i in range(len(data)):
+        outfile.write(data[i] + '\t' + str(results[i][0]) + '\t' + str(results[i][1]) + '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
+    outfile.close()
 
 
-class AppManagerClass:
+class IFSGUIClass:
     """A GUI interface for reading in structures as SMILES and applying
     QSARs to the structures."""
 
+    tk = __import__('tkinter')
+
+    class _ReadOnlyText(tk.Text):
+        """Subclass of tk.Text that is read-only."""
+
+        tk = __import__('tkinter')
+
+        def __init__(self, *args, **kwargs):
+            """Replace insert and delete bindings."""
+            # subclass to tk.Text
+            self.tk.Text.__init__(self, *args, **kwargs)
+            from idlelib.redirector import WidgetRedirector
+            self.redirector = WidgetRedirector(self)
+            # freeze user changes
+            self.insert = self.redirector.register('insert', lambda *args, **kw: 'break')
+            self.delete = self.redirector.register('delete', lambda *args, **kw: 'break')
+            # bind ctrl-a as select all
+            self.bind("<Control-Key-a>", self.select_all)
+
+        def select_all(self, event):
+            """Select all event bound to ctrl-a."""
+            # select all text
+            self.tag_add(self.tk.SEL, '1.0', self.tk.END)
+            self.mark_set(self.tk.INSERT, '1.0')
+            self.see(self.tk.INSERT)
+            return 'break'
+
     def __init__(self):
         """GUI enters single mode by default. Available QSARs are loaded."""
+        # initiate root
+        self.root = self.tk.Tk()
+        self.root.wm_title('IFSQSAR')
+        self.filedialog = __import__('tkinter.filedialog', fromlist=[''])
         # create frame
-        self.frame = tk.Frame(root)
+        self.frame = self.tk.Frame(self.root)
         self.frame.pack_propagate(0)
         self.frame.pack()
         # load models
         if hasattr(sys, '_MEIPASS'):
-            self.models = [ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
-                           ifs_model_read.Model(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
+            self.models = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
+                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
                            ]
         else:
-            self.models = [ifs_model_read.Model('ifs_qsar_fhlb_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_hhlb_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_hhlt_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_dsm_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_tm_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__E_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__S_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__A_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__B_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_ADB_UFZ__L_linr.txt'),
-                           ifs_model_read.Model('ifs_qsar_V.txt'),
+            self.models = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
+                           ifs_model_read.QSARModel('ifs_qsar_V.txt'),
                            ]
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')
         # set to single mode
         self.setup_single_mode()
+        # start up gui
+        self.root.mainloop()
 
     def setup_single_mode(self):
         """Delete any batch mode widgets present and load single mode widgets."""
@@ -106,35 +177,35 @@ class AppManagerClass:
             self.buttoncalcbatch.destroy()
             delattr(self, 'buttoncalcbatch')
         # single mode - text box to enter smiles
-        self.labelsmiles = tk.Label(self.frame, text='Enter a SMILES', font='TkDefaultFont 10')
+        self.labelsmiles = self.tk.Label(self.frame, text='Enter a SMILES', font='TkDefaultFont 10')
         self.labelsmiles.grid(row=0, column=0)
-        self.entrysmiles = tk.Entry(self.frame, width=50, font='TkTextFont 10')
+        self.entrysmiles = self.tk.Entry(self.frame, width=50, font='TkTextFont 10')
         self.entrysmiles.grid(row=0, column=1)
         # single mode - text box to show results
-        self.labelresult = tk.Label(self.frame, text='Model Results', font='TkDefaultFont 10')
+        self.labelresult = self.tk.Label(self.frame, text='Model Results', font='TkDefaultFont 10')
         self.labelresult.grid(row=1, column=0)
-        self.frametext = tk.Frame(self.frame)
+        self.frametext = self.tk.Frame(self.frame)
         self.frametext.grid(row=1, column=1)
-        self.scrbar = tk.Scrollbar(self.frametext)
-        self.scrbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.textresult = _ReadOnlyText(self.frametext, height=5, width=48, font='TkTextFont 10')
-        self.textresult.pack(side=tk.LEFT)
+        self.scrbar = self.tk.Scrollbar(self.frametext)
+        self.scrbar.pack(side=self.tk.RIGHT, fill=self.tk.Y)
+        self.textresult = IFSGUIClass._ReadOnlyText(self.frametext, height=5, width=48, font='TkTextFont 10')
+        self.textresult.pack(side=self.tk.LEFT)
         self.scrbar.config(command=self.textresult.yview)
         self.textresult.config(yscrollcommand=self.scrbar.set)
         # single mode - buttons to switch to batch mode and display info
-        self.framesingle = tk.Frame(self.frame)
+        self.framesingle = self.tk.Frame(self.frame)
         self.framesingle.grid(row=2, column=0)
-        self.buttongotobatch = tk.Button(self.framesingle, text='Batch Mode', font='TkDefaultFont 10',
+        self.buttongotobatch = self.tk.Button(self.framesingle, text='Batch Mode', font='TkDefaultFont 10',
                                          height=1, width=15, command=self.setup_batch_mode)
         self.buttongotobatch.grid(row=0, column=0)
-        self.buttoninfo = tk.Button(self.framesingle, text='Info', font='TkDefaultFont 10',
+        self.buttoninfo = self.tk.Button(self.framesingle, text='Info', font='TkDefaultFont 10',
                                     height=1, width=15, command=self.info)
         self.buttoninfo.grid(row=1, column=0)
         # single mode - button to calculate results
-        self.buttoncalcsingle = tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
+        self.buttoncalcsingle = self.tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
                                           height=2, width=25, command=self.calculate_single)
         self.buttoncalcsingle.grid(row=2, column=1)
-        
+
     def setup_batch_mode(self):
         """Delete any single mode widgets present and load batch mode widgets."""
         # delete single mode widgets
@@ -172,28 +243,28 @@ class AppManagerClass:
         self.inputfilename = ''
         self.outputfilename = ''
         # batch mode - button to select input file
-        self.buttoninput = tk.Button(self.frame, text='Select Input File', font='TkDefaultFont 10',
+        self.buttoninput = self.tk.Button(self.frame, text='Select Input File', font='TkDefaultFont 10',
                                      height=1, width=15, command=self.select_input_file)
         self.buttoninput.grid(row=0, column=0)
-        self.textinput = _ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
+        self.textinput = IFSGUIClass._ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
         self.textinput.grid(row=0, column=1)
         # batch mode - button to select output file
-        self.buttonoutput = tk.Button(self.frame, text='Select Ouput File', font='TkDefaultFont 10',
+        self.buttonoutput = self.tk.Button(self.frame, text='Select Ouput File', font='TkDefaultFont 10',
                                       height=1, width=15, command=self.select_output_file)
         self.buttonoutput.grid(row=1, column=0)
-        self.textoutput = _ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
+        self.textoutput = IFSGUIClass._ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
         self.textoutput.grid(row=1, column=1)
         # batch mode - buttons to switch to single mode and display info
-        self.framebatch = tk.Frame(self.frame)
+        self.framebatch = self.tk.Frame(self.frame)
         self.framebatch.grid(row=2, column=0)
-        self.buttongotosingle = tk.Button(self.framebatch, text='Single Mode', font='TkDefaultFont 10',
+        self.buttongotosingle = self.tk.Button(self.framebatch, text='Single Mode', font='TkDefaultFont 10',
                                           height=1, width=15, command=self.setup_single_mode)
         self.buttongotosingle.grid(row=0, column=0)
-        self.buttoninfo = tk.Button(self.framebatch, text='Info', font='TkDefaultFont 10',
+        self.buttoninfo = self.tk.Button(self.framebatch, text='Info', font='TkDefaultFont 10',
                                     height=1, width=15, command=self.info)
         self.buttoninfo.grid(row=1, column=0)
         # batch mode - button to calculate results
-        self.buttoncalcbatch = tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
+        self.buttoncalcbatch = self.tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
                                          height=2, width=25, command=self.calculate_batch)
         self.buttoncalcbatch.grid(row=2, column=1)
 
@@ -238,20 +309,20 @@ class AppManagerClass:
         if hasattr(self, 'buttoncalcsingle'):
             self.buttoncalcsingle.config(state=setstate)
             self.buttoncalcsingle.update()
-        
+
     def info(self):
         """Display the module README.md in a popup window."""
         # create a popup to show information about the program
-        popup = tk.Tk()
+        popup = self.tk.Tk()
         popup.wm_title('Info')
-        scrbar = tk.Scrollbar(popup)
-        scrbar.pack(side=tk.RIGHT, fill=tk.Y)
-        text = _ReadOnlyText(popup, font='Consolas 10')
+        scrbar = self.tk.Scrollbar(popup)
+        scrbar.pack(side=self.tk.RIGHT, fill=self.tk.Y)
+        text = IFSGUIClass._ReadOnlyText(popup, font='Consolas 10')
         with open('README.md', 'r') as file:
             infostring = file.read()
         infostring = infostring.replace('<pre>', '').replace('</pre>', '').replace('\[', '[')
         text.insert('1.0', infostring)
-        text.pack(side=tk.LEFT)
+        text.pack(side=self.tk.LEFT)
         scrbar.config(command=text.yview)
         text.config(yscrollcommand=scrbar.set)
         popup.mainloop()
@@ -260,7 +331,7 @@ class AppManagerClass:
         """Get the SMILES from the GUI and apply QSARs."""
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
-        self.toggle_disabled(tk.DISABLED)
+        self.toggle_disabled(self.tk.DISABLED)
         # convert smiles to standardized obmol
         molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, obconversion=self.obcon)
         # check conversion results and output smiles and conversion note
@@ -290,16 +361,16 @@ class AppManagerClass:
                 result += m.model_namespace['svalue_name'] + ' ('+m.model_namespace['sunits'] + ')' + '\t' + \
                     str(pred) + '\t' + str(error) + '\t' + str(warn) + '\t' + str(note) + '\n'
         # display results
-        self.textresult.delete('1.0', tk.END)
+        self.textresult.delete('1.0', self.tk.END)
         self.textresult.insert('1.0', str(result))
-        self.toggle_disabled(tk.NORMAL)
-        
+        self.toggle_disabled(self.tk.NORMAL)
+
     def calculate_batch(self):
         """Load SMILES from input file, apply QSARs, and write to output file."""
         # read in a file and apply models to each smiles, then write results to the output file
         if self.inputfilename == '' or self.outputfilename == '':
             return
-        self.toggle_disabled(tk.DISABLED)
+        self.toggle_disabled(self.tk.DISABLED)
         infile = open(self.inputfilename, 'r')
         outfile = open(self.outputfilename, 'w')
         header = 0
@@ -362,38 +433,30 @@ class AppManagerClass:
                 for m in range(len(self.models)):
                     result += 'Prediction not possible' + sep + 'None' + sep + 'None' + sep + 'None' + sep
             outfile.write(outline+result[:-1] + '\n')
-        self.toggle_disabled(tk.NORMAL)
-        self.textinput.delete('1.0', tk.END)
-        self.textoutput.delete('1.0', tk.END)
+        self.toggle_disabled(self.tk.NORMAL)
+        self.textinput.delete('1.0', self.tk.END)
+        self.textoutput.delete('1.0', self.tk.END)
 
     def select_input_file(self):
         """Spawn a load file popup."""
         # create popup to select output file
-        self.inputfilename = filedialog.askopenfilename(title='Select Input File',
+        self.inputfilename = self.filedialog.askopenfilename(title='Select Input File',
                                                         filetypes=[('tab-delimited txt files', '*.txt'),
                                                                    ('csv files', '*.csv')])
-        self.textinput.delete('1.0', tk.END)
+        self.textinput.delete('1.0', self.tk.END)
         self.textinput.insert('1.0', self.inputfilename)
 
     def select_output_file(self):
         """Spawn a save file popup."""
         # create popup to select input file
-        self.outputfilename = filedialog.asksaveasfilename(title='Select Output File',
+        self.outputfilename = self.filedialog.asksaveasfilename(title='Select Output File',
                                                            defaultextension='.txt',
                                                            filetypes=[('tab-delimited txt files', '*.txt')])
-        self.textoutput.delete('1.0', tk.END)
+        self.textoutput.delete('1.0', self.tk.END)
         self.textoutput.insert('1.0', self.outputfilename)
-
-    def update(self):
-        """Check for events."""
-        # update
-        root.after(50, app_manager.update)
 
 
 # main tk gui loop
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.wm_title('IFSApp')
-    app_manager = AppManagerClass()
-    root.after(50, app_manager.update)
-    root.mainloop()
+    app_manager = IFSGUIClass()
+

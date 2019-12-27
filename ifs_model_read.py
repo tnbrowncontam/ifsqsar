@@ -9,7 +9,7 @@ import base64
 import pickle
 
 
-def normcdfapprox(x):
+def _normcdfapprox(x):
     """Returns normal distribution CDF."""
     # approximation from:
     # Hector Vazquez-Leal, Roberto Castaneda-Sheissa, Uriel Filobello-Nino,
@@ -20,7 +20,7 @@ def normcdfapprox(x):
     return 1./(np.exp(-x*358./23.+111*np.arctan(x*37./294.))+1.)
 
 
-def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, simil_cut=None):
+def _calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, simil_cut=None):
     """Calculate Tanimoto similarity coefficient between two arrays of fragment counts."""
     # all b-values = 1 meaning:
     #  1) a-values * b-values = a-values
@@ -50,14 +50,14 @@ def calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, s
             # so do not include these in the array
             zmask = stdev_array != 0
             aa = np.abs(counts_array_i[amask2*zmask] - counts_array_j[amask2*zmask]) / stdev_array[amask2*zmask]
-            a = 1 - (2 * normcdfapprox(aa) - 1)
+            a = 1 - (2 * _normcdfapprox(aa) - 1)
             # calculate tanimoto => sum(ab) / [sum(a2) + sum(b2) - sum(ab)]
             asum = a1 + a.sum()
             tanimoto = asum / ((a1+(a**2).sum()) + b - asum)
     return tanimoto
 
 
-class Model:
+class QSARModel:
     """Class that loads an arbitrary Model from a Model file and applies it
     to any molecules passed to it as an openbabel mol"""
     
@@ -192,7 +192,7 @@ class Model:
                 self.model_namespace['fragment_counts'][0, int(line[1])] = 0.
                 self.model_namespace['f'+line[1]] = line[2]
         
-        # read coefficients into the Model namespace
+        # read coefficients into the QSARModel namespace
         max_row = 0
         max_col = 0
         for line in file_lines:
@@ -232,7 +232,7 @@ class Model:
                 except UnicodeDecodeError:
                     self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1]), encoding='latin1')
 
-        # read commands into the Model namespace converting types
+        # read commands into the QSARModel namespace converting types
         self.model_namespace['command_sequence'] = []
         for i in range(len(file_lines)):
             line = file_lines[i]
@@ -301,7 +301,7 @@ class Model:
                 self.model_namespace['command_sequence'].append(line)
             
     def apply_model(self, molecule):
-        """Take an openbabel molecule, apply the Model and return the result."""
+        """Take an openbabel molecule, apply the QSARModel and return the result."""
         # add or delete hydrogens depending on model
         if self.model_namespace['smolecule_format'] == 'old_format':
             molecule.AddHydrogens()
@@ -351,10 +351,10 @@ class Model:
                 topgroup = []
                 mintop = 0.
                 for t in range(self.model_namespace['train_array'].shape[0]):
-                    fragsim = calculate_fragment_similarity(self.model_namespace['fragment_counts'][0, command[1]:command[2]],
+                    fragsim = _calculate_fragment_similarity(self.model_namespace['fragment_counts'][0, command[1]:command[2]],
                                                             self.model_namespace['train_array'][t, command[1]:command[2]],
                                                             self.model_namespace['fragment_stdev'][0, command[1]:command[2]],
-                                                            mintop)
+                                                             mintop)
                     topgroup.append((fragsim, 1-self.model_namespace['train_value_similarity'][t, 0]))
                     topgroup.sort(reverse=True)
                     if len(topgroup) > topn:
@@ -519,72 +519,3 @@ class Model:
                    self.model_namespace['ERROR'], self.model_namespace['NOTE']
         else:
             return self.model_namespace['RETURN'], None, None, None
-
-
-def apply_model_to_file(model, filename, outfilename=False):
-    """apply_model_to_file(model,filename)
-    -take a model object and apply it to smiles in a file
-    -output a new file with the results
-    v0.0.3 - original coding"""
-
-    # open file
-    try:
-        infile = open(filename, 'r')
-    except IOError:
-        print('File not found:', filename)
-        return
-
-    # read fields from header file then parse file contents
-    smiles = []
-    data = []
-    header = False
-    for line in infile:
-        columns = line.rstrip('\n').split('\t')
-
-        # read column header
-        if not header:
-            try:
-                assert 'smiles' in columns
-            except AssertionError:
-                print('"smiles" missing from column header of file!')
-                infile.close()
-                return
-            header = columns
-            continue
-
-        # add new chemical
-        smiles.append(columns[header.index('smiles')])
-        data.append(line.rstrip('\n'))
-
-    # close infile
-    infile.close()
-
-    # apply model to the smiles
-    obconversion = ob.OBConversion()
-    obconversion.SetInAndOutFormats('smi', 'can')
-
-    results = []
-    for s in smiles:
-        # instantiate OBMol
-        mol = ob.OBMol()
-        # read smiles into openbabel
-        obconversion.ReadString(mol, s)
-        results.append(model.apply_model(mol))
-
-    # output results to file
-    if outfilename:
-        outfile = open(outfilename, 'w')
-    else:
-        outfile = open(filename.replace('.txt', '') + '_' + model.model_namespace['svalue_name'] + '.txt', 'w')
-    headerline = ''
-    for h in header:
-        headerline += h + '\t'
-    outfile.write(headerline + 'prediction\tUL\terror\tnote\n')
-    for i in range(len(data)):
-        outfile.write(data[i] + '\t' + str(results[i][0]) + '\t' + str(results[i][1]) + '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
-    outfile.close()
-
-
-if __name__ == "__main__":
-    m = Model('./ifs_qsar_dsm_linr.txt')
-    apply_model_to_file(m, './dataset_ws.txt')
