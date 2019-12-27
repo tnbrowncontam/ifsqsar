@@ -12,7 +12,7 @@ import sys
 import os
 
 
-class ReadOnlyText(tk.Text):
+class _ReadOnlyText(tk.Text):
     """Subclass of tk.Text that is read-only."""
 
     def __init__(self, *args, **kwargs):
@@ -21,16 +21,16 @@ class ReadOnlyText(tk.Text):
         tk.Text.__init__(self, *args, **kwargs)
         self.redirector = WidgetRedirector(self)
         # freeze user changes
-        self.insert = self.redirector.register("insert", lambda *args, **kw: "break")
-        self.delete = self.redirector.register("delete", lambda *args, **kw: "break")
+        self.insert = self.redirector.register('insert', lambda *args, **kw: 'break')
+        self.delete = self.redirector.register('delete', lambda *args, **kw: 'break')
         # bind ctrl-a as select all
         self.bind("<Control-Key-a>", self.select_all)
 
     def select_all(self, event):
         """Select all event bound to ctrl-a."""
         # select all text
-        self.tag_add(tk.SEL, "1.0", tk.END)
-        self.mark_set(tk.INSERT, "1.0")
+        self.tag_add(tk.SEL, '1.0', tk.END)
+        self.mark_set(tk.INSERT, '1.0')
         self.see(tk.INSERT)
         return 'break'
 
@@ -117,7 +117,7 @@ class AppManagerClass:
         self.frametext.grid(row=1, column=1)
         self.scrbar = tk.Scrollbar(self.frametext)
         self.scrbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.textresult = ReadOnlyText(self.frametext, height=5, width=48, font='TkTextFont 10')
+        self.textresult = _ReadOnlyText(self.frametext, height=5, width=48, font='TkTextFont 10')
         self.textresult.pack(side=tk.LEFT)
         self.scrbar.config(command=self.textresult.yview)
         self.textresult.config(yscrollcommand=self.scrbar.set)
@@ -175,13 +175,13 @@ class AppManagerClass:
         self.buttoninput = tk.Button(self.frame, text='Select Input File', font='TkDefaultFont 10',
                                      height=1, width=15, command=self.select_input_file)
         self.buttoninput.grid(row=0, column=0)
-        self.textinput = ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
+        self.textinput = _ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
         self.textinput.grid(row=0, column=1)
         # batch mode - button to select output file
         self.buttonoutput = tk.Button(self.frame, text='Select Ouput File', font='TkDefaultFont 10',
                                       height=1, width=15, command=self.select_output_file)
         self.buttonoutput.grid(row=1, column=0)
-        self.textoutput = ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
+        self.textoutput = _ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
         self.textoutput.grid(row=1, column=1)
         # batch mode - buttons to switch to single mode and display info
         self.framebatch = tk.Frame(self.frame)
@@ -240,14 +240,14 @@ class AppManagerClass:
             self.buttoncalcsingle.update()
         
     def info(self):
-        """Display the module readme.md in a popup window."""
+        """Display the module README.md in a popup window."""
         # create a popup to show information about the program
         popup = tk.Tk()
         popup.wm_title('Info')
         scrbar = tk.Scrollbar(popup)
         scrbar.pack(side=tk.RIGHT, fill=tk.Y)
-        text = ReadOnlyText(popup, font='Consolas 10')
-        with open('readme.md', 'r') as file:
+        text = _ReadOnlyText(popup, font='Consolas 10')
+        with open('README.md', 'r') as file:
             infostring = file.read()
         infostring = infostring.replace('<pre>', '').replace('</pre>', '').replace('\[', '[')
         text.insert('1.0', infostring)

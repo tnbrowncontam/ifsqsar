@@ -527,39 +527,39 @@ def apply_model_to_file(model, filename, outfilename=False):
     -output a new file with the results
     v0.0.3 - original coding"""
 
-    ##open file
+    # open file
     try:
         infile = open(filename, 'r')
     except IOError:
         print('File not found:', filename)
         return
 
-    ##read fields from header file then parse file contents
+    # read fields from header file then parse file contents
     smiles = []
     data = []
     header = False
     for line in infile:
         columns = line.rstrip('\n').split('\t')
 
-        ##read column header
+        # read column header
         if not header:
             try:
                 assert 'smiles' in columns
-            except:
+            except AssertionError:
                 print('"smiles" missing from column header of file!')
                 infile.close()
                 return
             header = columns
             continue
 
-        ##add new chemical
+        # add new chemical
         smiles.append(columns[header.index('smiles')])
         data.append(line.rstrip('\n'))
 
-    ##close infile
+    # close infile
     infile.close()
 
-    ##apply model to the smiles
+    # apply model to the smiles
     obconversion = ob.OBConversion()
     obconversion.SetInAndOutFormats('smi', 'can')
 
@@ -571,7 +571,7 @@ def apply_model_to_file(model, filename, outfilename=False):
         obconversion.ReadString(mol, s)
         results.append(model.apply_model(mol))
 
-    ##output results to file
+    # output results to file
     if outfilename:
         outfile = open(outfilename, 'w')
     else:
@@ -583,6 +583,7 @@ def apply_model_to_file(model, filename, outfilename=False):
     for i in range(len(data)):
         outfile.write(data[i] + '\t' + str(results[i][0]) + '\t' + str(results[i][1]) + '\t' + str(results[i][2]) + '\t' + str(results[i][3]) + '\n')
     outfile.close()
+
 
 if __name__ == "__main__":
     m = Model('./ifs_qsar_dsm_linr.txt')
