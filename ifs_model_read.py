@@ -518,4 +518,4 @@ class QSARModel:
             return self.model_namespace['RETURN'], int(self.model_namespace['WARN']), \
                    self.model_namespace['ERROR'], self.model_namespace['NOTE']
         else:
-            return self.model_namespace['RETURN'], None, None, None
+            return self.model_namespace['RETURN'], np.nan, np.nan, ''

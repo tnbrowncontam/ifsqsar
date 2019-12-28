@@ -51,7 +51,7 @@ def convert(smiles, obconversion=None):
 
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
-        return mol, '', 'error reading SMILES'
+        return mol, '', 'error reading SMILES: check input'
 
     if '.' in smiles:
         if changes == '':
@@ -116,9 +116,9 @@ def convert(smiles, obconversion=None):
             if atomid in anychargeatoms:
                 atom.SetFormalCharge(0)
                 if changes == '':
-                    changes = 'charged atom(s) neutralized'
+                    changes = 'charged atom(s) neutralized: QSARs only handle neutrals'
                 elif 'atoms neutralized' not in changes:
-                    changes += ', charged atom(s) neutralized'
+                    changes += ', charged atom(s) neutralized: QSARs only handle neutrals'
 
         # ending molecule modification causes openbabel to re-evaluate the
         # valence of the atoms with their charges now set to zero
@@ -134,15 +134,15 @@ def convert(smiles, obconversion=None):
     # check for permanently charged atoms
     if len(permchargeatoms) > 0:
         if changes == '':
-            changes = 'structure contains permanently charged atoms'
+            changes = 'structure contains permanently charged atoms: QSARs only handle neutrals'
         elif 'structure contains permanently charged atoms' not in changes:
-            changes += ', structure contains permanently charged atoms'
+            changes += ', structure contains permanently charged atoms: QSARs only handle neutrals'
 
     # count the aromatic atoms to check if aromaticity was broken by manipulations
     newsmiles = obconversion.WriteString(mol).strip()
     aromaticaftercount = len(re.findall(aromatch, newsmiles))
     if aromaticaftercount < aromaticbeforecount:
-        changes = 'aromaticity broken'
+        changes = 'aromaticity broken: structure or conversion error'
         newsmiles = ''
 
     # return results

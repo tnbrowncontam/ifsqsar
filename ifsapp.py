@@ -9,6 +9,44 @@ import sys
 import os
 
 
+def apply_qsars_to_molecule(qsarlist, smiles=None, converter=None, molecule=None):
+    """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
+    result = {}
+    # no OBMol passed so pass to smiles_norm
+    if molecule is None:
+        assert type(smiles) == str
+        if converter is not None:
+            assert type(converter) == ob.OBConversion
+        # convert smiles to standardized obmol
+        molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, converter)
+        # check conversion results and output smiles and conversion note
+        if ('error reading SMILES' in conversionnote or
+                'aromaticity broken' in conversionnote or
+                'structure contains permanently charged atoms' in conversionnote):
+            result['SMILES conversion success'] = False
+            result['SMILES conversion note'] = conversionnote
+            return result
+        else:
+            result['SMILES conversion success'] = True
+            result['SMILES'] = smiles
+            result['new SMILES'] = newsmiles
+            result['SMILES conversion note'] = conversionnote
+            result['ob molecule'] = molecule
+            result['QSAR list'] = []
+    # parse through the list of QSARs applying each to the molecule
+    for qsar in qsarlist:
+        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(molecule)
+        result['QSAR list'].append(qsar.model_namespace['svalue_name'])
+        result[qsar.model_namespace['svalue_name']] = {
+            'units': qsar.model_namespace['sunits'],
+            'QSAR prediction': qsar_prediction,
+            'UL': uncertainty_level,
+            'error': error,
+            'prediction note': note
+        }
+    return result
+
+
 def apply_qsar_to_file(qsar, filename, outfilename=False):
     """apply_model_to_file(model,filename)
     -take a model object and apply it to smiles in a file
@@ -82,12 +120,14 @@ class IFSGUIClass:
     class _ReadOnlyText(tk.Text):
         """Subclass of tk.Text that is read-only."""
 
-        tk = __import__('tkinter')
-
         def __init__(self, *args, **kwargs):
             """Replace insert and delete bindings."""
             # subclass to tk.Text
-            self.tk.Text.__init__(self, *args, **kwargs)
+            import tkinter as tk
+            tk.Text.__init__(self, *args, **kwargs)
+            self.SEL = tk.SEL
+            self.END = tk.END
+            self.INSERT = tk.INSERT
             from idlelib.redirector import WidgetRedirector
             self.redirector = WidgetRedirector(self)
             # freeze user changes
@@ -99,9 +139,9 @@ class IFSGUIClass:
         def select_all(self, event):
             """Select all event bound to ctrl-a."""
             # select all text
-            self.tag_add(self.tk.SEL, '1.0', self.tk.END)
-            self.mark_set(self.tk.INSERT, '1.0')
-            self.see(self.tk.INSERT)
+            self.tag_add(self.SEL, '1.0', self.END)
+            self.mark_set(self.INSERT, '1.0')
+            self.see(self.INSERT)
             return 'break'
 
     def __init__(self):
@@ -332,37 +372,32 @@ class IFSGUIClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(self.tk.DISABLED)
-        # convert smiles to standardized obmol
-        molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, obconversion=self.obcon)
+        results = apply_qsars_to_molecule(self.models, smiles, self.obcon)
         # check conversion results and output smiles and conversion note
-        result = 'input SMILES: ' + smiles + '\n'
-        conversionsuccess = True
-        if 'error reading SMILES' in conversionnote:
-            conversionsuccess = False
-            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + '; check input\n'
-        elif 'aromaticity broken' in conversionnote:
-            conversionsuccess = False
-            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + \
-                      '; structure or conversion error\n'
-        elif 'structure contains permanently charged atoms' in conversionnote:
-            conversionsuccess = False
-            result += 'normalized SMILES: \nSMILES conversion note: ' + conversionnote + \
-                      '; QSARs only handle neutrals\n'
-        elif 'charged atom(s) neutralized' in conversionnote:
-            result += 'normalized SMILES: ' + newsmiles + '\nSMILES conversion note: ' + conversionnote + \
-                      '; QSARs only handle neutrals\n'
+        outline = ''.join(['input SMILES: ', smiles, '\nnormalized SMILES: '])
+        if results['SMILES conversion success']:
+            outline = ''.join([outline,
+                               results['new SMILES'],
+                               '\nSMILES conversion note: ',
+                               results['SMILES conversion note'],
+                               '\n'])
+            outline = ''.join([outline, '\nproperty (units)\tprediction\terror\tUL\tnote\n'])
+            for qsar in results['QSAR list']:
+                outline = ''.join([outline,
+                                   qsar, ' (', results[qsar]['units'], ')\t',
+                                   str(results[qsar]['QSAR prediction']), '\t',
+                                   str(results[qsar]['UL']), '\t',
+                                   str(results[qsar]['error']), '\t',
+                                   results[qsar]['prediction note'], '\n'
+                                   ])
         else:
-            result += 'normalized SMILES: ' + newsmiles + '\nSMILES conversion note: ' + conversionnote + '\n'
-        # prepare model outputs
-        if conversionsuccess:
-            result += '\nproperty (units)\tprediction\terror\tUL\tnote\n'
-            for m in self.models:
-                pred, warn, error, note = m.apply_model(molecule)
-                result += m.model_namespace['svalue_name'] + ' ('+m.model_namespace['sunits'] + ')' + '\t' + \
-                    str(pred) + '\t' + str(error) + '\t' + str(warn) + '\t' + str(note) + '\n'
+            outline = ''.join([outline,
+                               '\nSMILES conversion note: ',
+                               results['SMILES conversion note'],
+                               '\n'])
         # display results
         self.textresult.delete('1.0', self.tk.END)
-        self.textresult.insert('1.0', str(result))
+        self.textresult.insert('1.0', str(outline))
         self.toggle_disabled(self.tk.NORMAL)
 
     def calculate_batch(self):
