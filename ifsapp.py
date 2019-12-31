@@ -24,7 +24,7 @@ def apply_qsars_to_molecule(qsarlist,
                                     'error',
                                     'prediction note'
                                     ),  # iterable of values to be output
-                            outputformat='rows',  # 'dict', 'columns', 'rows'
+                            outformat='rows',  # 'dict', 'columns', 'rows'
                             header=True,  # True or False
                             separator='\t',  # any string
                             endline='\n',  # any string
@@ -94,47 +94,30 @@ def apply_qsars_to_molecule(qsarlist,
         if 'prediction note' in values:
             result[qsar.model_namespace['svalue_name']]['prediction note'] = note
     # return output as dict of values
-    if outputformat == 'dict':
+    if outformat == 'dict':
         return result
     # return output as a string where the output values are in rows and the chemical is in the column
-    elif outputformat == 'columns':
+    elif outformat == 'columns':
         outstring = ''
         for val in values:
             if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
                 if header:
-                    outstring = ''.join([outstring, separator, val, separator, result[val], endline])
+                    outstring = ''.join([outstring, val, separator, result[val], endline])
                 else:
                     outstring = ''.join([outstring, result[val], endline])
         for qsar in result['QSAR list']:
             for val in values:
                 if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
                     if header:
-                        outstring = ''.join([outstring, qsar, separator, val, separator, str(result[qsar][val]), endline])
+                        outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
                     else:
                         outstring = ''.join([outstring, str(result[qsar][val]), endline])
         return outstring
     # return output as a string where the output values are in columns and the chemical is in the row
-    elif outputformat == 'rows':
+    elif outformat == 'rows':
         outstring = ''
+        # header
         if header:
-            # header line 1
-            first = True
-            for val in values:
-                if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
-                    if first:
-                        first = False
-                    else:
-                        outstring = ''.join([outstring, separator])
-            for qsar in result['QSAR list']:
-                for val in values:
-                    if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
-                        if first:
-                            outstring = ''.join([outstring, qsar])
-                            first = False
-                        else:
-                            outstring = ''.join([outstring, separator, qsar])
-            outstring = ''.join([outstring, endline])
-            # header line 2
             first = True
             for val in values:
                 if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
@@ -147,10 +130,10 @@ def apply_qsars_to_molecule(qsarlist,
                 for val in values:
                     if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
                         if first:
-                            outstring = ''.join([outstring, val])
+                            outstring = ''.join([outstring, qsar, ' ', val])
                             first = False
                         else:
-                            outstring = ''.join([outstring, separator, val])
+                            outstring = ''.join([outstring, separator, qsar, ' ', val])
             outstring = ''.join([outstring, endline])
         # output values
         first = True
@@ -174,6 +157,12 @@ def apply_qsars_to_molecule(qsarlist,
 
 
 def apply_qsars_to_molecule_list(qsarlist,
+                                 infilename=None,  # input file name
+                                 inheaderrows=1,  # number of header lines
+                                 inheadertargetrow=1,  # header row to select from
+                                 inheadersmiles='smiles',  # header value indicating SMILES
+                                 inseparator='\t',  # any string
+                                 inendline='\n',  # any string
                                  smileslist=None,  # list of SMILES as strings
                                  converter=None,  # OBConversion
                                  moleculelist=None,  # list of OBMols
@@ -187,16 +176,40 @@ def apply_qsars_to_molecule_list(qsarlist,
                                          'error',
                                          'prediction note'
                                          ),  # iterable of values to be output
-                                 outputformat='rows',  # 'dict', 'columns', 'rows'
-                                 header=True,  # True or False
-                                 separator='\t',  # any string
-                                 endline='\n',  # any string
+                                 outfilename=None,  # output file name
+                                 outkeepdata=True,  # also output all of the input file contents
+                                 outformat='rows',  # 'dict', 'columns', 'rows'
+                                 outheader=True,  # True or False
+                                 outseparator='\t',  # any string
+                                 outendline='\n',  # any string
                                  ):
     """apply_model_to_file(model,filename)
     -take a model object and apply it to smiles in a file
     -output a new file with the results
     v0.0.3 - original coding"""
-
+    # load data from file
+    filelines = None
+    if infilename is not None:
+        filetext = ''
+        with open(infilename, 'r') as infile:
+            filetext = infile.read()
+        filelines = filetext.split(inendline)
+        # remove empty lines
+        while '' in filelines:
+            filelines.remove('')
+        # find the index of the column with SMILES
+        smiles_index = 0
+        splitline = filelines[inheadertargetrow-1].split(inseparator)
+        for s in range(len(splitline)):
+            if splitline[s].lower().strip().rstrip() == inheadersmiles.lower():
+                smiles_index = s
+                break
+        # extract SMILES into smileslist
+        smileslist = []
+        for i in range(inheaderrows, len(filelines)):
+            splitline = filelines[i].split(inseparator)
+            smiles = splitline[smiles_index]
+            smileslist.append(smiles)
     # determine list of structures to parse, either as SMILES or OBMol
     if moleculelist is not None:
         structurelist = moleculelist
@@ -210,7 +223,7 @@ def apply_qsars_to_molecule_list(qsarlist,
         print('structure list not found')
         return
     # initialize dict to store output
-    if outputformat == 'dict':
+    if outformat == 'dict':
         result = {'QSAR list':[]}
         for val in ('input SMILES', 'normalized SMILES', 'SMILES note', 'OBMol'):
             if val in values:
@@ -222,9 +235,11 @@ def apply_qsars_to_molecule_list(qsarlist,
             for val in values:
                 if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
                     result[qsar.model_namespace['svalue_name']][val] = []
-    elif outputformat == 'columns':
+    # initial columns to store output
+    elif outformat == 'columns':
         result = []
-    elif outputformat == 'rows':
+    # initialize rows to store output
+    elif outformat == 'rows':
         result = ''
     else:
         result = None
@@ -239,18 +254,19 @@ def apply_qsars_to_molecule_list(qsarlist,
         elif smileslist is not None:
             smiles = structure
         # apply qsars to this structure
+        print('>', smiles, '<')
         singleresult = apply_qsars_to_molecule(qsarlist,
                                                smiles=smiles,
                                                converter=converter,
                                                molecule=molecule,
                                                values=values,
-                                               outputformat=outputformat,
-                                               header=header and first,
-                                               separator=separator,
-                                               endline=endline,
+                                               outformat=outformat,
+                                               header=outheader and first,
+                                               separator=outseparator,
+                                               endline=outendline,
                                                )
         # concatenate to output dict
-        if outputformat == 'dict':
+        if outformat == 'dict':
             for val in values:
                 if val in ('input SMILES', 'normalized SMILES', 'SMILES note', 'OBMol'):
                     result[val].append(singleresult[val])
@@ -259,25 +275,52 @@ def apply_qsars_to_molecule_list(qsarlist,
                     if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
                         result[qsar][val].append(singleresult[qsar][val])
         # concatenate to columns
-        elif outputformat == 'columns':
+        elif outformat == 'columns':
             if first:
-                result = singleresult.split(endline)
+                result = singleresult.split(outendline)
             else:
-                splitresult = singleresult.split(endline)
+                splitresult = singleresult.split(outendline)
                 print(result, splitresult)
                 assert len(result) == len(splitresult)
-                result = [''.join([c[0], separator, c[1]]) for c in zip(result, splitresult)]
+                result = [''.join([c[0], outseparator, c[1]]) for c in zip(result, splitresult)]
         # concatenate to rows
-        elif outputformat == 'rows':
+        elif outformat == 'rows':
             result = ''.join([result, singleresult])
         # reset first
         if first:
             first = False
-    # return final result
-    if outputformat in ['dict', 'rows']:
+    # concatenate column output
+    if outformat == 'columns':
+        result = outendline.join(result)
+    # if not outputting to file return result
+    if outfilename is None:
         return result
-    elif outputformat == 'columns':
-        return endline.join(result)
+    else:
+        assert outformat == 'rows'
+        # output with data from input file
+        if outkeepdata and filelines is not None:
+            resultlines = result.split(outendline)
+            # first append header line if kept
+            infileoffset = inheaderrows
+            resultoffset = 0
+            if outheader:
+                resultoffset = 1
+                # append output header row to target row from input file
+                filelines[inheadertargetrow-1] = outseparator.join([filelines[inheadertargetrow-1], resultlines[0]])
+                # if there are more input header rows add empty output lines
+                for i in range(infileoffset):
+                    if i == inheadertargetrow-1:
+                        continue
+                    filelines[i] = outseparator.join([filelines[i], outseparator * resultlines[0].count(outseparator)])
+            for i in range(infileoffset, len(filelines)):
+                filelines[i] = outseparator.join([filelines[i], resultlines[i-infileoffset+resultoffset]])
+            with open(outfilename, 'w') as outfile:
+                outfile.write(outendline.join(filelines))
+        # output result without input data
+        else:
+            with open(outfilename, 'w') as outfile:
+                outfile.write(result)
+
 
 class IFSGUIClass:
     """A GUI interface for reading in structures as SMILES and applying
@@ -540,7 +583,7 @@ class IFSGUIClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(self.tk.DISABLED)
-        results = apply_qsars_to_molecule(self.models, smiles=smiles, converter=self.obcon, outputformat='columns')
+        results = apply_qsars_to_molecule(self.models, smiles=smiles, converter=self.obcon, outformat='columns')
         # display results
         self.textresult.delete('1.0', self.tk.END)
         self.textresult.insert('1.0', results)
@@ -548,32 +591,56 @@ class IFSGUIClass:
 
     def calculate_batch(self):
         """Load SMILES from input file, apply QSARs, and write to output file."""
-        # read in a file and apply models to each smiles, then write results to the output file
+        # check for input and output files
         if self.inputfilename == '' or self.outputfilename == '':
+            print('file not selected')
             return
         self.toggle_disabled(self.tk.DISABLED)
-        infile = open(self.inputfilename, 'r')
-        header = 0
-        smiles_index = 0
-        sep = '\t'
-        if self.inputfilename[-4:] == '.csv':
-            sep = ','
-        smileslist = []
-        for line in infile:
-            strip = line.rstrip('\n').split(sep)
-            if header == 0:
-                header = 1
-                for s in range(len(strip)):
-                    if strip[s].lower().strip().rstrip() == 'smiles':
-                        smiles_index = s
-                        header = 2
-                        break
-            smiles = strip[smiles_index]
-            smileslist.append(smiles)
-        result = apply_qsars_to_molecule_list(self.models, smileslist=smileslist, converter=self.obcon, outputformat='rows')
-        outfile = open(self.outputfilename, 'w')
-        outfile.write(result)
-        outfile.close()
+        # set input file type
+        inextension = self.inputfilename.split('.')[-1]
+        if inextension == 'txt':
+            inseparator = '\t'
+            inendline = '\n'
+        elif inextension == 'csv':
+            inseparator = ','
+            inendline = '\n'
+        else:
+            print('file type not recognized: ', inextension)
+            return
+        # set output file type
+        outextension = self.outputfilename.split('.')[-1]
+        if outextension == 'txt':
+            outseparator = '\t'
+            outendline = '\n'
+        elif outextension == 'csv':
+            outseparator = ','
+            outendline = '\n'
+        else:
+            print('file type not recognized: ', outextension)
+            return
+        apply_qsars_to_molecule_list(self.models,
+                                     infilename=self.inputfilename,
+                                     inheaderrows=1,
+                                     inheadertargetrow=1,
+                                     inheadersmiles='smiles',
+                                     inseparator=inseparator,
+                                     inendline=inendline,
+                                     converter=self.obcon,
+                                     values=('input SMILES',
+                                             'normalized SMILES',
+                                             'SMILES note',
+                                             'OBMol',
+                                             'units',
+                                             'QSAR prediction',
+                                             'UL',
+                                             'error',
+                                             'prediction note'),
+                                     outfilename=self.outputfilename,
+                                     outkeepdata=True,
+                                     outformat='rows',
+                                     outheader=True,
+                                     outseparator=outseparator,
+                                     outendline=outendline)
         self.toggle_disabled(self.tk.NORMAL)
         self.textinput.delete('1.0', self.tk.END)
         self.textoutput.delete('1.0', self.tk.END)
@@ -582,8 +649,8 @@ class IFSGUIClass:
         """Spawn a load file popup."""
         # create popup to select output file
         self.inputfilename = self.filedialog.askopenfilename(title='Select Input File',
-                                                        filetypes=[('tab-delimited txt files', '*.txt'),
-                                                                   ('csv files', '*.csv')])
+                                                             filetypes=[('tab-delimited txt files', '*.txt'),
+                                                                        ('csv files', '*.csv')])
         self.textinput.delete('1.0', self.tk.END)
         self.textinput.insert('1.0', self.inputfilename)
 
@@ -591,8 +658,9 @@ class IFSGUIClass:
         """Spawn a save file popup."""
         # create popup to select input file
         self.outputfilename = self.filedialog.asksaveasfilename(title='Select Output File',
-                                                           defaultextension='.txt',
-                                                           filetypes=[('tab-delimited txt files', '*.txt')])
+                                                                defaultextension='.txt',
+                                                                filetypes=[('tab-delimited txt files', '*.txt'),
+                                                                           ('csv files', '*.csv')])
         self.textoutput.delete('1.0', self.tk.END)
         self.textoutput.insert('1.0', self.outputfilename)
 
