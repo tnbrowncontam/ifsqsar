@@ -9,6 +9,46 @@ import smiles_norm
 import sys
 import os
 
+# load models
+qsarnames = ['fhlb',
+             'hhlb',
+             'hhlt',
+             'dsm',
+             'tm',
+             'e',
+             's',
+             'a',
+             'b',
+             'l',
+             'v',
+             ]
+if hasattr(sys, '_MEIPASS'):
+    qsarmodels = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
+                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
+                  ]
+else:
+    qsarmodels = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
+                  ifs_model_read.QSARModel('ifs_qsar_V.txt'),
+                  ]
+
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
@@ -254,7 +294,6 @@ def apply_qsars_to_molecule_list(qsarlist,
         elif smileslist is not None:
             smiles = structure
         # apply qsars to this structure
-        print('>', smiles, '<')
         singleresult = apply_qsars_to_molecule(qsarlist,
                                                smiles=smiles,
                                                converter=converter,
@@ -280,7 +319,6 @@ def apply_qsars_to_molecule_list(qsarlist,
                 result = singleresult.split(outendline)
             else:
                 splitresult = singleresult.split(outendline)
-                print(result, splitresult)
                 assert len(result) == len(splitresult)
                 result = [''.join([c[0], outseparator, c[1]]) for c in zip(result, splitresult)]
         # concatenate to rows
@@ -365,33 +403,6 @@ class IFSGUIClass:
         self.frame = self.tk.Frame(self.root)
         self.frame.pack_propagate(0)
         self.frame.pack()
-        # load models
-        if hasattr(sys, '_MEIPASS'):
-            self.models = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
-                           ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
-                           ]
-        else:
-            self.models = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
-                           ifs_model_read.QSARModel('ifs_qsar_V.txt'),
-                           ]
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')
@@ -583,7 +594,7 @@ class IFSGUIClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(self.tk.DISABLED)
-        results = apply_qsars_to_molecule(self.models, smiles=smiles, converter=self.obcon, outformat='columns')
+        results = apply_qsars_to_molecule(qsarmodels, smiles=smiles, converter=self.obcon, outformat='columns')
         # display results
         self.textresult.delete('1.0', self.tk.END)
         self.textresult.insert('1.0', results)
@@ -618,7 +629,7 @@ class IFSGUIClass:
         else:
             print('file type not recognized: ', outextension)
             return
-        apply_qsars_to_molecule_list(self.models,
+        apply_qsars_to_molecule_list(qsarmodels,
                                      infilename=self.inputfilename,
                                      inheaderrows=1,
                                      inheadertargetrow=1,
