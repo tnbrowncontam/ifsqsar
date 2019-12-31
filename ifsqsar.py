@@ -1,4 +1,4 @@
-"""ifsapp.py
+"""ifsqsar.py
 Implements a simple GUI for applying group contribution QSARS (IFS) developed by Trevor N. Brown.
 """
 
