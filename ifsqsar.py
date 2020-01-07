@@ -4,51 +4,7 @@ Implements a simple GUI for applying group contribution QSARS (IFS) developed by
 
 import openbabel as ob
 import numpy as np
-import ifs_model_read
 import smiles_norm
-import sys
-import os
-
-# load models
-qsarnames = ['fhlb',
-             'hhlb',
-             'hhlt',
-             'dsm',
-             'tm',
-             'e',
-             's',
-             'a',
-             'b',
-             'l',
-             'v',
-             ]
-if hasattr(sys, '_MEIPASS'):
-    qsarmodels = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
-                  ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
-                  ]
-else:
-    qsarmodels = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
-                  ifs_model_read.QSARModel('ifs_qsar_V.txt'),
-                  ]
-
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
@@ -678,5 +634,47 @@ class IFSGUIClass:
 
 # main tk gui loop
 if __name__ == "__main__":
+    import ifs_model_read
+    import sys
+    import os
+    # load models
+    qsarnames = ['fhlb',
+                 'hhlb',
+                 'hhlt',
+                 'dsm',
+                 'tm',
+                 'e',
+                 's',
+                 'a',
+                 'b',
+                 'l',
+                 'v',
+                 ]
+    if hasattr(sys, '_MEIPASS'):
+        qsarmodels = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
+                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
+                      ]
+    else:
+        qsarmodels = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
+                      ifs_model_read.QSARModel('ifs_qsar_V.txt'),
+                      ]
     app_manager = IFSGUIClass()
 
