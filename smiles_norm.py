@@ -7,7 +7,7 @@ import openbabel as ob
 import re
 
 
-def convert(smiles, obconversion=None):
+def convertsmiles(smiles, obconversion=None):
     """Converts passed SMILES to a normalized form.
     By default returns a converted SMILES string, but can also return the new OBMol.
     An existing OBConversion instance can be passed so that one does not need to instantiated."""
@@ -17,6 +17,7 @@ def convert(smiles, obconversion=None):
     changes = ''
 
     # error checking of the smiles string
+    smiles = smiles.lstrip().rstrip()
     if smiles[0] in '()#=-+]1234567890':
         return mol, '', 'error reading SMILES'
     elif smiles.count('(') != smiles.count(')') or smiles.count('[') != smiles.count(']'):
@@ -213,5 +214,5 @@ test_list = [
 
 if __name__ == '__main__':
     for smiles in test_list:
-        m, s, n = convert(smiles)
+        m, s, n = convertsmiles(smiles)
         print(smiles, s, n)

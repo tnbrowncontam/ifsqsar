@@ -1,10 +1,12 @@
-"""ifsqsar.py
+"""
+ifsqsar.py
 Implements a simple GUI for applying group contribution QSARS (IFS) developed by Trevor N. Brown.
 """
 
 import openbabel as ob
 import numpy as np
-import smiles_norm
+from . import smiles_norm
+
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
@@ -39,7 +41,7 @@ def apply_qsars_to_molecule(qsarlist,
         assert type(smiles) == str
         if converter is not None:
             assert type(converter) == ob.OBConversion
-        molecule, newsmiles, conversionnote = smiles_norm.convert(smiles, converter)
+        molecule, newsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
         if ('error reading SMILES' in conversionnote or
                 'aromaticity broken' in conversionnote or
@@ -359,6 +361,9 @@ class IFSGUIClass:
         self.frame = self.tk.Frame(self.root)
         self.frame.pack_propagate(0)
         self.frame.pack()
+        # import models
+        from .models import qsarmodels
+        self.qsarmodels = qsarmodels
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')
@@ -550,7 +555,7 @@ class IFSGUIClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(self.tk.DISABLED)
-        results = apply_qsars_to_molecule(qsarmodels, smiles=smiles, converter=self.obcon, outformat='columns')
+        results = apply_qsars_to_molecule(self.qsarmodels, smiles=smiles, converter=self.obcon, outformat='columns')
         # display results
         self.textresult.delete('1.0', self.tk.END)
         self.textresult.insert('1.0', results)
@@ -585,7 +590,7 @@ class IFSGUIClass:
         else:
             print('file type not recognized: ', outextension)
             return
-        apply_qsars_to_molecule_list(qsarmodels,
+        apply_qsars_to_molecule_list(self.qsarmodels,
                                      infilename=self.inputfilename,
                                      inheaderrows=1,
                                      inheadertargetrow=1,
@@ -633,48 +638,6 @@ class IFSGUIClass:
 
 
 # main tk gui loop
-if __name__ == "__main__":
-    import ifs_model_read
-    import sys
-    import os
-    # load models
-    qsarnames = ['fhlb',
-                 'hhlb',
-                 'hhlt',
-                 'dsm',
-                 'tm',
-                 'e',
-                 's',
-                 'a',
-                 'b',
-                 'l',
-                 'v',
-                 ]
-    if hasattr(sys, '_MEIPASS'):
-        qsarmodels = [ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlt_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_dsm_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_tm_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__E_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__S_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__A_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__B_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_ADB_UFZ__L_linr.txt')),
-                      ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_V.txt')),
-                      ]
-    else:
-        qsarmodels = [ifs_model_read.QSARModel('ifs_qsar_fhlb_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_hhlb_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_hhlt_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_dsm_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_tm_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__E_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__S_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__A_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__B_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_ADB_UFZ__L_linr.txt'),
-                      ifs_model_read.QSARModel('ifs_qsar_V.txt'),
-                      ]
+def main():
     app_manager = IFSGUIClass()
 
