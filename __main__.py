@@ -175,7 +175,7 @@ if __name__ == "__main__":
         if args.outendline == '':
             outend = '>'
         else:
-            outend = args.outseparator
+            outend = args.outendline
         result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
                                                       smileslist=smiles,
                                                       infilename=filename,
@@ -198,6 +198,6 @@ if __name__ == "__main__":
             result = result.replace('>', '')
         # print to screen if no outfile
         if args.outfile is None:
-            print(result)
+            print(result, end='')
 
 

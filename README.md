@@ -1,13 +1,13 @@
 ********************************************************************************
-**IFSAPP - A simple program for applying QSARs**  
+**IFSQSAR - A simple program for applying QSARs**  
 Created and maintained by Trevor N. Brown  
-Version 0.0.0, Nov. 2019
+Version 0.0.0dev
 
-IFSAPP is free to use and redistribute, but is provided "as is" with no implied
+IFSQSAR is free to use and redistribute, but is provided "as is" with no implied
 warranties or guarantees. The user accepts responsibility for using the software
 properly, as outlined in this user guide.
 
-IFSAPP was coded using only open source python modules, and the QSARs have all
+IFSQSAR was coded using only open source python modules, and the QSARs have all
 been published in peer-reviewed literature. See below for details on open source
 licensing.
 
@@ -32,32 +32,142 @@ publications for these.
 **CONTENTS**
 ********************************************************************************
 
-1. SOFTWARE OVERVIEW AND USAGE
-2. QSAR DESCRIPTIONS AND INTERPRETATION
-3. INTERPRETING QSAR DOMAIN INFORMATION
-4. SOFTWARE CODING EXPLANATION
-5. CHANGE LOG
-6. KNOWN BUGS AND PLANNED FEATURES
-7. REFERENCES
+ 1. IFSQSAR PACKAGE OVERVIEW
+ 2. COMMAND LINE USAGE
+ 3. GRAPHICAL USER INTERFACE USAGE
+ 4. PYTHON USAGE
+ 5. QSAR DESCRIPTIONS AND INTERPRETATION
+ 6. INTERPRETING QSAR DOMAIN INFORMATION
+ 7. DEPENDENCIES AND LICENCES
+ 8. CHANGE LOG
+ 9. KNOWN BUGS AND PLANNED FEATURES
+10. REFERENCES
 
 ********************************************************************************
-**. COMMAND LINE USAGE**
-********************************************************************************
-
-python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi
-given a comma-separated list of [SMILES], print a comma-separated
-list of the normalized SMILES
-
-********************************************************************************
-**. SOFTWARE OVERVIEW AND USAGE**
+**1. IFSQSAR PACKAGE OVERVIEW**
 ********************************************************************************
 
 In this section:  
-- Overview of IFSAPP single mode interface  
-- Overview of IFSAPP batch mode interface  
 - Information about SMILES strings
 
-**Overview of IFSAPP single mode interface**
+**Information about SMILES strings**
+
+Simplified Molecular Input Line Entry System (SMILES) is a way of representing
+molecular structures as a string, first described in Weininger 1988 [1]. The
+chemistry in IFSQSAR is handled by the open source program Open Babel [2], which
+implements the OpenSMILES specification of SMILES [3]. A number of tools exist
+for creating or finding SMILES. Many open access database websites such as
+PubChem or chemspider.com provide searchable databases with SMILES strings
+included. Note that the EPISuite database [4] popular among environmental
+chemists contains some SMILES which do not conform to the standard format, these
+structures will not be processed correctly if they are entered into IFSQSAR. The
+two most common violations are hydrogens outside of brackets, e.g. NH instead of
+N[H] or [NH], and counter ions without brackets or disconnected structures,
+eg. CC(=O)ONa instead of CC(=O)[O-].[Na+]. In the second example the ONa group
+is interpreted as a covalent bond instead of an ion pair, which is incorrect. A
+newer alternative also released by the USEPA is the Chemistry Dashboard (found
+at https://comptox.epa.gov/dashboard).
+
+IFSQSAR normalizes passed SMILES strings to a canonical format, and attempts
+to correct some common issues that would cause the QSAR predictions to fail. The
+current QSARs do not make predictions for charged molecules, so IFSQSAR attempts
+to neutralize any charged molecules passed to it. The convert dative bonds
+option of openbabel (e.g. nitro groups C\[N+](-\[O-])=O to CN(=O)=O ) is first
+applied, any remaining charged atoms are neutralized and any counter ions
+are removed. If permanent charges are present (e.g. quaternary amines) then no
+predictions are made and an error message is printed. Some aromatic structures
+may result in an error. In most cases this is because there is some error in
+the SMILES and atoms have been flagged as aromatic when they should not have
+been, or a valid aromatic structure has been invalidated by other modifications
+such as adding counter-ions onto the charged atoms. However, in rare cases for
+exotic structures there might be errors in the openbabel aromatic structure
+handling. An error message is printed in cases of aromatic structure errors and
+no predictions are made. The modified SMILES to which the QSARs are applied is
+provided in the output and any modifications to structures are noted.
+
+********************************************************************************
+**2. COMMAND LINE USAGE**
+********************************************************************************
+
+In this section:  
+- Command line structure and options
+- Usage examples 
+
+**Command line structure and options**
+
+Usage:  
+python -m ifsqsar [options]
+
+Options:  
+- -h, --help : show this help message and exit  
+- -d, --docs : Prints the full documentation to standard output  
+- -s, --smiles : Comma-separated list of SMILES  
+- -i, --infile : Path and name of input file  
+- -r, --inheaderrows : Input file format: number of header rows, default = 1  
+- -t, --inheadertargetrow : Input file format: 1-indexed row number in which to
+                            look for SMILES label, default = 1  
+-c inheadersmiles, --inheadersmiles inheadersmiles
+                        Input file format: label in header that indicates
+                        column containing SMILES, default = SMILES
+-p inseparator, --inseparator inseparator
+                        Input file format: character used to separate columns,
+                        default = \t (tab)
+-e inendline, --inendline inendline
+                        Input file format: character used to separate rows,
+                        default = \n (newline)
+-o outfile, --outfile outfile
+                        Path and name of output file, if not specified print
+                        to standard output
+-u, --outtossdata     Output format: toss data from input file, default =
+                        include data from input file in the output
+-a, --outsuppressheader
+                        Output format: suppress header in output, default =
+                        include header in the output
+-f outformat, --outformat outformat
+                        Output format: chemical structures in rows, or in
+                        columns, default = rows
+-m [outseparator], --outseparator [outseparator]
+                        Output format: character used to separate columns,
+                        default = \t (tab)
+-n [outendline], --outendline [outendline]
+                        Output format: character used to separate rows,
+                        default = \n (newline)
+  -q [qsars], --qsars [qsars]
+                        Comma-separated list of qsars to apply, if not
+                        specified all are applied. Full list: fhlb, hhlb,
+                        hhlt, dsm, tm, E, S, A, B, L, V. See full docs for
+                        explanation
+  -v [values], --values [values]
+                        Comma-separated list of values to return. Full list:
+                        insmi, normsmi, sminote, units, qsarpred, UL, error,
+                        ULnote. See full docs for explanation
+
+Invoke ifsqsar with no options start the GUI
+
+
+**Usage examples**
+
+- command line input:  
+  python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi  
+  result:  
+  given a comma-separated list of [SMILES], print a comma-separated list of the
+  normalized SMILES
+
+- command line input:  
+  python -m ifsqsar -s [SMILES] -q tm -a -m , -v qsarpred,error  
+  result:  
+  given a comma-separated list of [SMILES], print the melting point and the
+  estimated prediction error of each structure separated by a comma on each line
+
+********************************************************************************
+**3. GRAPHICAL USER INTERFACE USAGE**
+********************************************************************************
+
+In this section:  
+- Overview of IFSQSAR single mode interface  
+- Overview of IFSQSAR batch mode interface  
+
+**Overview of IFSQSAR single mode interface**
 
 In single mode QSARs can be applied to a single structure. The structure must be
 entered into the interface as a SMILES string (see below), and then the "Apply
@@ -80,7 +190,7 @@ Show this info as a popup ->|[    Info    ]   [Apply IFS QSARs]  |
                             |____________________________________|
                              Begin single calculation ^
 </pre>
-**Overview of IFSAPP batch mode interface**
+**Overview of IFSQSAR batch mode interface**
 
 In batch mode QSARs can be applied to many structures in series loaded from one
 file, and the results are then written to second file. The structure must be
@@ -118,47 +228,17 @@ Show this info as a popup ->|[       Info       ] [Apply IFS QSARs]  |
                             |________________________________________|
                                  Begin batch calculations ^
 </pre>
-**Information about SMILES strings**
-
-Simplified Molecular Input Line Entry System (SMILES) is a way of representing
-molecular structures as a string, first described in Weininger 1988 [1]. The
-chemistry in IFSAPP is handled by the open source program Open Babel [2], which
-implements the OpenSMILES specification of SMILES [3]. A number of tools exist
-for creating or finding SMILES. Many open access database websites such as
-PubChem or chemspider.com provide searchable databases with SMILES strings
-included. Note that the EPISuite database [4] popular among environmental
-chemists contains some SMILES which do not conform to the standard format, these
-structures will not be processed correctly if they are entered into IFSAPP. The
-two most common violations are hydrogens outside of brackets, e.g. NH instead of
-N[H] or [NH], and counter ions without brackets or disconnected structures,
-eg. CC(=O)ONa instead of CC(=O)[O-].[Na+]. In the second example the ONa group
-is interpreted as a covalent bond instead of an ion pair, which is incorrect. A
-newer alternative also released by the USEPA is the Chemistry Dashboard (found
-at https://comptox.epa.gov/dashboard).
-
-IFSAPP standardizes passed SMILES strings to a canonical format, and attempts to
-correct some common issues that would cause the QSAR predictions to fail. The
-current QSARs do not make predictions for charged molecules, so IFSAPP attempts
-to neutralize any charged molecules passed to it. The convert dative bonds
-option of openbabel (e.g. nitro groups C\[N+](-\[O-])=O to CN(=O)=O ) is first
-applied, any remaining charged atoms are neutralized and any counter ions
-are removed. If permanent charges are present (e.g. quaternary amines) then no
-predictions are made and an error message is printed. Some aromatic structures
-may result in an error. In most cases this is because there is some error in
-the SMILES and atoms have been flagged as aromatic when they should not have
-been, or a valid aromatic structure has been invalidated by other modifications
-such as adding counter-ions onto the charged atoms. However, in rare cases for
-exotic structures there may be errors in the openbabel aromatic structure
-handling. An error message is printed in these cases and no predictions are
-made. The modified SMILES to which the QSARs are applied is provided in the
-output and any modifications to structures are noted.
 
 ********************************************************************************
-**2. QSAR DESCRIPTIONS AND INTERPRETATION**
+**4. PYTHON USAGE**
+********************************************************************************
+
+********************************************************************************
+**5. QSAR DESCRIPTIONS AND INTERPRETATION**
 ********************************************************************************
 
 In this section:  
-- General description of IFSAPP QSARs  
+- General description of IFSQSAR QSARs  
 - FHLB - QSAR for fish biotransformation half-life  
 - HHLB - QSAR for human biotransformation half-life  
 - HHLT - QSAR for human total elimination half-life  
@@ -166,7 +246,7 @@ In this section:
 - dSm - QSPR for Entropy of Melting  
 - Tm - QSPR for Melting Point
 
-**General description of IFSAPP QSARs**
+**General description of IFSQSAR QSARs**
 
 QSARs are developed using a group contribution model, in which specific
 substructures of a molecule are counted and their contributions are determined
@@ -181,7 +261,7 @@ which is described in section 3. INTERPRETING QSAR DOMAIN INFORMATION.
 
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in fish (FHLB) measured in days for a reference 10g fish
-at a temperature of 288K. In IFSAPP the model outputs have been converted to
+at a temperature of 288K. In IFSQSAR the model outputs have been converted to
 linear (as opposed to log) scale half-lives in hours. The QSAR is trained on a
 dataset derived from bioaccumulation tests with biotransformation back-
 calculated with a one-compartment PK model. The training and validation datasets
@@ -193,7 +273,7 @@ about 5 log units. Full details are available in reference [5].
 
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in humans, (HHLB) measured in hours for a generic 70kg
-human. In IFSAPP the model outputs have been converted to linear (as opposed to
+human. In IFSQSAR the model outputs have been converted to linear (as opposed to
 log) scale half-lives in hours. As with the FHLB, the QSAR is trained on
 biotransformation half-lives backed out of whole body elimination data with a
 one compartment PK model. The data is mostly pharmaceuticals measured in humans,
@@ -206,7 +286,7 @@ about 7.5 log units. Full details are available in reference [8].
 
 The model predicts the base-10 logarithm of the whole-body total elimination
 half-life of chemicals in humans, (HHLT) measured in hours for a generic 70kg
-human. In IFSAPP the model outputs have been converted to linear (as opposed to
+human. In IFSQSAR the model outputs have been converted to linear (as opposed to
 log) scale half-lives in hours. The QSAR is trained with the same dataset as the
 HHLT, except as whole-body elimination half-lives, with some additional data
 that could not be transformed into biotransformation half-lives. The training
@@ -246,13 +326,13 @@ The validation statistics are q-sq = 0.658 and std.err. of prediction = 46.9 K,
 with the data spanning about 500 K. Full details are found in reference [10].
 
 ********************************************************************************
-**3. INTERPRETING QSAR DOMAIN INFORMATION**
+**6. INTERPRETING QSAR DOMAIN INFORMATION**
 ********************************************************************************
 
 In this section:  
 - What is the domain of applicability?  
-- Domain of applicability for the IFSAPP QSARs  
-- Interpreting IFSAPP domain outputs
+- Domain of applicability for the IFSQSAR QSARs  
+- Interpreting IFSQSAR domain outputs
 
 **What is the domain of applicability?**
 
@@ -278,9 +358,9 @@ three dimensional shape of molecules is not included in the model. Therefore,
 in cases where the 3D shape of the molecule might be important, e.g. due to
 steric effects, the models are expected to give less accurate results.
 
-**Domain of applicability for the IFSAPP QSARs**
+**Domain of applicability for the IFSQSAR QSARs**
 
-Two different methods of defining the domain are applied to the IFSAPP QSARs in
+Two different methods of defining the domain are applied to the IFSQSAR QSARs in
 conjunction:
 1. Chemical Similarity Score (CSS), as defined by the author in [5] and [6].
 2. Leverage, as discussed by the author in [6].
@@ -300,7 +380,7 @@ a scale of 0-3 for leverage, with the higher of these two taken as the
 standard error of prediction of each UL is estimated from the prediction
 residuals of chemicals with that UL.
 
-**Interpreting IFSAPP domain outputs**
+**Interpreting IFSQSAR domain outputs**
 
 For each property prediction three domain fields are included:
 - error: the estimated standard error of prediction as described above
@@ -384,12 +464,12 @@ Uncertain.   Note           Explanation
                             belongs to.
 </pre>
 ********************************************************************************
-**4. SOFTWARE CODING EXPLANATION**
+**7. DEPENDENCIES AND LICENCES**
 ********************************************************************************
 
-IFSAPP was written with the open source resources listed below. Because two of
+IFSQSAR was written with the open source resources listed below. Because two of
 these resources use the GNU General Public License interested users may request
-the source code for IFSAPP.
+the source code for IFSQSAR.
 
 Python: GUI and general coding  
 - Python Programming Language, version 3.7.2, http://www.python.org/  
@@ -408,12 +488,12 @@ Pyinstaller: Packaging for .exe distribution
 - License: GNU GPL. http://www.pyinstaller.org/license.html  
 
 ********************************************************************************
-**5. CHANGE LOG**
+**8. CHANGE LOG**
 ********************************************************************************
 
 Version B.0 Completed February 2018.  
 - All major features implemented, including:  
-- single mode for single calculations with output to IFSAPP  
+- single mode for single calculations with output to IFSQSAR  
 - batch mode for reading and writing files  
 - basic error checking for invalid or truncated SMILES  
 - three QSARs implemented: FHLB, HHLB, HHLT  
@@ -433,22 +513,22 @@ Version B.2 Completed early 2019
 - Updated warning levels to reflect the new ULs from the dSm&Tm paper  
 - Updated this user guide to reflect changes
 
-Version 0.0.0 Completed November 2019  
+Version 0.0.0dev Completed November 2019  
 - Updated code to run on python 3. Python 3.4 is now required  
 - General code cleanup and updating  
 - Migrated code to GitHub  
-- Converted IFSAPP docstring to readme.md file  
+- Converted IFSQSAR docstring to readme.md file  
 - Added the LSER QSARs back into the program  
 - Added smiles_norm.py to cleanup and normalize input SMILES
 
 ********************************************************************************
-**6. KNOWN BUGS AND PLANNED FEATURES**
+**9. KNOWN BUGS AND PLANNED FEATURES**
 ********************************************************************************
 
 - Updated versions of the LSER QSPRs need to be created and published
 - The xtxi matrix for domain checking in the model files needs to be re-encoded
   using python 3  
-- IFSAPP will likely need to be renamed and refactored, because an existing
+- IFSQSAR will likely need to be renamed and refactored, because an existing
   software company named IFS exists and their suite of software is called
   IFS Applications  
 - Pycharm IDE still gives some warnings but the code runs  
@@ -456,10 +536,10 @@ Version 0.0.0 Completed November 2019
   running the program  
 - Self-contained windows version of the updated program still needs to be
   compiled with pyinstaller. The win32 version provided in the dist folder is
-  IFSAPP version B.2  
+  IFSQSAR version B.2  
 
 ********************************************************************************
-**7. REFERENCES**
+**10. REFERENCES**
 ********************************************************************************
 
  1. Weininger D., 1988, J. Chem. Inf. Model. 28 (1): 31-6.  
