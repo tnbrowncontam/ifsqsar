@@ -12,15 +12,15 @@ def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
                             converter=None,  # OBConversion
                             molecule=None,  # OBMol
-                            values=('input SMILES',
-                                    'normalized SMILES',
-                                    'SMILES note',
+                            values=('insmi',
+                                    'normsmi',
+                                    'sminote',
                                     'OBMol',
                                     'units',
-                                    'QSAR prediction',
+                                    'qsarpred',
                                     'UL',
                                     'error',
-                                    'prediction note'
+                                    'ULnote'
                                     ),  # iterable of values to be output
                             outformat='rows',  # 'dict', 'columns', 'rows'
                             header=True,  # True or False
@@ -30,7 +30,7 @@ def apply_qsars_to_molecule(qsarlist,
     """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
     # initialize results dict from values iterable
     result = {'SMILES success': True, 'QSAR list': []}
-    for val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
+    for val in ('insmi', 'normsmi', 'sminote'):
         if val in values:
             result[val] = ''
     if 'OBMol' in values:
@@ -47,17 +47,17 @@ def apply_qsars_to_molecule(qsarlist,
                 'aromaticity broken' in conversionnote or
                 'structure contains permanently charged atoms' in conversionnote):
             result['SMILES success'] = False
-            if 'input SMILES' in values:
-                result['input SMILES'] = smiles
-            if 'SMILES note' in values:
-                result['SMILES note'] = conversionnote
+            if 'insmi' in values:
+                result['insmi'] = smiles
+            if 'sminote' in values:
+                result['sminote'] = conversionnote
         else:
-            if 'input SMILES' in values:
-                result['input SMILES'] = smiles
-            if 'normalized SMILES' in values:
-                result['normalized SMILES'] = newsmiles
-            if 'SMILES note' in values:
-                result['SMILES note'] = conversionnote
+            if 'insmi' in values:
+                result['insmi'] = smiles
+            if 'normsmi' in values:
+                result['normsmi'] = newsmiles
+            if 'sminote' in values:
+                result['sminote'] = conversionnote
     # save the OBMol if required
     if result['SMILES success'] and 'OBMol' in values:
         result['OBMol'] = molecule
@@ -68,14 +68,14 @@ def apply_qsars_to_molecule(qsarlist,
         result[qsar.model_name] = {}
         if 'units' in values:
             result[qsar.model_name]['units'] = ''
-        if 'QSAR prediction' in values:
-            result[qsar.model_name]['QSAR prediction'] = np.nan
+        if 'qsarpred' in values:
+            result[qsar.model_name]['qsarpred'] = np.nan
         if 'UL' in values:
             result[qsar.model_name]['UL'] = np.nan
         if 'error' in values:
             result[qsar.model_name]['error'] = np.nan
-        if 'prediction note' in values:
-            result[qsar.model_name]['prediction note'] = ''
+        if 'ULnote' in values:
+            result[qsar.model_name]['ULnote'] = ''
         # continue if SMILES was not successfully converted
         if not result['SMILES success']:
             continue
@@ -83,14 +83,14 @@ def apply_qsars_to_molecule(qsarlist,
         qsar_prediction, uncertainty_level, error, note = qsar.apply_model(molecule)
         if 'units' in values:
             result[qsar.model_name]['units'] = qsar.model_namespace['sunits']
-        if 'QSAR prediction' in values:
-            result[qsar.model_name]['QSAR prediction'] = qsar_prediction
+        if 'qsarpred' in values:
+            result[qsar.model_name]['qsarpred'] = qsar_prediction
         if 'UL' in values:
             result[qsar.model_name]['UL'] = uncertainty_level
         if 'error' in values:
             result[qsar.model_name]['error'] = error
-        if 'prediction note' in values:
-            result[qsar.model_name]['prediction note'] = note
+        if 'ULnote' in values:
+            result[qsar.model_name]['ULnote'] = note
     # return output as dict of values
     if outformat == 'dict':
         return result
@@ -98,14 +98,14 @@ def apply_qsars_to_molecule(qsarlist,
     elif outformat == 'columns':
         outstring = ''
         for val in values:
-            if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
+            if val in ('insmi', 'normsmi', 'sminote'):
                 if header:
                     outstring = ''.join([outstring, val, separator, result[val], endline])
                 else:
                     outstring = ''.join([outstring, result[val], endline])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
                     if header:
                         outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
                     else:
@@ -118,7 +118,7 @@ def apply_qsars_to_molecule(qsarlist,
         if header:
             first = True
             for val in values:
-                if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
+                if val in ('insmi', 'normsmi', 'sminote'):
                     if first:
                         outstring = ''.join([outstring, val])
                         first = False
@@ -126,7 +126,7 @@ def apply_qsars_to_molecule(qsarlist,
                         outstring = ''.join([outstring, separator, val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
+                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
                         if first:
                             outstring = ''.join([outstring, qsar, ' ', val])
                             first = False
@@ -136,7 +136,7 @@ def apply_qsars_to_molecule(qsarlist,
         # output values
         first = True
         for val in values:
-            if val in ('input SMILES', 'normalized SMILES', 'SMILES note'):
+            if val in ('insmi', 'normsmi', 'sminote'):
                 if first:
                     outstring = ''.join([outstring, result[val]])
                     first = False
@@ -144,7 +144,7 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, separator, result[val]])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
                     if first:
                         outstring = ''.join([outstring, str(result[qsar][val])])
                         first = False
@@ -164,15 +164,15 @@ def apply_qsars_to_molecule_list(qsarlist,
                                  smileslist=None,  # list of SMILES as strings
                                  converter=None,  # OBConversion
                                  moleculelist=None,  # list of OBMols
-                                 values=('input SMILES',
-                                         'normalized SMILES',
-                                         'SMILES note',
+                                 values=('insmi',
+                                         'normsmi',
+                                         'sminote',
                                          'OBMol',
                                          'units',
-                                         'QSAR prediction',
+                                         'qsarpred',
                                          'UL',
                                          'error',
-                                         'prediction note'
+                                         'ULnote'
                                          ),  # iterable of values to be output
                                  outfilename=None,  # output file name
                                  outkeepdata=True,  # also output all of the input file contents
@@ -223,7 +223,7 @@ def apply_qsars_to_molecule_list(qsarlist,
     # initialize dict to store output
     if outformat == 'dict':
         result = {'QSAR list':[]}
-        for val in ('input SMILES', 'normalized SMILES', 'SMILES note', 'OBMol'):
+        for val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
             if val in values:
                 result[val] = []
         for qsar in qsarlist:
@@ -231,7 +231,7 @@ def apply_qsars_to_molecule_list(qsarlist,
             result['QSAR list'].append(qsar.model_name)
             result[qsar.model_name] = {}
             for val in values:
-                if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
                     result[qsar.model_name][val] = []
     # initial columns to store output
     elif outformat == 'columns':
@@ -265,11 +265,11 @@ def apply_qsars_to_molecule_list(qsarlist,
         # concatenate to output dict
         if outformat == 'dict':
             for val in values:
-                if val in ('input SMILES', 'normalized SMILES', 'SMILES note', 'OBMol'):
+                if val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
                     result[val].append(singleresult[val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
+                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
                         result[qsar][val].append(singleresult[qsar][val])
         # concatenate to columns
         elif outformat == 'columns':
@@ -543,8 +543,10 @@ class IFSGUIClass:
         scrbar = self.tk.Scrollbar(popup)
         scrbar.pack(side=self.tk.RIGHT, fill=self.tk.Y)
         text = IFSGUIClass._ReadOnlyText(popup, font='Consolas 10')
-        with open('README.md', 'r') as file:
-            infostring = file.read()
+        import os
+        thispath = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(thispath, 'README.md'), 'r') as readmefile:
+            infostring = readmefile.read()
         infostring = infostring.replace('<pre>', '').replace('</pre>', '').replace('\[', '[')
         text.insert('1.0', infostring)
         text.pack(side=self.tk.LEFT)
@@ -600,15 +602,15 @@ class IFSGUIClass:
                                      inseparator=inseparator,
                                      inendline=inendline,
                                      converter=self.obcon,
-                                     values=('input SMILES',
-                                             'normalized SMILES',
-                                             'SMILES note',
+                                     values=('insmi',
+                                             'normsmi',
+                                             'sminote',
                                              'OBMol',
                                              'units',
-                                             'QSAR prediction',
+                                             'qsarpred',
                                              'UL',
                                              'error',
-                                             'prediction note'),
+                                             'ULnote'),
                                      outfilename=self.outputfilename,
                                      outkeepdata=True,
                                      outformat='rows',
