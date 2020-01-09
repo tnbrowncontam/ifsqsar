@@ -4,6 +4,7 @@
 
 if __name__ == "__main__":
     from . import ifsqsar
+    from . import models
     import argparse
 
     # define options for commandline interface
@@ -40,19 +41,34 @@ if __name__ == "__main__":
                            metavar='qsars',
                            action='store',
                            type=str,
-                           default='fhlb,hhlb,hhlt,dsm,tm,E,S,A,B,L,V',
+                           default=str(models.qsarlist).replace("['", '').replace("', '", ',').replace("']", ''),
                            help='list of qsars to apply, if not specified all are applied')
     # parse the options passed then decide actions
     args = argparser.parse_args()
     # no input specified, start the GUI
     if args.infile is None and args.smiles is None:
         ifsqsar.main()
-    # load QSARs
-    from .models import qsarmodels
-
-    # SMILES list has been passed, apply models to list
-    if args.smiles is not None:
-        print(ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
-                                                   smileslist=args.smiles.split(',')))
+    else:
+        # load QSARs
+        qsarmodels = []
+        for q in args.qsars.split(','):
+            qsarmodels.append(getattr(models, q))
+        # infile name has been passed, apply models to file
+        if args.infile is not None:
+            filename = args.infile
+            smiles = None
+        # SMILES list has been passed, apply models to list
+        elif args.smiles is not None:
+            filename = None
+            smiles = args.smiles.split(',')
+        # apply models
+        result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
+                                                      infilename=filename,
+                                                      smileslist=smiles,
+                                                      outfilename=args.outfile,
+                                                      )
+        # print to screen if no outfile
+        if args.outfile is None:
+            print(result)
 
 
