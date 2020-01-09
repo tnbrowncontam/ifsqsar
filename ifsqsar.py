@@ -64,33 +64,33 @@ def apply_qsars_to_molecule(qsarlist,
     # parse through the list of QSARs applying each to the molecule
     for qsar in qsarlist:
         # initialize dict of calculated results
-        result['QSAR list'].append(qsar.model_namespace['svalue_name'])
-        result[qsar.model_namespace['svalue_name']] = {}
+        result['QSAR list'].append(qsar.model_name)
+        result[qsar.model_name] = {}
         if 'units' in values:
-            result[qsar.model_namespace['svalue_name']]['units'] = ''
+            result[qsar.model_name]['units'] = ''
         if 'QSAR prediction' in values:
-            result[qsar.model_namespace['svalue_name']]['QSAR prediction'] = np.nan
+            result[qsar.model_name]['QSAR prediction'] = np.nan
         if 'UL' in values:
-            result[qsar.model_namespace['svalue_name']]['UL'] = np.nan
+            result[qsar.model_name]['UL'] = np.nan
         if 'error' in values:
-            result[qsar.model_namespace['svalue_name']]['error'] = np.nan
+            result[qsar.model_name]['error'] = np.nan
         if 'prediction note' in values:
-            result[qsar.model_namespace['svalue_name']]['prediction note'] = ''
+            result[qsar.model_name]['prediction note'] = ''
         # continue if SMILES was not successfully converted
         if not result['SMILES success']:
             continue
         # apply model and store output
         qsar_prediction, uncertainty_level, error, note = qsar.apply_model(molecule)
         if 'units' in values:
-            result[qsar.model_namespace['svalue_name']]['units'] = qsar.model_namespace['sunits']
+            result[qsar.model_name]['units'] = qsar.model_namespace['sunits']
         if 'QSAR prediction' in values:
-            result[qsar.model_namespace['svalue_name']]['QSAR prediction'] = qsar_prediction
+            result[qsar.model_name]['QSAR prediction'] = qsar_prediction
         if 'UL' in values:
-            result[qsar.model_namespace['svalue_name']]['UL'] = uncertainty_level
+            result[qsar.model_name]['UL'] = uncertainty_level
         if 'error' in values:
-            result[qsar.model_namespace['svalue_name']]['error'] = error
+            result[qsar.model_name]['error'] = error
         if 'prediction note' in values:
-            result[qsar.model_namespace['svalue_name']]['prediction note'] = note
+            result[qsar.model_name]['prediction note'] = note
     # return output as dict of values
     if outformat == 'dict':
         return result
@@ -228,11 +228,11 @@ def apply_qsars_to_molecule_list(qsarlist,
                 result[val] = []
         for qsar in qsarlist:
             # initialize dict of calculated results
-            result['QSAR list'].append(qsar.model_namespace['svalue_name'])
-            result[qsar.model_namespace['svalue_name']] = {}
+            result['QSAR list'].append(qsar.model_name)
+            result[qsar.model_name] = {}
             for val in values:
                 if val in ('units', 'QSAR prediction', 'UL', 'error', 'prediction note'):
-                    result[qsar.model_namespace['svalue_name']][val] = []
+                    result[qsar.model_name][val] = []
     # initial columns to store output
     elif outformat == 'columns':
         result = []
@@ -362,8 +362,10 @@ class IFSGUIClass:
         self.frame.pack_propagate(0)
         self.frame.pack()
         # import models
-        from .models import qsarmodels
-        self.qsarmodels = qsarmodels
+        from . import models
+        self.qsarmodels = []
+        for q in models.qsarlist:
+            self.qsarmodels.append(getattr(models, q))
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')

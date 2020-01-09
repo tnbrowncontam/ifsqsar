@@ -61,14 +61,18 @@ class QSARModel:
     """Class that loads an arbitrary Model from a Model file and applies it
     to any molecules passed to it as an openbabel mol"""
     
-    def __init__(self, model_name):
-        """Load Model from file, define variables."""
+    def __init__(self, model_path, model_name):
+        """Save model name and create model namespace."""
         
         # define Model namespace
         self.model_namespace = {}
+        self.model_path = model_path
+        self.model_name = model_name
 
+    def load(self):
+        """Load from file."""
         # read Model file
-        modelfile = open(model_name, 'r')
+        modelfile = open(self.model_path, 'r')
         file_lines = []
         modelcommands = False
         chemical_lines = []
@@ -302,6 +306,9 @@ class QSARModel:
             
     def apply_model(self, molecule):
         """Take an openbabel molecule, apply the QSARModel and return the result."""
+        # check if model has been loaded
+        if len(self.model_namespace) == 0:
+            self.load()
         # add or delete hydrogens depending on model
         if self.model_namespace['smolecule_format'] == 'old_format':
             molecule.AddHydrogens()
