@@ -9,11 +9,10 @@ if __name__ == "__main__":
     import os
 
     thispath = os.path.dirname(os.path.abspath(__file__))
-
     # define options for commandline interface
     argparser = argparse.ArgumentParser(prog='ifsqsar',
                                         usage='%(prog)s [options]',
-                                        description='IFSQSAR Command Line Interface',
+                                        description='IFSQSAR Command Line Interface, see full docs for usage examples',
                                         epilog='Invoke ifsqsar with no options start the GUI')
     # output full docs
     argparser.add_argument('-d',
@@ -22,18 +21,56 @@ if __name__ == "__main__":
                            help='Prints the full documentation to standard output')
     # input must be either from file OR from a list of SMILES
     inputgroup = argparser.add_mutually_exclusive_group()
-    inputgroup.add_argument('-i',
-                            '--infile',
-                            metavar='infile',
-                            action='store',
-                            type=str,
-                            help='Path and name of input file')
     inputgroup.add_argument('-s',
                             '--smiles',
                             metavar='smiles',
                             action='store',
                             type=str,
                             help='Comma-separated list of SMILES')
+    inputgroup.add_argument('-i',
+                            '--infile',
+                            metavar='infile',
+                            action='store',
+                            type=str,
+                            help='Path and name of input file')
+    # input format specification; only used if input is from file
+    argparser.add_argument('-r',
+                           '--inheaderrows',
+                           metavar='inheaderrows',
+                           action='store',
+                           type=int,
+                           default=1,
+                           help='Input file format: number of header rows, default = 1')
+    argparser.add_argument('-t',
+                           '--inheadertargetrow',
+                           metavar='inheadertargetrow',
+                           action='store',
+                           type=int,
+                           default=1,
+                           help='Input file format: 1-indexed row number in which to look for SMILES label, '
+                                'default = 1')
+    argparser.add_argument('-c',
+                           '--inheadersmiles',
+                           metavar='inheadersmiles',
+                           action='store',
+                           type=str,
+                           default='SMILES',
+                           help='Input file format: label in header that indicates column containing SMILES, '
+                                'default = SMILES')
+    argparser.add_argument('-p',
+                           '--inseparator',
+                           metavar='inseparator',
+                           action='store',
+                           type=str,
+                           default='\t',
+                           help='Input file format: character used to separate columns, default = \\t (tab)')
+    argparser.add_argument('-e',
+                           '--inendline',
+                           metavar='inendline',
+                           action='store',
+                           type=str,
+                           default='\n',
+                           help='Input file format: character used to separate rows, default = \\n (newline)')
     # output
     argparser.add_argument('-o',
                            '--outfile',
@@ -41,16 +78,45 @@ if __name__ == "__main__":
                            action='store',
                            type=str,
                            help='Path and name of output file, if not specified print to standard output')
-    # input format specification; only used if input is from file
-    # inheaderrows = 1,  # number of header lines
-    # inheadertargetrow = 1,  # header row to select from
-    # inheadersmiles = 'smiles',  # header value indicating SMILES
-    # inseparator = '\t',  # any string
-    # inendline = '\n',  # any string
     # output format specification
-    # outkeepdata = True,  # also output all of the input file contents
-    # outformat = 'rows',  # 'dict', 'columns', 'rows'
-    # outheader = True,  # True or False
+    argparser.add_argument('-u',
+                           '--outtossdata',
+                           action='store_false',
+                           default=True,
+                           help='Output format: toss data from input file, '
+                                'default = include data from input file in the output')
+    argparser.add_argument('-a',
+                           '--outsuppressheader',
+                           action='store_false',
+                           default=True,
+                           help='Output format: suppress header in output, '
+                                'default = include header in the output')
+    argparser.add_argument('-f',
+                           '--outformat',
+                           metavar='outformat',
+                           action='store',
+                           type=str,
+                           default='rows',
+                           help='Output format: chemical structures in rows, or in columns, '
+                                'default = rows')
+    argparser.add_argument('-m',
+                           '--outseparator',
+                           metavar='outseparator',
+                           action='store',
+                           type=str,
+                           nargs='?',
+                           default='\t',
+                           const='',
+                           help='Output format: character used to separate columns, default = \\t (tab)')
+    argparser.add_argument('-n',
+                           '--outendline',
+                           metavar='outendline',
+                           action='store',
+                           type=str,
+                           nargs='?',
+                           default='\n',
+                           const='',
+                           help='Output format: character used to separate rows, default = \\n (newline)')
     # outseparator = '\t',  # any string
     # outendline = '\n',  # any string
     # model selection
@@ -59,7 +125,9 @@ if __name__ == "__main__":
                            metavar='qsars',
                            action='store',
                            type=str,
+                           nargs='?',
                            default=str(models.qsarlist).replace("['", '').replace("', '", ',').replace("']", ''),
+                           const='',
                            help='Comma-separated list of qsars to apply, if not specified all are applied. Full list: '
                                  'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V. See full docs for explanation'
                            )
@@ -69,7 +137,9 @@ if __name__ == "__main__":
                            metavar='values',
                            action='store',
                            type=str,
+                           nargs='?',
                            default='insmi,normsmi,sminote,units,qsarpred,UL,error,ULnote',
+                           const='',
                            help='Comma-separated list of values to return. Full list: '
                                  'insmi, normsmi, sminote, units, qsarpred, UL, error, ULnote. See full docs for explanation'
                            )
@@ -86,23 +156,46 @@ if __name__ == "__main__":
     else:
         # load QSARs
         qsarmodels = []
-        for q in args.qsars.split(','):
-            qsarmodels.append(getattr(models, q))
-        # infile name has been passed, apply models to file
-        if args.infile is not None:
-            filename = args.infile
-            smiles = None
+        if args.qsars != '':
+            for q in args.qsars.split(','):
+                qsarmodels.append(getattr(models, q))
         # SMILES list has been passed, apply models to list
-        elif args.smiles is not None:
-            filename = None
+        if args.smiles is not None:
             smiles = args.smiles.split(',')
+            filename = None
+        # infile name has been passed, apply models to file
+        elif args.infile is not None:
+            smiles = None
+            filename = args.infile
         # apply models
+        if args.outseparator == '':
+            outsep = '<'
+        else:
+            outsep = args.outseparator
+        if args.outendline == '':
+            outend = '>'
+        else:
+            outend = args.outseparator
         result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
-                                                      infilename=filename,
                                                       smileslist=smiles,
+                                                      infilename=filename,
+                                                      inheadertargetrow=args.inheadertargetrow,
+                                                      inheaderrows=args.inheaderrows,
+                                                      inheadersmiles=args.inheadersmiles,
+                                                      inseparator=args.inseparator,
+                                                      inendline=args.inendline,
                                                       values=args.values.split(','),
                                                       outfilename=args.outfile,
+                                                      outkeepdata=args.outtossdata,
+                                                      outheader=args.outsuppressheader,
+                                                      outformat=args.outformat,
+                                                      outseparator=outsep,
+                                                      outendline=outend,
                                                       )
+        if args.outseparator == '':
+            result = result.replace('<', '')
+        if args.outendline == '':
+            result = result.replace('>', '')
         # print to screen if no outfile
         if args.outfile is None:
             print(result)

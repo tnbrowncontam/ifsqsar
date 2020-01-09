@@ -275,8 +275,12 @@ def apply_qsars_to_molecule_list(qsarlist,
         elif outformat == 'columns':
             if first:
                 result = singleresult.split(outendline)
+                if result[-1] == '':
+                    result.pop(-1)
             else:
                 splitresult = singleresult.split(outendline)
+                if splitresult[-1] == '':
+                    splitresult.pop(-1)
                 assert len(result) == len(splitresult)
                 result = [''.join([c[0], outseparator, c[1]]) for c in zip(result, splitresult)]
         # concatenate to rows

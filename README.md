@@ -41,7 +41,15 @@ publications for these.
 7. REFERENCES
 
 ********************************************************************************
-**1. SOFTWARE OVERVIEW AND USAGE**
+**. COMMAND LINE USAGE**
+********************************************************************************
+
+python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi
+given a comma-separated list of [SMILES], print a comma-separated
+list of the normalized SMILES
+
+********************************************************************************
+**. SOFTWARE OVERVIEW AND USAGE**
 ********************************************************************************
 
 In this section:  
