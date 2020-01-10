@@ -157,8 +157,17 @@ if __name__ == "__main__":
         # load QSARs
         qsarmodels = []
         if args.qsars != '':
-            for q in args.qsars.split(','):
+            splitlist = args.qsars.split(',')
+            while splitlist[-1] == '':
+                splitlist.pop(-1)
+            for q in splitlist:
                 qsarmodels.append(getattr(models, q))
+        # choose values
+        values = []
+        if args.values != '':
+            values = args.values.split(',')
+            while values[-1] == '':
+                values.pop(-1)
         # SMILES list has been passed, apply models to list
         if args.smiles is not None:
             smiles = args.smiles.split(',')
@@ -184,7 +193,7 @@ if __name__ == "__main__":
                                                       inheadersmiles=args.inheadersmiles,
                                                       inseparator=args.inseparator,
                                                       inendline=args.inendline,
-                                                      values=args.values.split(','),
+                                                      values=values,
                                                       outfilename=args.outfile,
                                                       outkeepdata=args.outtossdata,
                                                       outheader=args.outspprsshead,

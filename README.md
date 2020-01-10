@@ -48,7 +48,17 @@ publications for these.
 ********************************************************************************
 
 In this section:  
+- What the IFSQSAR package is
+- What the IFSQSAR package does
 - Information about SMILES strings
+
+**What the IFSQSAR package is**
+
+text here
+
+**What the IFSQSAR package does**
+
+text here
 
 **Information about SMILES strings**
 
@@ -89,26 +99,41 @@ provided in the output and any modifications to structures are noted.
 **2. COMMAND LINE USAGE**
 ********************************************************************************
 
-In this section:  
-- Command line structure and options
+In this section:
+- Invoking the command line  
+- Command line interface options
 - Usage examples 
 
-**Command line structure and options**
+**Invoking the command line**
 
-All of the options of the underlying python functions can be accessed from the
-Command Line Interface (CLI). Structures as SMILES must be read from file, or
-input as a single SMILES or a comma-separated list of SMILES at the command
-line. Output can be to a file, or printed to the standard output. Options are
-available to specify the formatting of input files, and formatting of the
-output. Some, all, or none of the QSARs can be applied and in addition to the
-QSARs predictions values related to the uncertainty, and details about the
-SMILES can be output.
+To use the ifsqsar as a Command Line Interface (CLI) the package must be run as
+a python script from the command line with the syntax:
+
+> python -m ifsqsar [ifsqsar options]
+
+The "-m" option to python runs the package as a script and must be included,
+otherwise the models will not load properly and imports will fail. Python must
+be installed and environment variables set up properly to call python from a
+command prompt. The ifsqsar folder must be placed in a location where python
+can find it when invoked, e.g. typically the Lib\site-packages folder in the
+python install directory, or the full path to the ifsqsar folder must be given
+every time.
+
+**Command line interface options**
+
+Most of the options of the underlying python functions can be accessed from the
+CLI. Structures as SMILES must be read from file, or input as a single SMILES or
+a comma-separated list of SMILES at the command line. Output can be to a file or
+printed to the standard output. Options are available to specify the formatting
+of input files and formatting of the output. Some, all or none of the QSARs can
+be applied and, in addition to the QSARs predictions, values related to the
+uncertainty and details about the SMILES can be output.
 
 Usage:  
-python -m ifsqsar [options]
+> python -m ifsqsar [ifsqsar options]
 
-Options:  
-- -h, --help           : show this help message and exit  
+IFSQSAR Options:  
+- -h, --help           : Show help message and exit  
 - -d, --docs           : Prints the full documentation to standard output  
 - -s, --smiles         : Comma-separated list of SMILES  
 - -i, --infile         : Path and name of input file  
@@ -133,9 +158,10 @@ Options:
                          default = \\t (tab)
 - -n, --outendline     : Output format: character used to separate rows,
                          default = \\n (newline)
-- -q, --qsars          : Comma-separated list of qsars to apply, if not
-                         specified all are applied. See section 5 to read about
-                         the details of each QSAR. Full list:  
+- -q, --qsars          : Comma-separated list of qsars to apply, if option is
+                         not invoked all are applied. If option is invoked with
+                         no list then none are applied. See section 5 to read
+                         about the details of each QSAR. Full list:  
                          fhlb : biotransformation half-life in fish  
                          hhlb : biotransformation half-life in humans  
                          hhlt : total elimination half-life in humans  
@@ -147,9 +173,11 @@ Options:
                          B    : Abraham ppLFER descriptor  
                          L    : Abraham ppLFER descriptor  
                          V    : Abraham ppLFER descriptor
-- -v, --values         : Comma-separated list of values to return. Full list:  
+- -v, --values         : Comma-separated list of values to return. If option is
+                         not invoked all are included. If option is invoked with
+                         no list then none are included. Full list:  
                          insmi    : the SMILES input by the user  
-                         normsmi  : the normalized SMILES, see section 1
+                         normsmi  : the normalized SMILES, see section 1  
                          sminote  : notes about SMILES normalization  
                          units    : units of QSAR prediction  
                          qsarpred : the value predicted by the QSAR  
@@ -161,14 +189,45 @@ Options:
 
 - command line input:  
 
-  python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi  
+  > python -m ifsqsar -s [SMILES] -f columns  
+  
+  result: given a [SMILES], print all QSAR results in a column, reproducing the
+  behaviour of the single calculation mode in the GUI, see section 3
+
+- command line input:  
+
+  > python -m ifsqsar -i [infile] -p , -o [outfile] -m ,  
+  
+  result: given a csv input file [infile], output all QSAR results in rows to
+  a csv output file [outfile], reproducing the behaviour of the batch
+  calculation mode in the GUI, see section 3. Any data in [infile] will also be
+  included in [outfile]
+
+- command line input:  
+
+  > python -m ifsqsar -i [infile] -r 3 -t 2 -c [smhe] -o [outfile] -m , -u  
+  
+  result: given a tab-delimited text file [infile] with three header rows, and
+  a custom SMILES column name [smhe] in header row 2, output all QSAR results
+  in rows to a csv output file, do not include the other data in [infile].
+
+- command line input:  
+
+  > python -m ifsqsar -s [SMILES] -f columns  
+  
+  result: given a [SMILES], print all QSAR results in a column, reproducing the
+  behaviour of the single calculation mode in the GUI, see section 3
+
+- command line input:  
+
+  > python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi  
   
   result: given a comma-separated list of [SMILES], print a comma-separated
   list of the normalized SMILES
 
 - command line input:  
 
-  python -m ifsqsar -s [SMILES] -q tm -a -m , -v qsarpred,error  
+  > python -m ifsqsar -s [SMILES] -q tm -a -m , -v qsarpred,error  
   
   result: given a comma-separated list of [SMILES], on one line for each
   structure print the melting point and the estimated prediction error
@@ -247,6 +306,8 @@ Show this info as a popup ->|[       Info       ] [Apply IFS QSARs]  |
 ********************************************************************************
 **4. PYTHON USAGE**
 ********************************************************************************
+
+text here.
 
 ********************************************************************************
 **5. QSAR DESCRIPTIONS AND INTERPRETATION**
@@ -528,7 +589,7 @@ Version B.2 Completed early 2019
 - Updated warning levels to reflect the new ULs from the dSm&Tm paper  
 - Updated this user guide to reflect changes
 
-Version 0.0.0dev Completed November 2019  
+Version 0.0.0dev Development Version imported to GitHub November 2019  
 - Updated code to run on python 3. Python 3.4 is now required  
 - General code cleanup and updating  
 - Migrated code to GitHub  
@@ -536,22 +597,16 @@ Version 0.0.0dev Completed November 2019
 - Added the LSER QSARs back into the program  
 - Added smiles_norm.py to cleanup and normalize input SMILES
 
+Version 0.0.0 Official release Pending
+- text here
+
 ********************************************************************************
 **9. KNOWN BUGS AND PLANNED FEATURES**
 ********************************************************************************
 
 - Updated versions of the LSER QSPRs need to be created and published
-- The xtxi matrix for domain checking in the model files needs to be re-encoded
-  using python 3  
-- IFSQSAR will likely need to be renamed and refactored, because an existing
-  software company named IFS exists and their suite of software is called
-  IFS Applications  
-- Pycharm IDE still gives some warnings but the code runs  
 - Code needs to be profiled and optimized to increase the speed of launching and
   running the program  
-- Self-contained windows version of the updated program still needs to be
-  compiled with pyinstaller. The win32 version provided in the dist folder is
-  IFSQSAR version B.2  
 
 ********************************************************************************
 **10. REFERENCES**

@@ -58,6 +58,15 @@ def apply_qsars_to_molecule(qsarlist,
                 result['normsmi'] = newsmiles
             if 'sminote' in values:
                 result['sminote'] = conversionnote
+        # make sure that the smiles note does not contain any separators or endlines
+        if 'sminote' in values:
+            seplist = [',', ';', '|', '~']
+            if separator in seplist:
+                seplist.remove(separator)
+                result['sminote'] = result['sminote'].replace(separator, seplist[0])
+            if endline in seplist:
+                seplist.remove(endline)
+                result['sminote'] = result['sminote'].replace(endline, seplist[1])
     # save the OBMol if required
     if result['SMILES success'] and 'OBMol' in values:
         result['OBMol'] = molecule
@@ -91,6 +100,14 @@ def apply_qsars_to_molecule(qsarlist,
             result[qsar.model_name]['error'] = error
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = note
+            # make sure that the note does not contain any separators or endlines
+            seplist = [',', ';', '|', '~']
+            if separator in seplist:
+                seplist.remove(separator)
+                result[qsar.model_name]['ULnote'] = result[qsar.model_name]['ULnote'].replace(separator, seplist[0])
+            if endline in seplist:
+                seplist.remove(endline)
+                result[qsar.model_name]['ULnote'] = result[qsar.model_name]['ULnote'].replace(endline, seplist[1])
     # return output as dict of values
     if outformat == 'dict':
         return result
