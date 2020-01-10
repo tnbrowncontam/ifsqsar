@@ -157,7 +157,7 @@ def apply_qsars_to_molecule(qsarlist,
 def apply_qsars_to_molecule_list(qsarlist,
                                  infilename=None,  # input file name
                                  inheaderrows=1,  # number of header lines
-                                 inheadertargetrow=1,  # header row to select from
+                                 inheadtrgtrow=1,  # header row to select from
                                  inheadersmiles='smiles',  # header value indicating SMILES
                                  inseparator='\t',  # any string
                                  inendline='\n',  # any string
@@ -197,7 +197,7 @@ def apply_qsars_to_molecule_list(qsarlist,
             filelines.remove('')
         # find the index of the column with SMILES
         smiles_index = 0
-        splitline = filelines[inheadertargetrow-1].split(inseparator)
+        splitline = filelines[inheadtrgtrow-1].split(inseparator)
         for s in range(len(splitline)):
             if splitline[s].lower().strip().rstrip() == inheadersmiles.lower():
                 smiles_index = s
@@ -306,10 +306,10 @@ def apply_qsars_to_molecule_list(qsarlist,
             if outheader:
                 resultoffset = 1
                 # append output header row to target row from input file
-                filelines[inheadertargetrow-1] = outseparator.join([filelines[inheadertargetrow-1], resultlines[0]])
+                filelines[inheadtrgtrow-1] = outseparator.join([filelines[inheadtrgtrow-1], resultlines[0]])
                 # if there are more input header rows add empty output lines
                 for i in range(infileoffset):
-                    if i == inheadertargetrow-1:
+                    if i == inheadtrgtrow-1:
                         continue
                     filelines[i] = outseparator.join([filelines[i], outseparator * resultlines[0].count(outseparator)])
             for i in range(infileoffset, len(filelines)):
@@ -601,7 +601,7 @@ class IFSGUIClass:
         apply_qsars_to_molecule_list(self.qsarmodels,
                                      infilename=self.inputfilename,
                                      inheaderrows=1,
-                                     inheadertargetrow=1,
+                                     inheadtrgtrow=1,
                                      inheadersmiles='smiles',
                                      inseparator=inseparator,
                                      inendline=inendline,

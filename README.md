@@ -95,69 +95,84 @@ In this section:
 
 **Command line structure and options**
 
+All of the options of the underlying python functions can be accessed from the
+Command Line Interface (CLI). Structures as SMILES must be read from file, or
+input as a single SMILES or a comma-separated list of SMILES at the command
+line. Output can be to a file, or printed to the standard output. Options are
+available to specify the formatting of input files, and formatting of the
+output. Some, all, or none of the QSARs can be applied and in addition to the
+QSARs predictions values related to the uncertainty, and details about the
+SMILES can be output.
+
 Usage:  
 python -m ifsqsar [options]
 
 Options:  
-- -h, --help : show this help message and exit  
-- -d, --docs : Prints the full documentation to standard output  
-- -s, --smiles : Comma-separated list of SMILES  
-- -i, --infile : Path and name of input file  
-- -r, --inheaderrows : Input file format: number of header rows, default = 1  
-- -t, --inheadertargetrow : Input file format: 1-indexed row number in which to
-                            look for SMILES label, default = 1  
--c inheadersmiles, --inheadersmiles inheadersmiles
-                        Input file format: label in header that indicates
-                        column containing SMILES, default = SMILES
--p inseparator, --inseparator inseparator
-                        Input file format: character used to separate columns,
-                        default = \t (tab)
--e inendline, --inendline inendline
-                        Input file format: character used to separate rows,
-                        default = \n (newline)
--o outfile, --outfile outfile
-                        Path and name of output file, if not specified print
-                        to standard output
--u, --outtossdata     Output format: toss data from input file, default =
-                        include data from input file in the output
--a, --outsuppressheader
-                        Output format: suppress header in output, default =
-                        include header in the output
--f outformat, --outformat outformat
-                        Output format: chemical structures in rows, or in
-                        columns, default = rows
--m [outseparator], --outseparator [outseparator]
-                        Output format: character used to separate columns,
-                        default = \t (tab)
--n [outendline], --outendline [outendline]
-                        Output format: character used to separate rows,
-                        default = \n (newline)
-  -q [qsars], --qsars [qsars]
-                        Comma-separated list of qsars to apply, if not
-                        specified all are applied. Full list: fhlb, hhlb,
-                        hhlt, dsm, tm, E, S, A, B, L, V. See full docs for
-                        explanation
-  -v [values], --values [values]
-                        Comma-separated list of values to return. Full list:
-                        insmi, normsmi, sminote, units, qsarpred, UL, error,
-                        ULnote. See full docs for explanation
-
-Invoke ifsqsar with no options start the GUI
-
+- -h, --help           : show this help message and exit  
+- -d, --docs           : Prints the full documentation to standard output  
+- -s, --smiles         : Comma-separated list of SMILES  
+- -i, --infile         : Path and name of input file  
+- -r, --inheaderrows   : Input file format: number of header rows, default = 1
+- -t, --inheadtrgtrow  : Input file format: 1-indexed row number in which to
+                         look for SMILES label, default = 1  
+- -c, --inheadersmiles : Input file format: label in header that indicates
+                         column containing SMILES, default = SMILES
+- -p, --inseparator    : Input file format: character used to separate columns,
+                         default = \t (tab)
+- -e, --inendline      : Input file format: character used to separate rows,
+                         default = \n (newline)
+- -o, --outfile        : Path and name of output file, if not specified print
+                         to standard output
+- -u, --outtossdata    : Output format: toss data from input file, default =
+                         include data from input file in the output
+- -a, --outspprsshead  : Output format: suppress header in output, default =
+                         include header in the output
+- -f, --outformat      : Output format: chemical structures in rows, or in
+                         columns, default = rows
+- -m, --outseparator   : Output format: character used to separate columns,
+                         default = \\t (tab)
+- -n, --outendline     : Output format: character used to separate rows,
+                         default = \\n (newline)
+- -q, --qsars          : Comma-separated list of qsars to apply, if not
+                         specified all are applied. See section 5 to read about
+                         the details of each QSAR. Full list:  
+                         fhlb : biotransformation half-life in fish  
+                         hhlb : biotransformation half-life in humans  
+                         hhlt : total elimination half-life in humans  
+                         dsm  : entropy of fusion  
+                         tm   : melting point  
+                         E    : Abraham ppLFER descriptor  
+                         S    : Abraham ppLFER descriptor  
+                         A    : Abraham ppLFER descriptor  
+                         B    : Abraham ppLFER descriptor  
+                         L    : Abraham ppLFER descriptor  
+                         V    : Abraham ppLFER descriptor
+- -v, --values         : Comma-separated list of values to return. Full list:  
+                         insmi    : the SMILES input by the user  
+                         normsmi  : the normalized SMILES, see section 1
+                         sminote  : notes about SMILES normalization  
+                         units    : units of QSAR prediction  
+                         qsarpred : the value predicted by the QSAR  
+                         UL       : Uncertainty Level, see section 6  
+                         ULnote   : notes about the Uncertainty Level  
+                         error    : estimated prediction error, see section 6  
 
 **Usage examples**
 
 - command line input:  
+
   python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi  
-  result:  
-  given a comma-separated list of [SMILES], print a comma-separated list of the
-  normalized SMILES
+  
+  result: given a comma-separated list of [SMILES], print a comma-separated
+  list of the normalized SMILES
 
 - command line input:  
+
   python -m ifsqsar -s [SMILES] -q tm -a -m , -v qsarpred,error  
-  result:  
-  given a comma-separated list of [SMILES], print the melting point and the
-  estimated prediction error of each structure separated by a comma on each line
+  
+  result: given a comma-separated list of [SMILES], on one line for each
+  structure print the melting point and the estimated prediction error
+  separated by a comma
 
 ********************************************************************************
 **3. GRAPHICAL USER INTERFACE USAGE**

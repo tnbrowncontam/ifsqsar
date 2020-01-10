@@ -42,8 +42,8 @@ if __name__ == "__main__":
                            default=1,
                            help='Input file format: number of header rows, default = 1')
     argparser.add_argument('-t',
-                           '--inheadertargetrow',
-                           metavar='inheadertargetrow',
+                           '--inheadtrgtrow',
+                           metavar='inheadtrgtrow',
                            action='store',
                            type=int,
                            default=1,
@@ -86,7 +86,7 @@ if __name__ == "__main__":
                            help='Output format: toss data from input file, '
                                 'default = include data from input file in the output')
     argparser.add_argument('-a',
-                           '--outsuppressheader',
+                           '--outspprsshead',
                            action='store_false',
                            default=True,
                            help='Output format: suppress header in output, '
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                            default='insmi,normsmi,sminote,units,qsarpred,UL,error,ULnote',
                            const='',
                            help='Comma-separated list of values to return. Full list: '
-                                 'insmi, normsmi, sminote, units, qsarpred, UL, error, ULnote. See full docs for explanation'
+                                 'insmi, normsmi, sminote, units, qsarpred, UL, ULnote, error. See full docs for explanation'
                            )
     # parse the options passed then decide actions
     args = argparser.parse_args()
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
                                                       smileslist=smiles,
                                                       infilename=filename,
-                                                      inheadertargetrow=args.inheadertargetrow,
+                                                      inheadtrgtrow=args.inheadtrgtrow,
                                                       inheaderrows=args.inheaderrows,
                                                       inheadersmiles=args.inheadersmiles,
                                                       inseparator=args.inseparator,
@@ -187,7 +187,7 @@ if __name__ == "__main__":
                                                       values=args.values.split(','),
                                                       outfilename=args.outfile,
                                                       outkeepdata=args.outtossdata,
-                                                      outheader=args.outsuppressheader,
+                                                      outheader=args.outspprsshead,
                                                       outformat=args.outformat,
                                                       outseparator=outsep,
                                                       outendline=outend,
