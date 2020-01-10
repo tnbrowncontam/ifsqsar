@@ -213,13 +213,6 @@ IFSQSAR Options:
 
 - command line input:  
 
-  > python -m ifsqsar -s [SMILES] -f columns  
-  
-  result: given a [SMILES], print all QSAR results in a column, reproducing the
-  behaviour of the single calculation mode in the GUI, see section 3
-
-- command line input:  
-
   > python -m ifsqsar -s [SMILES] -q -f columns -a -m , -n -v normsmi  
   
   result: given a comma-separated list of [SMILES], print a comma-separated
