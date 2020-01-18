@@ -6,8 +6,10 @@ representation.
 import pkg_resources
 if pkg_resources.get_distribution('openbabel').version.split('.')[0] == '3':
     from openbabel import openbabel as ob
+    obver = '3'
 else:
     import openbabel as ob
+    obver = '2'
 del pkg_resources
 import re
 
@@ -120,7 +122,12 @@ def convertsmiles(smiles, obconversion=None):
         for atom in ob.OBMolAtomIter(mol):
             atomid = atom.GetIdx()
             if atomid in anychargeatoms:
+                formalcharge = atom.GetFormalCharge()
                 atom.SetFormalCharge(0)
+                if obver == '3':
+                    newHcount = atom.GetImplicitHCount() - formalcharge
+                    assert newHcount >= 0
+                    atom.SetImplicitHCount(newHcount)
                 if changes == '':
                     changes = 'charged atom(s) neutralized: QSARs only handle neutrals'
                 elif 'atoms neutralized' not in changes:
@@ -128,6 +135,7 @@ def convertsmiles(smiles, obconversion=None):
 
         # ending molecule modification causes openbabel to re-evaluate the
         # valence of the atoms with their charges now set to zero
+        # (this recalculates implicit valence in openbabel 2X only, not in 3X!)
         mol.EndModify()
 
         # re-add hydrogen atoms with the new valence if they were deleted
