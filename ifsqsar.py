@@ -314,6 +314,11 @@ def apply_qsars_to_molecule_list(qsarlist,
         return result
     else:
         assert outformat == 'rows'
+        # replace tokens for empty delimiters
+        if outseparator == '<nosep>':
+            result = result.replace('<nosep>', '')
+        if outendline == '<noend>':
+            result = result.replace('<noend>', '')
         # output with data from input file
         if outkeepdata and filelines is not None:
             resultlines = result.split(outendline)

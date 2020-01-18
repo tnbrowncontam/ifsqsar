@@ -178,11 +178,11 @@ if __name__ == "__main__":
             filename = args.infile
         # apply models
         if args.outseparator == '':
-            outsep = '<'
+            outsep = '<nosep>'
         else:
             outsep = args.outseparator
         if args.outendline == '':
-            outend = '>'
+            outend = '<noend>'
         else:
             outend = args.outendline
         result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
@@ -201,12 +201,12 @@ if __name__ == "__main__":
                                                       outseparator=outsep,
                                                       outendline=outend,
                                                       )
-        if args.outseparator == '':
-            result = result.replace('<', '')
-        if args.outendline == '':
-            result = result.replace('>', '')
         # print to screen if no outfile
         if args.outfile is None:
+            if args.outseparator == '':
+                result = result.replace('<nosep>', '')
+            if args.outendline == '':
+                result = result.replace('<noend>', '')
             print(result, end='')
 
 
