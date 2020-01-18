@@ -3,7 +3,12 @@ Implements a convert function that takes a chemical structure as a SMILES and co
 representation.
 """
 
-import openbabel as ob
+import pkg_resources
+if pkg_resources.get_distribution('openbabel').version.split('.')[0] == '3':
+    from openbabel import openbabel as ob
+else:
+    import openbabel as ob
+del pkg_resources
 import re
 
 

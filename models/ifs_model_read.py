@@ -3,7 +3,12 @@ Reads model files from the development code for group contribution QSARs (IFS) d
 Applies the QSARs and checks domain of applicability for single structures as SMILES or for a file of structures.
 """
 
-import openbabel as ob
+import pkg_resources
+if pkg_resources.get_distribution('openbabel').version.split('.')[0] == '3':
+    from openbabel import openbabel as ob
+else:
+    import openbabel as ob
+del pkg_resources
 import numpy as np
 import base64
 import pickle
