@@ -394,9 +394,7 @@ class IFSGUIClass:
         self.frame.pack()
         # import models
         from . import models
-        self.qsarmodels = []
-        for q in models.qsarlist:
-            self.qsarmodels.append(getattr(models, q))
+        self.qsarmodels = models.qsarlist.copy()
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')

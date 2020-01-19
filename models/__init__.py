@@ -4,8 +4,6 @@ from . import ifs_model_read
 
 thispath = os.path.dirname(os.path.abspath(__file__))
 
-qsarlist = ['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V']
-
 if hasattr(sys, '_MEIPASS'):
     fhlb = ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_fhlb_linr.txt'), 'fhlb')
     hhlb = ifs_model_read.QSARModel(os.path.join(sys._MEIPASS, 'ifs_qsar_hhlb_linr.txt'), 'hhlb')
@@ -30,3 +28,6 @@ else:
     B = ifs_model_read.QSARModel(os.path.join(thispath, 'ifs_qsar_ADB_UFZ__B_linr.txt'), 'B')
     L = ifs_model_read.QSARModel(os.path.join(thispath, 'ifs_qsar_ADB_UFZ__L_linr.txt'), 'L')
     V = ifs_model_read.QSARModel(os.path.join(thispath, 'ifs_qsar_V.txt'), 'V')
+
+qsarnamelist = ['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V']
+qsarlist = [fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V]

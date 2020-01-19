@@ -300,7 +300,62 @@ Show this info as a popup ->|[       Info       ] [Apply IFS QSARs]  |
 **4. PYTHON USAGE**
 ********************************************************************************
 
-text here.
+In this section:  
+- General overview of python usage
+- Stability of the API
+
+**General overview of python usage**
+
+Python users should import the ifsqsar package with the syntax:
+
+> from ifsqsar import ifsqsar
+
+The main python interface is the ifsqsar.apply_qsars_to_molecule_list function.
+The CLI is built on top of this function and provides access to most of its
+functionality. Options are available to specify the format of input files, the
+format of output, and what will be output. See the function full documentation.
+Users can also access the ifsqsar.apply_qsars_to_molecule function which
+applies IFS QSARs to single molecules, but without any file IO options.
+
+Using the ifsqsar.apply_qsars_to_molecule_list function from python provides
+access to two additional options not available from the CLI. In addition to
+printing the results or writing them to file the results can be returned as
+a dict so that the values are directly accessible. In this format, in addition
+to the normalized SMILES and model outputs the generated openbabel OBMol object
+can be included in the output.
+
+The QSARs are stored in the models subpackage, existing as objects with the
+same name as listed in the -qsar option to the CLI. A list of the names is
+stored in models.qsarnamelist, and a list of the models themselves is also
+stored for convenience in models.qsarlist. A list of qsars objects must be
+passed to the ifsqsar.apply_qsars_to_molecule_list function as the first
+positional argument. The full list models.qsarlist can be passed, or a
+shorter list may be constructed by editing a shallow copy of models.qsarlist
+or adding models by name to a list.
+
+Using the ifsqsar package directly from python will be faster than accessing
+the same functionality from the CLI, because every time the CLI is invoked the
+models must be loaded, whereas the models only need to be loaded once when the
+package is imported as a python module.
+
+**Stability of the API**
+
+The options and naming of the ifsqsar.apply_qsars_to_molecule_list function
+will remain stable, as the primary interface to the ifsqsar package. Additional
+options may be added based on user feedback, but backwards compatibility will
+be maintained across all minor updates, and likely major updates too.
+
+Some basic aspects of the models subpackage will be stable, but a major
+overhaul of how the models are stored and loaded is planned for the future.
+The models are currently instances of the QSARModel class stored in the
+models subpackage, this may change. Stable aspects of the API will be that the
+models are stored as some object in the models subpackage, they will have a
+method or function named "apply_model" with the current syntax, i.e. it takes
+an OBMol and returns prediction, uncertainty level, estimated error and an
+explanation note. The object will have an attribute "model_name" with the same
+name as the object in the models subpackage. Future updates may provide an API
+to construct lists of QSARs, but manual methods of compiling lists should
+remain stable. 
 
 ********************************************************************************
 **5. QSAR DESCRIPTIONS AND INTERPRETATION**
@@ -537,8 +592,8 @@ Uncertain.   Note           Explanation
 ********************************************************************************
 
 IFSQSAR was written with the open source resources listed below. Because two of
-these resources use the GNU General Public License interested users may request
-the source code for IFSQSAR.
+these resources use the GNU General Public License the source code for IFSQSAR
+is available on GitHub.
 
 Python: GUI and general coding  
 - Python Programming Language, version 3.7.2, http://www.python.org/  
@@ -551,10 +606,6 @@ NumPy: Mathematics
 Open Babel: Chemical structure handling  
 - The Open Babel Package, version 2.4.1, http://openbabel.org  
 - License: GNU GPL. http://www.gnu.org/licenses/gpl.html  
-
-Pyinstaller: Packaging for .exe distribution  
-- Pyinstaller, version 3.5, http://www.pyinstaller.org/  
-- License: GNU GPL. http://www.pyinstaller.org/license.html  
 
 ********************************************************************************
 **8. CHANGE LOG**
