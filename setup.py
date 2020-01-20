@@ -22,5 +22,5 @@ setuptools.setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Chemistry',
     ],
-    python_requires='>=3.0',
+    python_requires='>=3.4',
 )

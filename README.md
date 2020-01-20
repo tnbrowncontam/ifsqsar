@@ -48,17 +48,35 @@ publications for these.
 ********************************************************************************
 
 In this section:  
-- What the IFSQSAR package is
-- What the IFSQSAR package does
+- What is the IFSQSAR package?
+- How to use the IFSQSAR package
 - Information about SMILES strings
 
-**What the IFSQSAR package is**
+**What is the IFSQSAR package?**
 
-text here
+IFSQSAR is a tool that can be used to apply Quantitative Structure Activity
+Relationships (QSARs) developed by Trevor N. Brown, called Iterative Fragment
+Selection (IFS) QSARs. There are IFS QSARs implemented to predict chemical
+properties relevant for chemical risk assessment, such as biotransformation
+half-lives in animals, and Abraham LSER solute descriptors which can be used
+to predict environmental partitioning. IFSQSAR is a provided as a python
+package, it is open source and free to use. The source code can be obtained
+from the GitHub page at: https://github.com/tnbrowncontam/ifsqsar
 
-**What the IFSQSAR package does**
+**How to use the IFSQSAR package**
 
-text here
+To use the IFSQSAR package you must have a python interpreter (3.4 or greater)
+installed on your computer. If python is already installed you do not need to
+have administrator privileges to install IFSQSAR, simply copy to code from
+GitHub to a folder named "ifsqsar" where python can find it, typically the
+Lib\site-packages folder in the python install directory. There are three ways
+to use IFSQSAR to make predictions: (1) Import IFSQSAR as a python package and
+use it in your own python code. (2) Run IFSQSAR from the command line to apply
+the IFS QSARs and handle input and output without writing any python code.
+(3) A simple Graphical User Interface (GUI) is provided to perform single and
+batch calculations, it can be started from the command line. The only thing
+required to make QSAR predictions for a chemical is the structure as a SMILES
+string.
 
 **Information about SMILES strings**
 
@@ -189,6 +207,12 @@ IFSQSAR Options:
 
 - command line input:  
 
+  > python -m ifsqsar  
+  
+  result: start the GUI, see section 3
+
+- command line input:  
+
   > python -m ifsqsar -s [SMILES] -f columns  
   
   result: given a [SMILES], print all QSAR results in a column, reproducing the
@@ -236,7 +260,8 @@ In this section:
 
 **Overview of IFSQSAR single mode interface**
 
-In single mode QSARs can be applied to a single structure. The structure must be
+The GUI can be started from the CLI or by running ifsqsar.py as a script. In
+single mode QSARs can be applied to a single structure. The structure must be
 entered into the interface as a SMILES string (see below), and then the "Apply
 IFS QSARs" button must be clicked. The results are displayed in the results
 window as tab-delimited text with headers and row labels. For further details on
@@ -339,6 +364,11 @@ models must be loaded, whereas the models only need to be loaded once when the
 package is imported as a python module.
 
 **Stability of the API**
+
+**Note:** There are no guarantees that the API will remain stable until
+IFSQSAR is out of preliminary development and version 0.0.0 is officially
+released. Below is the current idea of how the API will be stable but this may
+still change before release.
 
 The options and naming of the ifsqsar.apply_qsars_to_molecule_list function
 will remain stable, as the primary interface to the ifsqsar package. Additional
@@ -642,7 +672,10 @@ Version 0.0.0dev Development Version imported to GitHub November 2019
 - Added smiles_norm.py to cleanup and normalize input SMILES
 
 Version 0.0.0 Official release Pending
-- text here
+- Implemented a Command Line Interface (CLI)
+- Reorganized the code structure to facilitate importing as a python package 
+  and usage as a CLI
+- Reorganized and updated the documentation in the readme.md file
 
 ********************************************************************************
 **9. KNOWN BUGS AND PLANNED FEATURES**
