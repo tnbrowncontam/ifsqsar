@@ -3752,6 +3752,7 @@ molecule_format	old_format
 <setting>	round_digits	3
 <setting>	units	unitless
 <setting>	molecule_format	old_format
+<setting>	smilesflag	neutrals
 <frag>	0	*1~*~*~*~*~*~1	no description
 <frag>	1	[A!#1+0]=[A!#1+0]	no description
 <frag>	2	[#7]	no description

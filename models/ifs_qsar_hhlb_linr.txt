@@ -960,6 +960,7 @@ molecule_format	old_format
 <setting>	round_digits	2
 <setting>	units	hours
 <setting>	molecule_format	old_format
+<setting>	smilesflag	neutrals
 <cons>	0	1	intercept
 <frag>	1	[cX3H1]:[cX3H0;!$(*-a);!$(*~A)]:[cX3H0;!$(*-a);!$(*~A)](:[cX3H1]):[nX3H1+0]	no description
 <frag>	2	[OX1H0+0]=[cX3H0;$(*=A)]:[nX3H1+0]	no description

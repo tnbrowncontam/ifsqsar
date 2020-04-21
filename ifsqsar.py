@@ -11,7 +11,9 @@ else:
 del pkg_resources
 import numpy as np
 from . import smiles_norm
+import re
 
+chargedatom = re.compile('[\[].+?[-+][\]]')
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
@@ -35,7 +37,7 @@ def apply_qsars_to_molecule(qsarlist,
     """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
     # initialize results dict from values iterable
     result = {'SMILES success': True, 'QSAR list': []}
-    for val in ('insmi', 'normsmi', 'sminote'):
+    for val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
         if val in values:
             result[val] = ''
     if 'OBMol' in values:
@@ -46,11 +48,9 @@ def apply_qsars_to_molecule(qsarlist,
         assert type(smiles) == str
         if converter is not None:
             assert type(converter) == ob.OBConversion
-        molecule, newsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
+        molecule, smileslist, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
-        if ('error reading SMILES' in conversionnote or
-                'aromaticity broken' in conversionnote or
-                'structure contains permanently charged atoms' in conversionnote):
+        if smileslist[0] == '':
             result['SMILES success'] = False
             if 'insmi' in values:
                 result['insmi'] = smiles
@@ -60,7 +60,15 @@ def apply_qsars_to_molecule(qsarlist,
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
-                result['normsmi'] = newsmiles
+                result['normsmi'] = smileslist[0]
+            if 'chrgsmi' in values:
+                result['chrgsmi'] = smileslist[1]
+            if 'normchiralsmi' in values:
+                result['normchiralsmi'] = smileslist[2]
+            if 'canonnochiralsmi' in values:
+                result['canonnochiralsmi'] = smileslist[3]
+            if 'canonchiralsmi' in values:
+                result['canonchiralsmi'] = smileslist[4]
             if 'sminote' in values:
                 result['sminote'] = conversionnote
         # make sure that the smiles note does not contain any separators or endlines
@@ -76,7 +84,10 @@ def apply_qsars_to_molecule(qsarlist,
     if result['SMILES success'] and 'OBMol' in values:
         result['OBMol'] = molecule
     # parse through the list of QSARs applying each to the molecule
+    smilesflag = False
     for qsar in qsarlist:
+        if len(qsar.model_namespace) == 0:
+            qsar.load()
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}
@@ -90,6 +101,10 @@ def apply_qsars_to_molecule(qsarlist,
             result[qsar.model_name]['error'] = np.nan
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = ''
+        # check if SMILES conforms to flag in model and skip if not
+        if qsar.model_namespace['ssmilesflag'] == 'neutrals' and not re.search(chargedatom, result['normsmi']) is None:
+            smilesflag = True
+            continue
         # continue if SMILES was not successfully converted
         if not result['SMILES success']:
             continue
@@ -113,6 +128,9 @@ def apply_qsars_to_molecule(qsarlist,
             if endline in seplist:
                 seplist.remove(endline)
                 result[qsar.model_name]['ULnote'] = result[qsar.model_name]['ULnote'].replace(endline, seplist[1])
+    if smilesflag:
+        result['normsmi'] = ''
+        result['sminote'] = 'error: neutral structure required, ' + result['sminote']
     # return output as dict of values
     if outformat == 'dict':
         return result
@@ -120,7 +138,7 @@ def apply_qsars_to_molecule(qsarlist,
     elif outformat == 'columns':
         outstring = ''
         for val in values:
-            if val in ('insmi', 'normsmi', 'sminote'):
+            if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
                 if header:
                     outstring = ''.join([outstring, val, separator, result[val], endline])
                 else:
@@ -140,7 +158,7 @@ def apply_qsars_to_molecule(qsarlist,
         if header:
             first = True
             for val in values:
-                if val in ('insmi', 'normsmi', 'sminote'):
+                if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
                     if first:
                         outstring = ''.join([outstring, val])
                         first = False
@@ -158,7 +176,7 @@ def apply_qsars_to_molecule(qsarlist,
         # output values
         first = True
         for val in values:
-            if val in ('insmi', 'normsmi', 'sminote'):
+            if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
                 if first:
                     outstring = ''.join([outstring, result[val]])
                     first = False
@@ -245,7 +263,7 @@ def apply_qsars_to_molecule_list(qsarlist,
     # initialize dict to store output
     if outformat == 'dict':
         result = {'QSAR list':[]}
-        for val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
+        for val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote', 'OBMol'):
             if val in values:
                 result[val] = []
         for qsar in qsarlist:
@@ -287,7 +305,7 @@ def apply_qsars_to_molecule_list(qsarlist,
         # concatenate to output dict
         if outformat == 'dict':
             for val in values:
-                if val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
+                if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote', 'OBMol'):
                     result[val].append(singleresult[val])
             for qsar in result['QSAR list']:
                 for val in values:

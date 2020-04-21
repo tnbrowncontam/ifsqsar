@@ -3594,6 +3594,7 @@ molecule_format	old_format
 <setting>	round_digits	3
 <setting>	units	unitless
 <setting>	molecule_format	old_format
+<setting>	smilesflag	neutrals
 <cons>	0	1	intercept
 <frag>	1	[#6]	no description
 <frag>	2	[ClX1H0+0]	no description

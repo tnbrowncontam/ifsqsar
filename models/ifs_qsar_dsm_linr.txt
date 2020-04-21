@@ -1604,6 +1604,7 @@ units	kJ/mol
 <setting>	round_digits	2
 <setting>	units	kJ/mol
 <setting>	molecule_format	dev.0.0.5
+<setting>	smilesflag	neutrals
 <cons>	0	1	intercept
 <frag>	1	[#6AD2v4x0R0H2+0]	no description
 <frag>	2	[#6]	no description

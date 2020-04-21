@@ -12,6 +12,7 @@ molecule_format	old_format
 <setting>	round_digits	3
 <setting>	units	0.01 cm^3/mol
 <setting>	molecule_format	old_format
+<setting>	smilesflag	neutrals
 <frag>	0	[#6]	no description
 <frag>	1	[#7]	no description
 <frag>	2	[#8]	no description

@@ -2906,6 +2906,7 @@ units	K
 <setting>	round_digits	2
 <setting>	units	K
 <setting>	molecule_format	dev.0.0.5
+<setting>	smilesflag	neutrals
 <cons>	0	1	intercept
 <frag>	1	[#6aD3v4x2R1H0+0]	no description
 <frag>	2	[#8]	no description
