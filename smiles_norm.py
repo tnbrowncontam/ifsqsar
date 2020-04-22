@@ -131,6 +131,8 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
             permchargeatoms = [i[0] for i in permsmarts.GetUMapList()]
             anysmarts.Match(mol)
             anychargeatoms = list(set([i[0] for i in anysmarts.GetUMapList()]).difference(permchargeatoms))
+            neutralizesmarts.Match(mol)
+            neutralizableatoms = [i[0] for i in neutralizesmarts.GetUMapList()]
 
         # set non-permanently charged atoms to zero charge
         for atom in ob.OBMolAtomIter(mol):
