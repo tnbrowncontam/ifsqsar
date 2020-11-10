@@ -3,14 +3,12 @@ Implements a convert function that takes a chemical structure as a SMILES and co
 representation.
 """
 
-import pkg_resources
-if pkg_resources.get_distribution('openbabel').version.split('.')[0] == '3':
+try:
     from openbabel import openbabel as ob
     obver = '3'
-else:
+except ImportError:
     import openbabel as ob
     obver = '2'
-del pkg_resources
 import re
 
 # initialize smarts for finding atoms with permanent charges
