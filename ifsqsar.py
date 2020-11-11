@@ -3,12 +3,12 @@ ifsqsar.py
 Implements a simple GUI for applying group contribution QSARS (IFS) developed by Trevor N. Brown.
 """
 
-import pkg_resources
-if pkg_resources.get_distribution('openbabel').version.split('.')[0] == '3':
+try:
+    # ob version 3.x
     from openbabel import openbabel as ob
-else:
+except ImportError:
+    # ob version 2.x
     import openbabel as ob
-del pkg_resources
 import numpy as np
 from . import smiles_norm
 import re
