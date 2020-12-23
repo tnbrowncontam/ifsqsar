@@ -10,8 +10,7 @@ except ImportError:
     # ob version 2.x
     import openbabel as ob
 import numpy as np
-import base64
-import pickle
+import importlib
 
 
 def _normcdfapprox(x):
@@ -66,468 +65,145 @@ class QSARModel:
     """Class that loads an arbitrary Model from a Model file and applies it
     to any molecules passed to it as an openbabel mol"""
     
-    def __init__(self, model_path, model_name):
+    def __init__(self, model_module, model_name):
         """Save model name and create model namespace."""
         
         # define Model namespace
-        self.model_namespace = {}
-        self.model_path = model_path
+        self.model_namespace = None
+        self.model_module = model_module
         self.model_name = model_name
 
     def load(self):
-        """Load from file."""
-        # read Model file
-        modelfile = open(self.model_path, 'r')
-        file_lines = []
-        modelcommands = False
-        chemical_lines = []
-        trainset = False
-        
-        for line in modelfile:
-            splitline = line.rstrip('\n').split('\t')
-            # read in Model command sequence
-            if splitline[0] == '<startmodel>':
-                modelcommands = True
-            elif splitline[0] == '<endmodel>':
-                modelcommands = False
-            elif splitline[0] == '<startdomain>':
-                modelcommands = True
-            elif splitline[0] == '<enddomain>':
-                modelcommands = False
-            elif splitline[0] == '<startdomaindata>':
-                modelcommands = True
-            elif splitline[0] == '<enddomaindata>':
-                modelcommands = False
-            elif modelcommands:
-                file_lines.append(splitline)
-            # read in chemical data lines
-            elif splitline[0] == '<startdataset>':
-                trainset = True
-            elif splitline[0] == '<enddataset>':
-                trainset = False
-            elif trainset:
-                chemical_lines.append(splitline)
-        modelfile.close()
+        """Import the model module."""
+        self.model_namespace = importlib.import_module('ifsqsar.models.' + self.model_module)
+        self.model_namespace.smartslist = []
+        for smarts in self.model_namespace.fragmentlist['smarts']:
+            if smarts == b'intercept':
+                self.model_namespace.smartslist.append('intercept')
+            else:
+                pattern = ob.OBSmartsPattern()
+                pattern.Init(smarts.decode('utf-8'))
+                self.model_namespace.smartslist.append(pattern)
+        self.model_namespace.coefficientarray = np.mean(self.model_namespace.coefficientarrays, axis=1)
+        if self.model_namespace.domain:
+            if self.model_namespace.intercept:
+                self.model_namespace.xtxi = np.linalg.inv(np.matmul(self.model_namespace.train_counts[:, 1:].T, self.model_namespace.train_counts[:, 1:]))
+            else:
+                self.model_namespace.xtxi = np.linalg.inv(np.matmul(self.model_namespace.train_counts.T, self.model_namespace.train_counts))
+            self.model_namespace.neg_dom_check_init = []
+            for s in range(self.model_namespace.neg_dom_check.shape[0]):
+                smarts1, smarts2, description = self.model_namespace.neg_dom_check[s]
+                pattern1 = ob.OBSmartsPattern()
+                pattern1.Init(smarts1.decode('utf-8'))
+                pattern2 = ob.OBSmartsPattern()
+                pattern2.Init(smarts2.decode('utf-8'))
+                self.model_namespace.neg_dom_check_init.append((pattern1, pattern2, description))
 
-        # read settings
-        for line in file_lines:
-            if line[0] == '<setting>':
-                self.model_namespace['s'+line[1]] = line[2]
-        
-        # read in training dataset count arrays and values
-        self.model_namespace['train_arrays'] = {}
-        self.model_namespace['train_values'] = {}
-        self.model_namespace['train_array'] = None
-        self.model_namespace['train_value'] = None
-        self.model_namespace['train_value_similarity'] = None
-        self.model_namespace['valid_array'] = None
-        self.model_namespace['valid_value'] = None
-        header = True
-        value_index = 999999
-        value_similarity_index = 999999
-        value_similarity = 999999
-        model_descriptors_index = 999999
-        fit_test_index = 999999
-        train_validate_index = 999999
-        for line in chemical_lines:
-            if header:
-                fit_test_index = line.index('fit_test')
-                train_validate_index = line.index('train_validate')
-                for c in range(len(line)):
-                    if line[c][:line[c].find('|')] == 'model_descriptors':
-                        model_descriptors_index = c
-                    elif line[c] == 'value_similarity':
-                        value_similarity_index = c
-                value_index = line.index(self.model_namespace['svalue_name'])
-                header = False
-            elif model_descriptors_index != 999999:
-                countlist = line[model_descriptors_index].split(',')
-                if countlist == ['']:
-                    countlist = []
-                for c in range(len(countlist)):
-                    countlist[c] = float(countlist[c])
-                value = float(line[value_index])
-                fit_test = int(line[fit_test_index])
-                train_validate = line[train_validate_index]
-                if value_similarity_index != 999999:
-                    value_similarity = line[value_similarity_index]
-                # load train values and counts by fold for similarity readacross
-                if fit_test != 0 and fit_test not in self.model_namespace['train_arrays']:
-                    self.model_namespace['train_arrays'][fit_test] = np.array([countlist], dtype=float)
-                    self.model_namespace['train_values'][fit_test] = np.array([[value]], dtype=float)
-                elif fit_test != 0 and fit_test in self.model_namespace['train_arrays']:
-                    self.model_namespace['train_arrays'][fit_test] = np.vstack((
-                        self.model_namespace['train_arrays'][fit_test], np.array([countlist], dtype=float)))
-                    self.model_namespace['train_values'][fit_test] = np.vstack((
-                        self.model_namespace['train_values'][fit_test], np.array([[value]], dtype=float)))
-                # load all values and counts each as one chunk for domain testing
-                if train_validate == 'train' and self.model_namespace['train_array'] is None:
-                    self.model_namespace['train_array'] = np.array([countlist], dtype=float)
-                    self.model_namespace['train_value'] = np.array([[value]], dtype=float)
-                    if value_similarity_index != 999999:
-                        self.model_namespace['train_value_similarity'] = np.array([[value_similarity]], dtype=float)
-                elif train_validate == 'train' and self.model_namespace['train_array'] is not None:
-                    self.model_namespace['train_array'] = np.vstack((self.model_namespace['train_array'],
-                                                                     np.array([countlist], dtype=float)))
-                    self.model_namespace['train_value'] = np.vstack((self.model_namespace['train_value'],
-                                                                     np.array([[value]], dtype=float)))
-                    if value_similarity_index != 999999:
-                        self.model_namespace['train_value_similarity'] = np.vstack((
-                            self.model_namespace['train_value_similarity'],
-                            np.array([[value_similarity]], dtype=float)))
-                elif train_validate == 'validate' and type(self.model_namespace['valid_array']) != np.ndarray:
-                    self.model_namespace['valid_array'] = np.array([countlist], dtype=float)
-                    self.model_namespace['valid_value'] = np.array([[value]], dtype=float)
-                elif train_validate == 'validate' and type(self.model_namespace['valid_array']) == np.ndarray:
-                    self.model_namespace['valid_array'] = np.vstack((self.model_namespace['valid_array'],
-                                                                     np.array([countlist], dtype=float)))
-                    self.model_namespace['valid_value'] = np.vstack((self.model_namespace['valid_value'],
-                                                                     np.array([[value]], dtype=float)))
-
-        # read constants, fragments and holistic descriptors into the Model namespace
-        self.model_namespace['fragment_counts'] = np.array((1, 0))
-        for line in file_lines:
-            if line[0] == '<cons>':
-                self.model_namespace['fragment_counts'].resize((1, int(line[1])+1))
-                self.model_namespace['fragment_counts'][0, int(line[1])] = float(line[2])
-                self.model_namespace['f'+line[1]] = None
-            elif line[0] == '<frag>':
-                self.model_namespace['fragment_counts'].resize((1, int(line[1])+1))
-                self.model_namespace['fragment_counts'][0, int(line[1])] = 0.
-                self.model_namespace['f'+line[1]] = ob.OBSmartsPattern()
-                self.model_namespace['f'+line[1]].Init(line[2])
-            elif line[0] == '<holi>':
-                self.model_namespace['fragment_counts'].resize((1, int(line[1])+1))
-                self.model_namespace['fragment_counts'][0, int(line[1])] = 0.
-                self.model_namespace['f'+line[1]] = line[2]
-        
-        # read coefficients into the QSARModel namespace
-        max_row = 0
-        max_col = 0
-        for line in file_lines:
-            if line[0] == '<coeff>':
-                if len(line)-2 > max_row:
-                    max_row = len(line)-2
-                if int(line[1])+1 > max_col:
-                    max_col = int(line[1])+1
-        self.model_namespace['coefficients'] = np.zeros((max_row, max_col), dtype=float)
-        for line in file_lines:
-            if line[0] == '<coeff>':
-                for c in range(2, len(line)):
-                    self.model_namespace['coefficients'][c-2, int(line[1])] = float(line[c])
-
-        # read fragment standard deviations
-        self.model_namespace['fragment_stdev'] = np.zeros((1, 0), dtype=float)
-        for line in file_lines:
-            if line[0] == '<fstdev>':
-                self.model_namespace['fragment_stdev'] = np.hstack((self.model_namespace['fragment_stdev'],
-                                                                    np.array([[float(line[2])]], dtype=float)))
-
-        # read atom coverages
-        self.model_namespace['atomcoverage'] = []
-        for line in file_lines:
-            if line[0] == '<atomcoverage>':
-                self.model_namespace['atomcoverage'].append([ob.OBSmartsPattern(), ob.OBSmartsPattern(), line[3]])
-                self.model_namespace['atomcoverage'][-1][0].Init(line[1])
-                self.model_namespace['atomcoverage'][-1][1].Init(line[2])
-
-        # load xtxi matrix for calculating leverages
-        for line in file_lines:
-            if line[0] == '<xtxi>':
-                # try to decode as python 3 string
-                try:
-                    self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1].encode('utf-8')))
-                # if that fails then decode as a python 2 string
-                except UnicodeDecodeError:
-                    self.model_namespace['xtxi'] = pickle.loads(base64.b64decode(line[1]), encoding='latin1')
-
-        # read commands into the QSARModel namespace converting types
-        self.model_namespace['command_sequence'] = []
-        for i in range(len(file_lines)):
-            line = file_lines[i]
-            # variable definitions
-            if line[0] == '<define>':
-                try:
-                    line[2] = float(line[2])
-                except ValueError:
-                    pass
-                self.model_namespace['command_sequence'].append(line)
-            # apply coefficients
-            elif line[0] == '<applycoeff>':
-                line[1] = int(line[1])
-                line[2] = int(line[2])
-                self.model_namespace['command_sequence'].append(line)
-            # apply similarity
-            elif line[0] == '<applysimil>':
-                line[1] = int(line[1])
-                line[2] = int(line[2])
-                self.model_namespace['command_sequence'].append(line)
-            # sum counts
-            elif line[0] == '<sumcounts>':
-                line[1] = int(line[1])
-                line[2] = int(line[2])
-                self.model_namespace['command_sequence'].append(line)
-            # calculated CSS
-            elif line[0] == '<calculatecss>':
-                line[1] = int(line[1])
-                line[2] = int(line[2])
-                self.model_namespace['command_sequence'].append(line)
-            # calculate leverage
-            elif line[0] == '<calculateleverage>':
-                line[1] = int(line[1])
-                line[2] = int(line[2])
-                self.model_namespace['command_sequence'].append(line)
-            elif line[0] == '<checkatomviolations>':
-                self.model_namespace['command_sequence'].append(line)
-            # if statement
-            elif line[0] == '<if>':
-                try:
-                    line[1] = float(line[1])
-                except ValueError:
-                    pass
-                try:
-                    line[3] = float(line[3])
-                except ValueError:
-                    pass
-                self.model_namespace['command_sequence'].append(line)
-            # else statement
-            elif line[0] == '<else>':
-                self.model_namespace['command_sequence'].append(line)
-            # end if statement
-            elif line[0] == '<endif>':
-                self.model_namespace['command_sequence'].append(line)
-            elif line[0] in ['<add>', '<multiply>', '<power>', '<logarithm>', '<round>']:
-                try:
-                    line[2] = float(line[2])
-                except ValueError:
-                    pass
-                try:
-                    line[3] = float(line[3])
-                except ValueError:
-                    pass
-                self.model_namespace['command_sequence'].append(line)
-            elif line[0] in ['<concat>']:
-                self.model_namespace['command_sequence'].append(line)
-            
     def apply_model(self, molecule):
         """Take an openbabel molecule, apply the QSARModel and return the result."""
         # check if model has been loaded
-        if len(self.model_namespace) == 0:
+        if self.model_namespace is None:
             self.load()
         # add or delete hydrogens depending on model
-        if self.model_namespace['smolecule_format'] == 'old_format':
+        if self.model_namespace.molecule_format == 'old_format':
             molecule.AddHydrogens()
         else:
             molecule.DeleteHydrogens()
-        # parse through fragments applying SMARTS or calculating holistic descriptors
-        if len(self.model_namespace['fragment_counts'].shape) >= 2:
-            ci = self.model_namespace['fragment_counts'].shape[1]
-        else:
-            ci = 0
-        for f in range(ci):
-            key = 'f'+str(f)
-            if self.model_namespace[key] is None:
-                pass
+        # get fragment counts
+        fragment_counts = []
+        for smarts in self.model_namespace.smartslist:
+            if smarts == 'intercept':
+                fragment_counts.append(1)
             else:
-                self.model_namespace[key].Match(molecule)
-                self.model_namespace['fragment_counts'][0, f] = len(self.model_namespace[key].GetUMapList())
-        # parse through command sequence
-        blocks = [True]
-        for command in self.model_namespace['command_sequence']:
-            # variable definitions
-            if blocks[0] and command[0] == '<define>':
-                self.model_namespace[command[1]] = command[2]
-            # apply coefficients
-            elif blocks[0] and command[0] == '<applycoeff>':
-                coeff_count = (self.model_namespace['fragment_counts'][0, command[1]:command[2]] *
-                               self.model_namespace['coefficients'][0, command[1]:command[2]]).sum()
-                for c in range(1, self.model_namespace['coefficients'].shape[0]):
-                    coeff_count += (self.model_namespace['fragment_counts'][0, command[1]:command[2]] *
-                                    self.model_namespace['coefficients'][c, command[1]:command[2]]).sum()
-                coeff_count /= float(self.model_namespace['coefficients'].shape[0])
-                if command[3] == '<addto>':
-                    self.model_namespace[command[4]] += coeff_count
-                elif command[3] == '<subfrom>':
-                    self.model_namespace[command[4]] -= coeff_count
-            # sum counts
-            elif blocks[0] and command[0] == '<sumcounts>':
-                count = (self.model_namespace['fragment_counts'][0, command[1]:command[2]]).sum()
-                if command[3] == '<addto>':
-                    self.model_namespace[command[4]] += count
-                elif command[3] == '<subfrom>':
-                    self.model_namespace[command[4]] -= count
-            # calculate CSS
-            elif blocks[0] and command[0] == '<calculatecss>':
-                # compare this chemical to all other chemicals and find the top n most similar chemicals
+                smarts.Match(molecule)
+                fragment_counts.append(len(smarts.GetUMapList()))
+        fragment_counts = np.array(fragment_counts)
+        # apply multiple linear regression qsar
+        if self.model_namespace.model_type == 'MLR':
+            # apply qsar
+            prediction = (fragment_counts * self.model_namespace.coefficientarray).sum()
+            if self.model_namespace.domain:
+                # calculate CSS
                 topn = 5
                 topgroup = []
                 mintop = 0.
-                for t in range(self.model_namespace['train_array'].shape[0]):
-                    fragsim = _calculate_fragment_similarity(self.model_namespace['fragment_counts'][0, command[1]:command[2]],
-                                                            self.model_namespace['train_array'][t, command[1]:command[2]],
-                                                            self.model_namespace['fragment_stdev'][0, command[1]:command[2]],
+                if self.model_namespace.intercept:
+                    ibegin = 1
+                else:
+                    ibegin = 0
+                for t in range(self.model_namespace.train_counts.shape[0]):
+                    fragsim = _calculate_fragment_similarity(fragment_counts[ibegin:],
+                                                             self.model_namespace.train_counts[t, ibegin:],
+                                                             self.model_namespace.fragmentlist['fragstdev'][ibegin:],
                                                              mintop)
-                    topgroup.append((fragsim, 1-self.model_namespace['train_value_similarity'][t, 0]))
+                    topgroup.append((fragsim, 1-self.model_namespace.datalist['value_similarity'][t]))
                     topgroup.sort(reverse=True)
                     if len(topgroup) > topn:
                         for i in reversed(range(topn, len(topgroup))):
                             if topgroup[i][0] != topgroup[topn-1][0]:
                                 topgroup.pop(i)
                     mintop = topgroup[-1][0]
-                # for chemicals with the same similarity scores take the median value similarity,
-                # otherwise calculate CSS as normal
-                csstype = 'notmedian'
-                if csstype == 'median':
-                    css = 1
-                    findmedian = []
-                    n = 0
-                    for i in range(len(topgroup)):
-                        if topgroup[i][0] != topgroup[topn-1][0]:
-                            css *= (topgroup[i][0]*(1-topgroup[i][1]))**0.5
-                            n += 1
-                        else:
-                            findmedian.append(1-topgroup[i][1])
-                    findmedian.sort()
-                    median = findmedian[len(findmedian)//2]
-                    for i in range(topn-n):
-                        css *= (topgroup[topn-1][0]*median)**0.5
-                # old method of calculating CSS; if there is a tie in fragment similarity use the
-                # chemical with the lowest (worst) value similarity
-                else:
-                    css = 1
-                    for i in range(topn):
-                        css *= (topgroup[i][0]*(1-topgroup[i][1]))**0.5
+                css = 1
+                for i in range(topn):
+                    css *= (topgroup[i][0]*(1-topgroup[i][1]))**0.5
                 css = css**(1/float(topn))
-                if command[3] == '<addto>':
-                    self.model_namespace[command[4]] += css
-                elif command[3] == '<subfrom>':
-                    self.model_namespace[command[4]] -= css
-            # calculate leverage
-            elif blocks[0] and command[0] == '<calculateleverage>':
-                x = np.mat(self.model_namespace['fragment_counts'][0, command[1]:command[2]])
-                leverage = (x * self.model_namespace['xtxi'] * x.T)[0, 0]
-                # print('leverage', leverage)
-                if command[3] == '<addto>':
-                    self.model_namespace[command[4]] += leverage
-                elif command[3] == '<subfrom>':
-                    self.model_namespace[command[4]] -= leverage
-            # check atom coverage to see if prediction is valid
-            elif blocks[0] and command[0] == '<checkatomviolations>':
+                # calculate leverage
+                if self.model_namespace.intercept:
+                    leverage = np.matmul(np.matmul(fragment_counts[1:], self.model_namespace.xtxi), fragment_counts[1:].T)
+                else:
+                    leverage = np.matmul(np.matmul(fragment_counts, self.model_namespace.xtxi), fragment_counts.T)
+                # set uncertainty level and note
+                ul = 0
+                error = self.model_namespace.warn_0_error
+                note = []
+                if self.model_namespace.intercept:
+                    sumcounts = fragment_counts[1:].sum()
+                else:
+                    sumcounts = fragment_counts.sum()
+                if sumcounts == 0:
+                    ul = 4
+                    error = self.model_namespace.warn_4_error
+                    note.append('no fragment overlap with training dataset')
+                elif leverage >= 1:
+                    ul = 3
+                    error = self.model_namespace.warn_3_error
+                    note.append('leverage > 1')
+                elif css <= self.model_namespace.css_cutoff_1 or leverage >= self.model_namespace.leverage_cutoff_1:
+                    ul = 2
+                    error = self.model_namespace.warn_2_error
+                    if css < self.model_namespace.css_cutoff_1:
+                        note.append('out of domain')
+                    if leverage > self.model_namespace.leverage_cutoff_1:
+                        note.append('structural outlier')
+                elif css <= self.model_namespace.css_cutoff_0 or leverage >= self.model_namespace.leverage_cutoff_0:
+                    ul = 1
+                    error = self.model_namespace.warn_1_error
+                    if css < self.model_namespace.css_cutoff_0:
+                        note.append('low similarity')
+                    if leverage > self.model_namespace.leverage_cutoff_0:
+                        note.append('high leverage')
+                # negative domain check for atom type violations
                 violations = []
-                for atomcheck in self.model_namespace['atomcoverage']:
-                    atomcheck[0].Match(molecule)
-                    atomcheck[1].Match(molecule)
-                    if len(atomcheck[0].GetUMapList()) != len(atomcheck[1].GetUMapList()):
-                        violations.append(atomcheck[2])
-                if len(violations):
-                    outline = ''
+                for pattern1, pattern2, description in self.model_namespace.neg_dom_check_init:
+                    pattern1.Match(molecule)
+                    pattern2.Match(molecule)
+                    if len(pattern1.GetUMapList()) != len(pattern2.GetUMapList()):
+                        violations.append(description)
+                if len(violations) > 0:
+                    ul = 5
+                    error = self.model_namespace.warn_5_error
                     for v in violations:
-                        outline += v+', '
-                    self.model_namespace[command[1]] = 1
-                    self.model_namespace[command[2]] = outline[:-2]
-                else:
-                    self.model_namespace[command[1]] = 0
-                    self.model_namespace[command[2]] = ''
-            # if statement
-            elif command[0] == '<if>':
-                if command[1] in self.model_namespace:
-                    left = self.model_namespace[command[1]]
-                else:
-                    left = command[1]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                if command[2] == '<greaterthan>' and left > right:
-                    blocks.insert(0, True and blocks[0])
-                elif command[2] == '<greaterthan>' and left <= right:
-                    blocks.insert(0, False and blocks[0])
-                if command[2] == '<lessthan>' and left < right:
-                    blocks.insert(0, True and blocks[0])
-                elif command[2] == '<lessthan>' and left >= right:
-                    blocks.insert(0, False and blocks[0])
-                if command[2] == '<equalto>' and left == right:
-                    blocks.insert(0, True and blocks[0])
-                elif command[2] == '<equalto>' and left != right:
-                    blocks.insert(0, False and blocks[0])
-            # else statement
-            elif command[0] == '<else>':
-                blocks[0] = (not blocks[0]) and blocks[1]
-            # end if statement
-            elif command[0] == '<endif>':
-                blocks.pop(0)
-            # math functions with left and right side inputs
-            elif blocks[0] and command[0] == '<add>':
-                if command[2] in self.model_namespace:
-                    left = self.model_namespace[command[2]]
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                self.model_namespace[command[1]] = left+right
-            elif blocks[0] and command[0] == '<multiply>':
-                if command[2] in self.model_namespace:
-                    left = self.model_namespace[command[2]]
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                self.model_namespace[command[1]] = left*right
-            elif blocks[0] and command[0] == '<power>':
-                if command[2] in self.model_namespace:
-                    left = self.model_namespace[command[2]]
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                self.model_namespace[command[1]] = left**right
-            elif blocks[0] and command[0] == '<logarithm>':
-                if command[2] in self.model_namespace:
-                    left = self.model_namespace[command[2]]
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                # left is base
-                self.model_namespace[command[1]] = np.log(right)/np.log(left)
-            elif blocks[0] and command[0] == '<round>':
-                if command[2] in self.model_namespace:
-                    left = self.model_namespace[command[2]]
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = self.model_namespace[command[3]]
-                else:
-                    right = command[3]
-                self.model_namespace[command[1]] = round(left, int(right))
-            elif blocks[0] and command[0] == '<concat>':
-                if command[2] in self.model_namespace:
-                    left = str(self.model_namespace[command[2]])
-                else:
-                    left = command[2]
-                if command[3] in self.model_namespace:
-                    right = str(self.model_namespace[command[3]])
-                else:
-                    right = command[3]
-                self.model_namespace[command[1]] = left+right
-            # math functions with only one input
-            elif blocks[0] and command[0] == '<ln>':
-                if command[2] in self.model_namespace:
-                    right = self.model_namespace[command[2]]
-                else:
-                    right = command[2]
-                self.model_namespace[command[1]] = np.log(right)
+                        note.append(v)
+                # check bounds
+                if self.model_namespace.lower_bound and prediction < self.model_namespace.min_train:
+                    ul = 6
+                    note.append('prediction (' + str(round(prediction, self.model_namespace.round_digits)) + ') less than smallest value in training set')
+                    prediction = self.model_namespace.min_train
+                if self.model_namespace.upper_bound and prediction > self.model_namespace.max_train:
+                    ul = 6
+                    note.append('prediction (' + str(round(prediction, self.model_namespace.round_digits)) + ') greater than largest value in training set')
+                    prediction = self.model_namespace.max_train
+                return round(prediction, self.model_namespace.round_digits), ul, round(error, self.model_namespace.round_digits), ', '.join(note)
+            else:
+                return round(prediction, self.model_namespace.round_digits), np.nan, np.nan, ''
 
-        if 'WARN' in self.model_namespace and 'ERROR' in self.model_namespace:
-            return self.model_namespace['RETURN'], int(self.model_namespace['WARN']), \
-                   self.model_namespace['ERROR'], self.model_namespace['NOTE']
-        else:
-            return self.model_namespace['RETURN'], np.nan, np.nan, ''

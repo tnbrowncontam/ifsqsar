@@ -86,7 +86,7 @@ def apply_qsars_to_molecule(qsarlist,
     # parse through the list of QSARs applying each to the molecule
     smilesflag = False
     for qsar in qsarlist:
-        if len(qsar.model_namespace) == 0:
+        if qsar.model_namespace is None:
             qsar.load()
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
@@ -102,7 +102,7 @@ def apply_qsars_to_molecule(qsarlist,
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = ''
         # check if SMILES conforms to flag in model and skip if not
-        if qsar.model_namespace['ssmilesflag'] == 'neutrals' and not re.search(chargedatom, result['normsmi']) is None:
+        if qsar.model_namespace.smiles_flag == 'neutrals' and not re.search(chargedatom, result['normsmi']) is None:
             smilesflag = True
             continue
         # continue if SMILES was not successfully converted
@@ -111,7 +111,7 @@ def apply_qsars_to_molecule(qsarlist,
         # apply model and store output
         qsar_prediction, uncertainty_level, error, note = qsar.apply_model(molecule)
         if 'units' in values:
-            result[qsar.model_name]['units'] = qsar.model_namespace['sunits']
+            result[qsar.model_name]['units'] = qsar.model_namespace.units
         if 'qsarpred' in values:
             result[qsar.model_name]['qsarpred'] = qsar_prediction
         if 'UL' in values:
