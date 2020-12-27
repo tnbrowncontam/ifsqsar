@@ -1683,7 +1683,6 @@ train_counts = numpy.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
                             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 1, 1, 0, 0, ],
                             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 0, 0, 0, 0, ],
                             ], dtype=int)
-xtxi = numpy.linalg.inv(numpy.matmul(train_counts.T, train_counts))
 validate_counts = numpy.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0, 0, ],
                                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 4, 3, 3, 0, 0, 0, ],
                                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, ],
@@ -2368,7 +2367,6 @@ coefficientarrays = numpy.array([(0.36389217808748, 0.32174766731942, 0.29721538
                                  (0.09947591119261, 0.12282264217545, 0.11776821974512, 0.11275245117575, 0.111559325396, 0.11143662922013, 0.10867245945502, 0.10581236098289, 0.11165842205867, 0.12738028272421),
                                  (0.38951438521384, 0.44260512194222, 0.45697716967578, 0.4524164070592, 0.43825487917222, 0.4383228838553, 0.43437803054193, 0.43381302967088, 0.43771292334583, 0.43096502427236),
                                  ])
-coefficientarray = numpy.mean(coefficientarrays, axis=1)
 neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic type not in training set'),
                              ('[#35]', '[#35;D1]', 'Bromine atom with bond count not in training set'),
                              ('[#35]', '[#35;v1]', 'Bromine atom with total bond order (valence) not in training set'),
@@ -2384,7 +2382,7 @@ neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic ty
                              ('[#6]', '[#6;R0,R1,R2,R3,R4]', 'Carbon atom with ring count not in training set'),
                              ('[#6]', '[#6;H0,H1,H2,H3]', 'Carbon atom with hydrogen count not in training set'),
                              ('[#6]', '[#6;+0]', 'Carbon atom with charge not in training set'),
-                             ('[#6]', '[#6&!$(*!-&!=&!#&!:*)]', 'Carbon atom with bond type not in training set'),
+                             ('[#6]', '[#6&!$(*!#&!-&!:&!=*)]', 'Carbon atom with bond type not in training set'),
                              ('[#8]', '[#8;A,a]', 'Oxygen atom with aromatic type not in training set'),
                              ('[#8]', '[#8;D1,D2]', 'Oxygen atom with bond count not in training set'),
                              ('[#8]', '[#8;v2]', 'Oxygen atom with total bond order (valence) not in training set'),
@@ -2392,7 +2390,7 @@ neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic ty
                              ('[#8]', '[#8;R0,R1,R2]', 'Oxygen atom with ring count not in training set'),
                              ('[#8]', '[#8;H0,H1]', 'Oxygen atom with hydrogen count not in training set'),
                              ('[#8]', '[#8;+0]', 'Oxygen atom with charge not in training set'),
-                             ('[#8]', '[#8&!$(*!-&!=&!:*)]', 'Oxygen atom with bond type not in training set'),
+                             ('[#8]', '[#8&!$(*!-&!:&!=*)]', 'Oxygen atom with bond type not in training set'),
                              ('[#17]', '[#17;A]', 'Chlorine atom with aromatic type not in training set'),
                              ('[#17]', '[#17;D1]', 'Chlorine atom with bond count not in training set'),
                              ('[#17]', '[#17;v1]', 'Chlorine atom with total bond order (valence) not in training set'),
@@ -2416,7 +2414,7 @@ neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic ty
                              ('[#16]', '[#16;R0,R1]', 'Sulfur atom with ring count not in training set'),
                              ('[#16]', '[#16;H0]', 'Sulfur atom with hydrogen count not in training set'),
                              ('[#16]', '[#16;+0]', 'Sulfur atom with charge not in training set'),
-                             ('[#16]', '[#16&!$(*!-&!=&!:*)]', 'Sulfur atom with bond type not in training set'),
+                             ('[#16]', '[#16&!$(*!-&!:&!=*)]', 'Sulfur atom with bond type not in training set'),
                              ('[#7]', '[#7;A,a]', 'Nitrogen atom with aromatic type not in training set'),
                              ('[#7]', '[#7;D1,D2,D3]', 'Nitrogen atom with bond count not in training set'),
                              ('[#7]', '[#7;v3,v5]', 'Nitrogen atom with total bond order (valence) not in training set'),
@@ -2424,7 +2422,7 @@ neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic ty
                              ('[#7]', '[#7;R0,R1,R2,R3]', 'Nitrogen atom with ring count not in training set'),
                              ('[#7]', '[#7;H0,H1,H2]', 'Nitrogen atom with hydrogen count not in training set'),
                              ('[#7]', '[#7;+0]', 'Nitrogen atom with charge not in training set'),
-                             ('[#7]', '[#7&!$(*!-&!=&!#&!:*)]', 'Nitrogen atom with bond type not in training set'),
+                             ('[#7]', '[#7&!$(*!#&!-&!:&!=*)]', 'Nitrogen atom with bond type not in training set'),
                              ('[#53]', '[#53;A]', 'Iodine atom with aromatic type not in training set'),
                              ('[#53]', '[#53;D1]', 'Iodine atom with bond count not in training set'),
                              ('[#53]', '[#53;v1]', 'Iodine atom with total bond order (valence) not in training set'),
@@ -2451,3 +2449,11 @@ neg_dom_check = numpy.array([('[#35]', '[#35;A]', 'Bromine atom with aromatic ty
                              ('[#5]', '[#5&!$(*!-*)]', 'Boron atom with bond type not in training set'),
                              ('[!#1]', '[#35,#6,#8,#17,#9,#16,#7,#53,#15,#5]', 'element not in training set'),
                              ], dtype=[('atom', 'S5'), ('indomain', 'S36'), ('description', 'S67')])
+
+
+def post_processing(prediction, error):
+    local_prediction = round(10**prediction, round_digits)
+    local_error = round(10**(error*1.96), round_digits)
+    return local_prediction, local_error
+
+

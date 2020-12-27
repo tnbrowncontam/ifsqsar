@@ -4,7 +4,7 @@ round_digits = 3
 units = 'unitless'
 molecule_format = 'old_format'
 model_type = 'MLR'
-intercept = True
+intercept = False
 smiles_flag = 'neutrals'
 train_indexes = (0, 2774)
 validate_indexes = (2774, 4185)
@@ -6985,7 +6985,6 @@ train_counts = numpy.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
                             [15, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 7, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
                             [9, 7, 0, 0, 6, 0, 3, 0, 0, 0, 0, 0, 0, 3, 0, 0, 2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
                             ], dtype=int)
-xtxi = numpy.linalg.inv(numpy.matmul(train_counts.T, train_counts))
 validate_counts = numpy.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
                                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
                                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ],
@@ -8888,7 +8887,6 @@ coefficientarrays = numpy.array([(0.20123469665006, 0.20176615222487, 0.20278497
                                  (0.0090609195843, 0.00891414125086, 0.00968738493204, 0.00964245819042, 0.00962997996902, 0.01063724497137, 0.01094365716585, 0.01049567971998, 0.01200311199468, 0.01224059740691),
                                  (-0.02009582200417, -0.01662336264197, -0.01551143324648, -0.01635838398292, -0.01614585796091, -0.01780985690559, -0.01534403782879, -0.01529043256329, -0.01846451064998, -0.01378122799332),
                                  ])
-coefficientarray = numpy.mean(coefficientarrays, axis=1)
 neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic type not in training set'),
                              ('[#9]', '[#9;D1]', 'Fluorine atom with bond count not in training set'),
                              ('[#9]', '[#9;v1]', 'Fluorine atom with total bond order (valence) not in training set'),
@@ -8904,7 +8902,7 @@ neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic typ
                              ('[#6]', '[#6;R0,R1,R2,R3,R4]', 'Carbon atom with ring count not in training set'),
                              ('[#6]', '[#6;H0,H1,H2,H3]', 'Carbon atom with hydrogen count not in training set'),
                              ('[#6]', '[#6;+0]', 'Carbon atom with charge not in training set'),
-                             ('[#6]', '[#6&!$(*!-&!=&!#&!:*)]', 'Carbon atom with bond type not in training set'),
+                             ('[#6]', '[#6&!$(*!#&!-&!:&!=*)]', 'Carbon atom with bond type not in training set'),
                              ('[#35]', '[#35;A]', 'Bromine atom with aromatic type not in training set'),
                              ('[#35]', '[#35;D1]', 'Bromine atom with bond count not in training set'),
                              ('[#35]', '[#35;v1]', 'Bromine atom with total bond order (valence) not in training set'),
@@ -8936,7 +8934,7 @@ neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic typ
                              ('[#7]', '[#7;R0,R1,R2]', 'Nitrogen atom with ring count not in training set'),
                              ('[#7]', '[#7;H0,H1,H2]', 'Nitrogen atom with hydrogen count not in training set'),
                              ('[#7]', '[#7;+0]', 'Nitrogen atom with charge not in training set'),
-                             ('[#7]', '[#7&!$(*!-&!=&!#&!:*)]', 'Nitrogen atom with bond type not in training set'),
+                             ('[#7]', '[#7&!$(*!#&!-&!:&!=*)]', 'Nitrogen atom with bond type not in training set'),
                              ('[#8]', '[#8;A,a]', 'Oxygen atom with aromatic type not in training set'),
                              ('[#8]', '[#8;D1,D2]', 'Oxygen atom with bond count not in training set'),
                              ('[#8]', '[#8;v2]', 'Oxygen atom with total bond order (valence) not in training set'),
@@ -8944,7 +8942,7 @@ neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic typ
                              ('[#8]', '[#8;R0,R1,R2]', 'Oxygen atom with ring count not in training set'),
                              ('[#8]', '[#8;H0,H1]', 'Oxygen atom with hydrogen count not in training set'),
                              ('[#8]', '[#8;+0]', 'Oxygen atom with charge not in training set'),
-                             ('[#8]', '[#8&!$(*!-&!=&!:*)]', 'Oxygen atom with bond type not in training set'),
+                             ('[#8]', '[#8&!$(*!-&!:&!=*)]', 'Oxygen atom with bond type not in training set'),
                              ('[#14]', '[#14;A]', 'Silicon atom with aromatic type not in training set'),
                              ('[#14]', '[#14;D1,D3,D4]', 'Silicon atom with bond count not in training set'),
                              ('[#14]', '[#14;v4]', 'Silicon atom with total bond order (valence) not in training set'),
@@ -8960,7 +8958,7 @@ neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic typ
                              ('[#16]', '[#16;R0,R1]', 'Sulfur atom with ring count not in training set'),
                              ('[#16]', '[#16;H0,H1]', 'Sulfur atom with hydrogen count not in training set'),
                              ('[#16]', '[#16;+0]', 'Sulfur atom with charge not in training set'),
-                             ('[#16]', '[#16&!$(*!-&!=&!:*)]', 'Sulfur atom with bond type not in training set'),
+                             ('[#16]', '[#16&!$(*!-&!:&!=*)]', 'Sulfur atom with bond type not in training set'),
                              ('[#15]', '[#15;A]', 'Phosphorus atom with aromatic type not in training set'),
                              ('[#15]', '[#15;D3,D4]', 'Phosphorus atom with bond count not in training set'),
                              ('[#15]', '[#15;v3,v5]', 'Phosphorus atom with total bond order (valence) not in training set'),
@@ -8971,3 +8969,11 @@ neg_dom_check = numpy.array([('[#9]', '[#9;A]', 'Fluorine atom with aromatic typ
                              ('[#15]', '[#15&!$(*!-&!=*)]', 'Phosphorus atom with bond type not in training set'),
                              ('[!#1]', '[#9,#6,#35,#17,#53,#7,#8,#14,#16,#15]', 'element not in training set'),
                              ], dtype=[('atom', 'S5'), ('indomain', 'S37'), ('description', 'S67')])
+
+
+def post_processing(prediction, error):
+    local_prediction = round(prediction, round_digits)
+    local_error = round(error, round_digits)
+    return local_prediction, local_error
+
+

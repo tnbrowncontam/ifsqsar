@@ -1057,7 +1057,6 @@ train_counts = numpy.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
                             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0, 0, 6, 2, 0, 4, 4, 0, 2, 0, ],
                             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 2, 0, 0, 0, ],
                             ], dtype=int)
-xtxi = numpy.linalg.inv(numpy.matmul(train_counts.T, train_counts))
 validate_counts = numpy.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 4, 9, 1, 0, 2, 0, 0, 0, ],
                                [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, ],
                                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 0, ],
@@ -1342,7 +1341,6 @@ coefficientarrays = numpy.array([(-0.98122189623375, -0.78511174308732, -0.96945
                                  (0.155980328109, 0.13021764295155, 0.19874071741432, 0.17139699204777, 0.1789974043554, 0.17527032957468, 0.22508421031786, 0.20147273430861),
                                  (0.26086014264847, 0.24666848821457, 0.24710266007714, 0.23310838316625, 0.25364622868223, 0.24727025278791, 0.22999589942088, 0.23787936665267),
                                  ])
-coefficientarray = numpy.mean(coefficientarrays, axis=1)
 neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic type not in training set'),
                              ('[#17]', '[#17;D1]', 'Chlorine atom with bond count not in training set'),
                              ('[#17]', '[#17;v1]', 'Chlorine atom with total bond order (valence) not in training set'),
@@ -1358,7 +1356,7 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[#6]', '[#6;R0,R1,R2,R3]', 'Carbon atom with ring count not in training set'),
                              ('[#6]', '[#6;H0,H1,H2,H3]', 'Carbon atom with hydrogen count not in training set'),
                              ('[#6]', '[#6;+0]', 'Carbon atom with charge not in training set'),
-                             ('[#6]', '[#6&!$(*!-&!=&!#&!:*)]', 'Carbon atom with bond type not in training set'),
+                             ('[#6]', '[#6&!$(*!#&!-&!:&!=*)]', 'Carbon atom with bond type not in training set'),
                              ('[#8]', '[#8;A,a]', 'Oxygen atom with aromatic type not in training set'),
                              ('[#8]', '[#8;D1,D2]', 'Oxygen atom with bond count not in training set'),
                              ('[#8]', '[#8;v2]', 'Oxygen atom with total bond order (valence) not in training set'),
@@ -1366,7 +1364,7 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[#8]', '[#8;R0,R1]', 'Oxygen atom with ring count not in training set'),
                              ('[#8]', '[#8;H0,H1]', 'Oxygen atom with hydrogen count not in training set'),
                              ('[#8]', '[#8;+0]', 'Oxygen atom with charge not in training set'),
-                             ('[#8]', '[#8&!$(*!-&!=&!:*)]', 'Oxygen atom with bond type not in training set'),
+                             ('[#8]', '[#8&!$(*!-&!:&!=*)]', 'Oxygen atom with bond type not in training set'),
                              ('[#9]', '[#9;A]', 'Fluorine atom with aromatic type not in training set'),
                              ('[#9]', '[#9;D1]', 'Fluorine atom with bond count not in training set'),
                              ('[#9]', '[#9;v1]', 'Fluorine atom with total bond order (valence) not in training set'),
@@ -1398,7 +1396,7 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[#7]', '[#7;R0,R1]', 'Nitrogen atom with ring count not in training set'),
                              ('[#7]', '[#7;H0,H1,H2]', 'Nitrogen atom with hydrogen count not in training set'),
                              ('[#7]', '[#7;+0]', 'Nitrogen atom with charge not in training set'),
-                             ('[#7]', '[#7&!$(*!-&!=&!#&!:*)]', 'Nitrogen atom with bond type not in training set'),
+                             ('[#7]', '[#7&!$(*!-&!:&!#&!=*)]', 'Nitrogen atom with bond type not in training set'),
                              ('[#15]', '[#15;A]', 'Phosphorus atom with aromatic type not in training set'),
                              ('[#15]', '[#15;D4]', 'Phosphorus atom with bond count not in training set'),
                              ('[#15]', '[#15;v5]', 'Phosphorus atom with total bond order (valence) not in training set'),
@@ -1414,7 +1412,7 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[#16]', '[#16;R0,R1]', 'Sulfur atom with ring count not in training set'),
                              ('[#16]', '[#16;H0]', 'Sulfur atom with hydrogen count not in training set'),
                              ('[#16]', '[#16;+0]', 'Sulfur atom with charge not in training set'),
-                             ('[#16]', '[#16&!$(*!-&!=&!:*)]', 'Sulfur atom with bond type not in training set'),
+                             ('[#16]', '[#16&!$(*!-&!:&!=*)]', 'Sulfur atom with bond type not in training set'),
                              ('[#53]', '[#53;A]', 'Iodine atom with aromatic type not in training set'),
                              ('[#53]', '[#53;D1]', 'Iodine atom with bond count not in training set'),
                              ('[#53]', '[#53;v1]', 'Iodine atom with total bond order (valence) not in training set'),
@@ -1425,3 +1423,11 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[#53]', '[#53&!$(*!-*)]', 'Iodine atom with bond type not in training set'),
                              ('[!#1]', '[#17,#6,#8,#9,#35,#14,#7,#15,#16,#53]', 'element not in training set'),
                              ], dtype=[('atom', 'S5'), ('indomain', 'S37'), ('description', 'S67')])
+
+
+def post_processing(prediction, error):
+    local_prediction = round(24*10**prediction, round_digits)
+    local_error = round(10**(error*1.96), round_digits)
+    return local_prediction, local_error
+
+

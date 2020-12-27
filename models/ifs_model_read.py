@@ -122,6 +122,7 @@ class QSARModel:
         if self.model_namespace.model_type == 'MLR':
             # apply qsar
             prediction = (fragment_counts * self.model_namespace.coefficientarray).sum()
+            error = np.nan
             if self.model_namespace.domain:
                 # calculate CSS
                 topn = 5
@@ -203,7 +204,9 @@ class QSARModel:
                     ul = 6
                     note.append('prediction (' + str(round(prediction, self.model_namespace.round_digits)) + ') greater than largest value in training set')
                     prediction = self.model_namespace.max_train
-                return round(prediction, self.model_namespace.round_digits), ul, round(error, self.model_namespace.round_digits), ', '.join(note)
+                post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
+                return post_proc_prediction, ul, post_proc_error, ', '.join(note)
             else:
-                return round(prediction, self.model_namespace.round_digits), np.nan, np.nan, ''
+                post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
+                return post_proc_prediction, np.nan, post_proc_error, ''
 
