@@ -1,7 +1,7 @@
 import numpy
 value_names = ('dSm',)
 round_digits = 2
-units = 'kJ/mol'
+units = 'J/mol.K'
 molecule_format = 'dev.0.0.5'
 model_type = 'MLR'
 intercept = True

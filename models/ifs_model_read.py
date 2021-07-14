@@ -97,7 +97,7 @@ class QSARModel:
                 pattern1.Init(smarts1.decode('utf-8'))
                 pattern2 = ob.OBSmartsPattern()
                 pattern2.Init(smarts2.decode('utf-8'))
-                self.model_namespace.neg_dom_check_init.append((pattern1, pattern2, description))
+                self.model_namespace.neg_dom_check_init.append((pattern1, pattern2, description.decode('utf-8')))
 
     def apply_model(self, molecule):
         """Take an openbabel molecule, apply the QSARModel and return the result."""
