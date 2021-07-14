@@ -75,7 +75,7 @@ class QSARModel:
 
     def load(self):
         """Import the model module."""
-        self.model_namespace = importlib.import_module('ifsqsar.models.' + self.model_module)
+        self.model_namespace = importlib.import_module(self.model_module)
         self.model_namespace.smartslist = []
         for smarts in self.model_namespace.fragmentlist['smarts']:
             if smarts == b'intercept':
