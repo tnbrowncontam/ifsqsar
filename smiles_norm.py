@@ -26,6 +26,10 @@ silicon0.Init('[#14v0]')
 isocyanide = ob.OBSmartsPattern()
 isocyanide.Init('[CD1-]#[O,N;+]')
 
+# organometallics
+organometallic = ob.OBSmartsPattern()
+organometallic.Init('[#50,#80]')
+
 # initialize smarts for organic structure checking
 organicsmarts = ob.OBSmartsPattern()
 organicsmarts.Init('[*!$([#1,#5,#6,#7,#8,#9,#14,#15,#16,#17,#35,#53])]')
@@ -54,10 +58,21 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     # instantiate obconversion if necessary
     if obconversion is None:
         obconversion = ob.OBConversion()
-        obconversion.SetInAndOutFormats('smi', 'can')
 
-    # read smiles into openbabel and save original smiles
+    # inchify smiles and read into openbabel and save original smiles
+    obconversion.SetInAndOutFormats('smi', 'smi')
+    obconversion.AddOption('I', obconversion.OUTOPTIONS)
     obconversion.ReadString(mol, smiles)
+    inchismiles = obconversion.WriteString(mol).strip()
+    obconversion.RemoveOption('I', obconversion.OUTOPTIONS)
+    obconversion.SetInAndOutFormats('smi', 'can')
+    obconversion.ReadString(mol, inchismiles)
+
+    # do not inchify organometallics, it disconnects the structures
+    organometallic.Match(mol)
+    if len(organometallic.GetUMapList()) > 0:
+        obconversion.SetInAndOutFormats('smi', 'can')
+        obconversion.ReadString(mol, smiles)
 
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
@@ -257,7 +272,15 @@ test_list = [
     'CCC(C1OC2(C=CC1C)OC1CC=C(C)C(OC3CC(OC)C(C(O3)C)OC3CC(OC)C(C(O3)C)NC)C(C)C=CC=C3C4(C(C(=O)OC(C2)C1)C=C(C)C(C4OC3)O)O)C',
     '[SiH3]CCC',
     '[Si]CCC',
-    '[C-]#[N+]c1ccccc1'
+    '[C-]#[N+]c1ccccc1',
+    'Clc1ccccc1',
+    'c1(Cl)ccccc1',
+    'c1cc(Cl)ccc1',
+    'c1ccccc1(Cl)',
+    'CCOC(=O)[N-]c1[o+]nn(c1)N1CCOCC1',
+    'CCCCC(Cn1c(=O)c2c(c1c1ccc(s1)c1cc3c(o1)cccc3)c(=O)n(c2c1ccc(s1)c1cc2c(o1)cccc2)CC(CCCC)CC)CC',
+    'CCC(n1c(=O)[nH]c(c(c1=O)Br)C)C',
+    'C[Hg]C'
 ]
 
 if __name__ == '__main__':
