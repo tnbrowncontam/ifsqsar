@@ -11,16 +11,14 @@ anysmarts = ob.OBSmartsPattern()
 anysmarts.Init('[*!+0]')
 
 # initialize smarts for handling silicon implicit hydrogens
-silicon4 = ob.OBSmartsPattern()
-silicon4.Init('[#14v4]')
 silicon3 = ob.OBSmartsPattern()
-silicon3.Init('[#14v3]')
+silicon3.Init('[#14v3H0]')
 silicon2 = ob.OBSmartsPattern()
-silicon2.Init('[#14v2]')
+silicon2.Init('[#14v2H0]')
 silicon1 = ob.OBSmartsPattern()
-silicon1.Init('[#14v1]')
+silicon1.Init('[#14v1H0]')
 silicon0 = ob.OBSmartsPattern()
-silicon0.Init('[#14v0]')
+silicon0.Init('[#14v0H0]')
 
 # initialize smarts for handling isocyanides
 isocyanide = ob.OBSmartsPattern()
@@ -59,41 +57,54 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     if obconversion is None:
         obconversion = ob.OBConversion()
 
+    # handle silicon valence, fill up to valence 4 with implicit hydrogens
+    if '[Si]' in smiles:
+        obconversion.SetInAndOutFormats('smi', 'smi')
+        obconversion.ReadString(mol, smiles)
+        silicon0.Match(mol)
+        for atom in silicon0.GetUMapList():
+            thisatom = mol.GetAtom(atom[0])
+            thisatom.SetImplicitHCount(4)
+            mol.AddHydrogens(thisatom)
+        silicon1.Match(mol)
+        for atom in silicon1.GetUMapList():
+            thisatom = mol.GetAtom(atom[0])
+            thisatom.SetImplicitHCount(3)
+            mol.AddHydrogens(thisatom)
+        silicon2.Match(mol)
+        for atom in silicon2.GetUMapList():
+            thisatom = mol.GetAtom(atom[0])
+            thisatom.SetImplicitHCount(2)
+            mol.AddHydrogens(thisatom)
+        silicon3.Match(mol)
+        for atom in silicon3.GetUMapList():
+            thisatom = mol.GetAtom(atom[0])
+            thisatom.SetImplicitHCount(1)
+            mol.AddHydrogens(thisatom)
+        obconversion.AddOption('h', obconversion.OUTOPTIONS)
+        vsmiles = obconversion.WriteString(mol).strip()
+        obconversion.RemoveOption('h', obconversion.OUTOPTIONS)
+    else:
+        vsmiles = smiles
+
     # inchify smiles and read into openbabel and save original smiles
     obconversion.SetInAndOutFormats('smi', 'smi')
     obconversion.AddOption('I', obconversion.OUTOPTIONS)
-    obconversion.ReadString(mol, smiles)
+    obconversion.ReadString(mol, vsmiles)
     inchismiles = obconversion.WriteString(mol).strip()
     obconversion.RemoveOption('I', obconversion.OUTOPTIONS)
     obconversion.SetInAndOutFormats('smi', 'can')
     obconversion.ReadString(mol, inchismiles)
 
-    # do not inchify organometallics, it disconnects the structures
-    organometallic.Match(mol)
-    if len(organometallic.GetUMapList()) > 0:
-        obconversion.SetInAndOutFormats('smi', 'can')
-        obconversion.ReadString(mol, smiles)
-
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
         return mol, [''], 'error reading SMILES: no atoms loaded, check input'
 
-    # handle silicon valence, fill up to valence 4 with implicit hydrogens
-    silicon0.Match(mol)
-    for atom in silicon0.GetUMapList():
-        mol.GetAtom(atom[0]).SetImplicitHCount(4)
-    silicon1.Match(mol)
-    for atom in silicon1.GetUMapList():
-        mol.GetAtom(atom[0]).SetImplicitHCount(3)
-    silicon2.Match(mol)
-    for atom in silicon2.GetUMapList():
-        mol.GetAtom(atom[0]).SetImplicitHCount(2)
-    silicon3.Match(mol)
-    for atom in silicon3.GetUMapList():
-        mol.GetAtom(atom[0]).SetImplicitHCount(1)
-    silicon4.Match(mol)
-    for atom in silicon4.GetUMapList():
-        mol.GetAtom(atom[0]).SetImplicitHCount(0)
+    # do not inchify organometallics, it disconnects the structures
+    organometallic.Match(mol)
+    if len(organometallic.GetUMapList()) > 0:
+        obconversion.SetInAndOutFormats('smi', 'can')
+        obconversion.ReadString(mol, vsmiles)
 
     # handle isocyanides
     isocyanide.Match(mol)
@@ -168,7 +179,7 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     obconversion.RemoveOption('i', obconversion.OUTOPTIONS)
 
     # remove all but the largest contiguous fragment
-    if (standardize or neutralize) and '.' in smiles:
+    if (standardize or neutralize) and '.' in vsmiles:
         changes.append('salts stripped')
         obconversion.AddOption('r', obconversion.GENOPTIONS)
         mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
@@ -192,7 +203,7 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     obconversion.RemoveOption('i', obconversion.OUTOPTIONS)
 
     # count the aromatic atoms to check if aromaticity was broken by manipulations
-    aromaticbeforecount = len(re.findall(aromatch, smiles))
+    aromaticbeforecount = len(re.findall(aromatch, vsmiles))
     aromaticaftercount = len(re.findall(aromatch, parentnochiralsmiles))
     if aromaticaftercount < aromaticbeforecount:
         changes.append('error reading SMILES: aromaticity broken')
@@ -280,7 +291,9 @@ test_list = [
     'CCOC(=O)[N-]c1[o+]nn(c1)N1CCOCC1',
     'CCCCC(Cn1c(=O)c2c(c1c1ccc(s1)c1cc3c(o1)cccc3)c(=O)n(c2c1ccc(s1)c1cc2c(o1)cccc2)CC(CCCC)CC)CC',
     'CCC(n1c(=O)[nH]c(c(c1=O)Br)C)C',
-    'C[Hg]C'
+    'C[Hg]C',
+    '[Si]c1ccccc1',
+    'CN=[C]',
 ]
 
 if __name__ == '__main__':
