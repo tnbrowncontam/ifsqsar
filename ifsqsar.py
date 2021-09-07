@@ -86,8 +86,10 @@ def apply_qsars_to_molecule(qsarlist,
     # parse through the list of QSARs applying each to the molecule
     smilesflag = False
     for qsar in qsarlist:
-        if qsar.model_namespace is None:
+        if hasattr(qsar, 'load'):
             qsar.load()
+        elif hasattr(qsar, 'link'):
+            qsar.link(qsarlist)
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}

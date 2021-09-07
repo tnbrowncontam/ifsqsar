@@ -62,11 +62,12 @@ class QSARModel:
     
     def __init__(self, model_module, model_name):
         """Save model name and create model namespace."""
-        
         # define Model namespace
         self.model_namespace = None
         self.model_module = model_module
         self.model_name = model_name
+        self.last_molecule = None
+        self.last_result = (None, None, None, None)
 
     def load(self):
         """Import the model module."""
@@ -96,6 +97,10 @@ class QSARModel:
 
     def apply_model(self, molecule):
         """Take an openbabel molecule, apply the QSARModel and return the result."""
+        # first test if this molecule is last molecule and pass last results if so
+        if molecule is self.last_molecule:
+            print('recycled results')
+            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3]
         # check if model has been loaded
         if self.model_namespace is None:
             self.load()
@@ -200,8 +205,69 @@ class QSARModel:
                     note.append('prediction (' + str(round(prediction, self.model_namespace.round_digits)) + ') greater than largest value in training set')
                     prediction = self.model_namespace.max_train
                 post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
+                self.last_molecule = molecule
+                self.last_result = (post_proc_prediction, ul, post_proc_error, ', '.join(note))
                 return post_proc_prediction, ul, post_proc_error, ', '.join(note)
             else:
                 post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
+                self.last_molecule = molecule
+                self.last_result = (post_proc_prediction, np.nan, post_proc_error, '')
                 return post_proc_prediction, np.nan, post_proc_error, ''
+
+
+class METAQSARModel:
+    """Class that loads an arbitrary Metamodel from a Metamodel file and applies it
+    to any molecules passed to it as an openbabel mol"""
+
+    def __init__(self, model_module, model_name):
+        """Save model name and create model namespace."""
+
+        # define Model namespace
+        self.model_namespace = None
+        self.model_module = model_module
+        self.model_name = model_name
+        self.last_molecule = None
+        self.last_result = (None, None, None, None)
+
+    def link(self, qsarlist):
+        """Import the model module and link the QSAR dependencies."""
+        # check that dependencies have been passed
+        try:
+            assert qsarlist is not None
+        except AssertionError:
+            print('missing dependencies for meta model', self.model_name)
+            raise
+        # initiate model namespace and link dependencies
+        self.model_namespace = importlib.import_module(self.model_module)
+        self.model_namespace.dependencymodels = {}
+        for d in self.model_namespace.dependencies_list:
+            # link dependency from previously loaded qsars
+            for qsar in qsarlist:
+                if qsar.model_name == d:
+                    self.model_namespace.dependencymodels[d] = qsar
+                    break
+            # dependency not previously loaded
+            else:
+                print('missing dependency', d)
+                raise AssertionError
+
+    def apply_model(self, molecule, qsarlist=None):
+        """Take an openbabel molecule, apply the METAQSARModel and return the result."""
+        # first test if this molecule is last molecule and pass last results if so
+        if molecule is self.last_molecule:
+            print('recycled results')
+            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3]
+        # check if model has been loaded and dependencies linked
+        if self.model_namespace is None:
+            self.link(qsarlist)
+        # pass molecule to dependency qsar models to calculate values
+        dependencies = {}
+        for d, m in self.model_namespace.dependencymodels.items():
+            dependencies[d] = tuple(m.apply_model(molecule))
+        # call the metamodel with the dependency outputs to calculate meta result
+        prediction, UL, error, ULnote = self.model_namespace.calculate(dependencies)
+        # return result
+        self.last_molecule = molecule
+        self.last_result = (prediction, UL, error, ULnote)
+        return prediction, UL, error, ULnote
 
