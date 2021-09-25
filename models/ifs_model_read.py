@@ -71,6 +71,8 @@ class QSARModel:
 
     def load(self):
         """Import the model module."""
+        if self.model_namespace is not None:
+            return
         self.model_namespace = importlib.import_module(self.model_module)
         self.model_namespace.smartslist = []
         for smarts in self.model_namespace.fragmentlist['smarts']:
@@ -99,7 +101,6 @@ class QSARModel:
         """Take an openbabel molecule, apply the QSARModel and return the result."""
         # first test if this molecule is last molecule and pass last results if so
         if molecule is self.last_molecule:
-            print('recycled results')
             return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3]
         # check if model has been loaded
         if self.model_namespace is None:
@@ -245,6 +246,10 @@ class METAQSARModel:
             for qsar in qsarlist:
                 if qsar.model_name == d:
                     self.model_namespace.dependencymodels[d] = qsar
+                    if hasattr(qsar, 'load'):
+                        qsar.load()
+                    elif hasattr(qsar, 'link'):
+                        qsar.link(qsarlist)
                     break
             # dependency not previously loaded
             else:
@@ -255,7 +260,6 @@ class METAQSARModel:
         """Take an openbabel molecule, apply the METAQSARModel and return the result."""
         # first test if this molecule is last molecule and pass last results if so
         if molecule is self.last_molecule:
-            print('recycled results')
             return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3]
         # check if model has been loaded and dependencies linked
         if self.model_namespace is None:
