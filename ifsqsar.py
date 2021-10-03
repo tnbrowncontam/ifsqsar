@@ -37,7 +37,7 @@ def apply_qsars_to_molecule(qsarlist,
     """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
     # initialize results dict from values iterable
     result = {'SMILES success': True, 'QSAR list': []}
-    for val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
+    for val in ('insmi', 'normsmi', 'sminote'):
         if val in values:
             result[val] = ''
     if 'OBMol' in values:
@@ -48,9 +48,9 @@ def apply_qsars_to_molecule(qsarlist,
         assert type(smiles) == str
         if converter is not None:
             assert type(converter) == ob.OBConversion
-        molecule, smileslist, conversionnote = smiles_norm.convertsmiles(smiles, converter)
+        molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
-        if smileslist[0] == '':
+        if normsmiles == '':
             result['SMILES success'] = False
             if 'insmi' in values:
                 result['insmi'] = smiles
@@ -60,15 +60,7 @@ def apply_qsars_to_molecule(qsarlist,
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
-                result['normsmi'] = smileslist[0]
-            if 'chrgsmi' in values:
-                result['chrgsmi'] = smileslist[1]
-            if 'normchiralsmi' in values:
-                result['normchiralsmi'] = smileslist[2]
-            if 'canonnochiralsmi' in values:
-                result['canonnochiralsmi'] = smileslist[3]
-            if 'canonchiralsmi' in values:
-                result['canonchiralsmi'] = smileslist[4]
+                result['normsmi'] = normsmiles
             if 'sminote' in values:
                 result['sminote'] = conversionnote
         # make sure that the smiles note does not contain any separators or endlines
@@ -140,7 +132,7 @@ def apply_qsars_to_molecule(qsarlist,
     elif outformat == 'columns':
         outstring = ''
         for val in values:
-            if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
+            if val in ('insmi', 'normsmi', 'sminote'):
                 if header:
                     outstring = ''.join([outstring, val, separator, result[val], endline])
                 else:
@@ -160,7 +152,7 @@ def apply_qsars_to_molecule(qsarlist,
         if header:
             first = True
             for val in values:
-                if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
+                if val in ('insmi', 'normsmi', 'sminote'):
                     if first:
                         outstring = ''.join([outstring, val])
                         first = False
@@ -178,7 +170,7 @@ def apply_qsars_to_molecule(qsarlist,
         # output values
         first = True
         for val in values:
-            if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote'):
+            if val in ('insmi', 'normsmi', 'sminote'):
                 if first:
                     outstring = ''.join([outstring, result[val]])
                     first = False
@@ -265,7 +257,7 @@ def apply_qsars_to_molecule_list(qsarlist,
     # initialize dict to store output
     if outformat == 'dict':
         result = {'QSAR list':[]}
-        for val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote', 'OBMol'):
+        for val in ('insmi', 'normsmi', 'OBMol'):
             if val in values:
                 result[val] = []
         for qsar in qsarlist:
@@ -307,7 +299,7 @@ def apply_qsars_to_molecule_list(qsarlist,
         # concatenate to output dict
         if outformat == 'dict':
             for val in values:
-                if val in ('insmi', 'normsmi', 'chrgsmi', 'normchiralsmi', 'canonnochiralsmi', 'canonchiralsmi', 'sminote', 'OBMol'):
+                if val in ('insmi', 'normsmi', 'OBMol'):
                     result[val].append(singleresult[val])
             for qsar in result['QSAR list']:
                 for val in values:

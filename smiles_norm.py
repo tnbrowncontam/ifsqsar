@@ -6,10 +6,6 @@ representation.
 from openbabel import openbabel as ob
 import re
 
-# initialize smarts for finding atoms with any charge
-anysmarts = ob.OBSmartsPattern()
-anysmarts.Init('[*!+0]')
-
 # initialize smarts for handling silicon implicit hydrogens
 silicon3 = ob.OBSmartsPattern()
 silicon3.Init('[#14v3H0]')
@@ -28,16 +24,14 @@ isocyanide.Init('[CD1-]#[O,N;+]')
 organometallic = ob.OBSmartsPattern()
 organometallic.Init('[#50,#80]')
 
-# initialize smarts for organic structure checking
-organicsmarts = ob.OBSmartsPattern()
-organicsmarts.Init('[*!$([#1,#5,#6,#7,#8,#9,#14,#15,#16,#17,#35,#53])]')
-carbonsmarts = ob.OBSmartsPattern()
-carbonsmarts.Init('[#6]')
+# initialize smarts for finding atoms with any charge
+chargedsmarts = ob.OBSmartsPattern()
+chargedsmarts.Init('[*!+0]')
 
 # initialize re for matching aromatic atoms
 aromatch = re.compile('(?<!\[[A-Z])[cnosp]')
 
-def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, filtertype='organic'):
+def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organic'):
     """Converts passed SMILES to a normalized form.
     Returns the new OBMol, a normalized SMILES string and notes on changes made.
     An existing OBConversion instance can be passed so that one does not need to instantiated."""
@@ -90,9 +84,12 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     # inchify smiles and read into openbabel and save original smiles
     obconversion.SetInAndOutFormats('smi', 'smi')
     obconversion.AddOption('I', obconversion.OUTOPTIONS)
+    if obconversion.IsOption('i', obconversion.OUTOPTIONS) is None:
+        obconversion.AddOption('i', obconversion.OUTOPTIONS)
     obconversion.ReadString(mol, vsmiles)
     inchismiles = obconversion.WriteString(mol).strip()
     obconversion.RemoveOption('I', obconversion.OUTOPTIONS)
+    obconversion.RemoveOption('i', obconversion.OUTOPTIONS)
     obconversion.SetInAndOutFormats('smi', 'can')
     obconversion.ReadString(mol, inchismiles)
 
@@ -128,38 +125,23 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
 
     # get lists of charged atoms
-    anysmarts.Match(mol)
-    anychargeatoms = list(anysmarts.GetUMapList())
+    chargedsmarts.Match(mol)
+    anychargeatoms = list(chargedsmarts.GetUMapList())
 
-    # convert dative bonds
-    originalmol = ob.OBMol(mol)
-    if standardize or neutralize:
-        molcopy = ob.OBMol(mol)
-        obconversion.AddOption('b', obconversion.GENOPTIONS)
-        molcopy.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
-        obconversion.RemoveOption('b', obconversion.GENOPTIONS)
-        anysmarts.Match(molcopy)
-        newanychargeatoms = list(anysmarts.GetUMapList())
-        newsmiles = obconversion.WriteString(molcopy)
-        # make sure this didn't create any invalid bonds i.e. quadruple bond "$" then update original mol
-        if len(newanychargeatoms) < len(anychargeatoms) and '$' not in newsmiles:
-            changes.append('dative bonds converted')
-            mol = molcopy
-            originalmol = ob.OBMol(mol)
-        # check for a mix of valid and invalid dative bond types
-        elif '$' in newsmiles:
-            count = newsmiles.count('$')
-            converted = (len(anychargeatoms) - len(newanychargeatoms)) / 2
-            if count < converted:
-                return mol, [''], 'error standardizing SMILES: manual dative bond conversion required, structure contains both valid and invalid dative bonds'
+    # remove all but the largest contiguous fragment
+    if '.' in vsmiles:
+        obconversion.AddOption('r', obconversion.GENOPTIONS)
+        mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
+        obconversion.RemoveOption('r', obconversion.GENOPTIONS)
+        changes.append('salts stripped')
 
     # neutralize the structure and see if anything changed
     molcopy = ob.OBMol(mol)
     obconversion.AddOption('neutralize', obconversion.GENOPTIONS)
     molcopy.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
     obconversion.RemoveOption('neutralize', obconversion.GENOPTIONS)
-    anysmarts.Match(molcopy)
-    newanychargeatoms = list(anysmarts.GetUMapList())
+    chargedsmarts.Match(molcopy)
+    newanychargeatoms = list(chargedsmarts.GetUMapList())
     if not neutralize and len(newanychargeatoms) < len(anychargeatoms):
         changes.append('structure contains neutralizable atoms')
     elif neutralize and len(newanychargeatoms) < len(anychargeatoms):
@@ -169,48 +151,30 @@ def convertsmiles(smiles, obconversion=None, standardize=True, neutralize=True, 
     if len(newanychargeatoms) > 0:
         changes.append('structure contains permanently charged atoms')
 
-    # save standardized, canonical structure including counter-ions, and chiral marks
-    canonicalchiralsmiles = obconversion.WriteString(mol).strip()
-
-    # save standardized, canonical structure including counter-ions, but no chiral marks
-    if obconversion.IsOption('i', obconversion.OUTOPTIONS) is None:
-        obconversion.AddOption('i', obconversion.OUTOPTIONS)
-    canonicalnochiralsmiles = obconversion.WriteString(mol).strip()
-    obconversion.RemoveOption('i', obconversion.OUTOPTIONS)
-
-    # remove all but the largest contiguous fragment
-    if (standardize or neutralize) and '.' in vsmiles:
-        changes.append('salts stripped')
-        obconversion.AddOption('r', obconversion.GENOPTIONS)
-        mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
-        originalmol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
-        obconversion.RemoveOption('r', obconversion.GENOPTIONS)
-
     # check for non-organic atoms
-    organicsmarts.Match(mol)
-    carbonsmarts.Match(mol)
-    if filtertype == 'organic' and (len(organicsmarts.GetUMapList()) > 0 or len(carbonsmarts.GetUMapList()) == 0):
-        return mol, [''], 'input error: structure is not organic'
+    if filtertype == 'organic':
+        # initialize smarts for organic structure checking
+        notorganicsmarts = ob.OBSmartsPattern()
+        notorganicsmarts.Init('[*!$([#1,#5,#6,#7,#8,#9,#14,#15,#16,#17,#35,#53])]')
+        notorganicsmarts.Match(mol)
+        carbonsmarts = ob.OBSmartsPattern()
+        carbonsmarts.Init('[#6]')
+        carbonsmarts.Match(mol)
+        if (len(notorganicsmarts.GetUMapList()) > 0 or len(carbonsmarts.GetUMapList()) == 0):
+            return mol, [''], 'input error: structure is not organic'
 
-    # save salt-stripped canonical structure with chiral marks
-    parentchiralsmiles = obconversion.WriteString(mol).strip()
-
-    # save salt-stripped canonical structure with no chiral marks, both neutralized and charged forms
-    if obconversion.IsOption('i', obconversion.OUTOPTIONS) is None:
-        obconversion.AddOption('i', obconversion.OUTOPTIONS)
-    parentnochiralsmiles = obconversion.WriteString(mol).strip()
-    chargednochiralsmiles = obconversion.WriteString(originalmol).strip()
-    obconversion.RemoveOption('i', obconversion.OUTOPTIONS)
+    # output normalized smiles
+    normsmiles = obconversion.WriteString(mol).strip()
 
     # count the aromatic atoms to check if aromaticity was broken by manipulations
     aromaticbeforecount = len(re.findall(aromatch, vsmiles))
-    aromaticaftercount = len(re.findall(aromatch, parentnochiralsmiles))
+    aromaticaftercount = len(re.findall(aromatch, normsmiles))
     if aromaticaftercount < aromaticbeforecount:
         changes.append('error reading SMILES: aromaticity broken')
         return mol, [''], ', '.join(set(changes))
 
     # return results
-    return mol, [parentnochiralsmiles, chargednochiralsmiles, parentchiralsmiles, canonicalnochiralsmiles, canonicalchiralsmiles], ', '.join(set(changes))
+    return mol, normsmiles, ', '.join(set(changes))
 
 
 # list for testing
@@ -298,8 +262,5 @@ test_list = [
 
 if __name__ == '__main__':
     for smiles in test_list:
-        m, s, n = convertsmiles(smiles, standardize=True, neutralize=True, filtertype='organic')
-        if len(s) > 1:
-            print(smiles, s[0], s[1], s[2], s[3], n)
-        else:
-            print(smiles, s[0], n)
+        m, s, n = convertsmiles(smiles)
+        print(smiles, s, n)
