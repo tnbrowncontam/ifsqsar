@@ -227,25 +227,30 @@ class METAQSARModel:
         self.model_namespace = None
         self.model_module = model_module
         self.model_name = model_name
-        self.last_molecule = None
+        self.last_solute = None
+        self.last_solvent = None
         self.last_result = (None, None, None, None)
 
     def link(self, qsarlist):
         """Import the model module and link the QSAR dependencies."""
+        # check if model has been linked
+        if self.model_namespace is not None:
+            return
         # check that dependencies have been passed
         try:
             assert qsarlist is not None
         except AssertionError:
             print('missing dependencies for meta model', self.model_name)
             raise
-        # initiate model namespace and link dependencies
+        # initiate model namespace
         self.model_namespace = importlib.import_module(self.model_module)
-        self.model_namespace.dependencymodels = {}
-        for d in self.model_namespace.dependencies_list:
+        # link solute dependencies
+        self.model_namespace.solutedependencymodels = {}
+        for d in self.model_namespace.solute_dependencies_list:
             # link dependency from previously loaded qsars
             for qsar in qsarlist:
                 if qsar.model_name == d:
-                    self.model_namespace.dependencymodels[d] = qsar
+                    self.model_namespace.solutedependencymodels[d] = qsar
                     if hasattr(qsar, 'load'):
                         qsar.load()
                     elif hasattr(qsar, 'link'):
@@ -253,25 +258,49 @@ class METAQSARModel:
                     break
             # dependency not previously loaded
             else:
-                print('missing dependency', d)
+                print('missing solute dependency', d)
+                raise AssertionError
+        # link solvent dependencies
+        self.model_namespace.solventdependencymodels = {}
+        for d in self.model_namespace.solvent_dependencies_list:
+            # link dependency from previously loaded qsars
+            for qsar in qsarlist:
+                if qsar.model_name == d:
+                    self.model_namespace.solventdependencymodels[d] = qsar
+                    if hasattr(qsar, 'load'):
+                        qsar.load()
+                    elif hasattr(qsar, 'link'):
+                        qsar.link(qsarlist)
+                    break
+            # dependency not previously loaded
+            else:
+                print('missing solvent dependency', d)
                 raise AssertionError
 
-    def apply_model(self, molecule, qsarlist=None):
+    def apply_model(self, solutes=(), solvents=(), qsarlist=None):
         """Take an openbabel molecule, apply the METAQSARModel and return the result."""
-        # first test if this molecule is last molecule and pass last results if so
-        if molecule is self.last_molecule:
+        # first test if this solute and solvent are the same as last calculation and pass last results if so
+        if solutes is self.last_solute and solvents is self.last_solvent:
             return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3]
         # check if model has been loaded and dependencies linked
         if self.model_namespace is None:
             self.link(qsarlist)
-        # pass molecule to dependency qsar models to calculate values
-        dependencies = {}
-        for d, m in self.model_namespace.dependencymodels.items():
-            dependencies[d] = tuple(m.apply_model(molecule))
+        # no mixture handling yet
+        # assert that there is only one solute and zero or one solvents
+        assert len(solutes) == 1 and len(solvents) <= 1
+        # pass solute to solute dependency qsar models to calculate values
+        solutedependencies = {}
+        for d, m in self.model_namespace.solutedependencymodels.items():
+            solutedependencies[d] = tuple(m.apply_model(solutes[0]))
+        # pass solvents to solvent dependency qsar models to calculate values
+        solventdependencies = {}
+        for d, m in self.model_namespace.solventdependencymodels.items():
+            solutedependencies[d] = tuple(m.apply_model(solvents[0][0])+[solvents[0][1]])
         # call the metamodel with the dependency outputs to calculate meta result
-        prediction, UL, error, ULnote = self.model_namespace.calculate(dependencies)
+        prediction, UL, error, ULnote = self.model_namespace.calculate(solutedependencies, solventdependencies)
         # return result
-        self.last_molecule = molecule
+        self.last_solute = solutes
+        self.last_solvent = solvents
         self.last_result = (prediction, UL, error, ULnote)
         return prediction, UL, error, ULnote
 

@@ -14,6 +14,7 @@ from . import smiles_norm
 import re
 
 chargedatom = re.compile('[\[].+?[-+][\]]')
+mixturespec = re.compile('(\{.{,}?\})')
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
@@ -42,8 +43,14 @@ def apply_qsars_to_molecule(qsarlist,
             result[val] = ''
     if 'OBMol' in values:
         result['OBMol'] = None
-    # no OBMol passed so pass to smiles_norm
-    if molecule is None:
+    # try splitting the string as a mixture definition
+    mixturesplit = re.split(mixturespec, smiles)
+    if len(mixturesplit) == 1:
+        ismixture = False
+    else:
+        ismixture = True
+    # single molecule and no OBMol passed so pass to smiles_norm
+    if not ismixture and molecule is None:
         # generate normalized OBMol
         assert type(smiles) == str
         if converter is not None:
@@ -78,10 +85,18 @@ def apply_qsars_to_molecule(qsarlist,
     # parse through the list of QSARs applying each to the molecule
     smilesflag = False
     for qsar in qsarlist:
+        # load the model if required
         if hasattr(qsar, 'load'):
             qsar.load()
+            localmolecule = molecule
+        # link the model if required
         elif hasattr(qsar, 'link'):
             qsar.link(qsarlist)
+            # check that this model does not have any solvent dependencies
+            if len(qsar.model_namespace.solvent_dependencies_list) > 0:
+                continue
+            # format input data
+            localmolecule = (molecule,)
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}
@@ -103,7 +118,7 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(molecule)
+        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(localmolecule)
         if 'units' in values:
             result[qsar.model_name]['units'] = qsar.model_namespace.units
         if 'qsarpred' in values:
