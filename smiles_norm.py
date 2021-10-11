@@ -20,6 +20,10 @@ silicon0.Init('[#14v0H0]')
 isocyanide = ob.OBSmartsPattern()
 isocyanide.Init('[CD1-]#[O,N;+]')
 
+# initialize smarts for handling azides
+azide = ob.OBSmartsPattern()
+azide.Init('[N-]=[N+]=N')
+
 # organometallics
 organometallic = ob.OBSmartsPattern()
 organometallic.Init('[#50,#80]')
@@ -120,6 +124,31 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organi
         carbon.SetFormalCharge(0)
         hetero.SetFormalCharge(0)
         bond.SetBondOrder(2)
+
+    # handle azides
+    azide.Match(mol)
+    for match in azide.GetUMapList():
+        # determine negative and positive charged atoms
+        atom1 = mol.GetAtom(match[0])
+        atom2 = mol.GetAtom(match[1])
+        atom3 = mol.GetAtom(match[2])
+        if atom1.GetFormalCharge() == -1:
+            neg = atom1
+        elif atom2.GetFormalCharge() == -1:
+            neg = atom2
+        else:
+            neg = atom3
+        if atom1.GetFormalCharge() == 1:
+            pos = atom1
+        elif atom2.GetFormalCharge() == 1:
+            pos = atom2
+        else:
+            pos = atom3
+        bond = mol.GetBond(neg.GetIdx(), pos.GetIdx())
+        # change atom and bond characteristics
+        pos.SetFormalCharge(0)
+        neg.SetFormalCharge(0)
+        bond.SetBondOrder(3)
 
     # update mol for manual changes
     mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
@@ -258,6 +287,7 @@ test_list = [
     'C[Hg]C',
     '[Si]c1ccccc1',
     'CN=[C]',
+    'N#N=Nc1ccccc1',
 ]
 
 if __name__ == '__main__':
