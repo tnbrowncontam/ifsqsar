@@ -47,9 +47,9 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organi
     # error checking of the smiles string
     smiles = smiles.lstrip().rstrip()
     if smiles[0] in '()#=-+]1234567890%':
-        return mol, [''], 'error reading SMILES: invalid first character in SMILES'
+        return mol, '', 'error reading SMILES: invalid first character in SMILES'
     elif smiles.count('(') != smiles.count(')') or smiles.count('[') != smiles.count(']'):
-        return mol, [''], 'error reading SMILES: missing brackets'
+        return mol, '', 'error reading SMILES: missing brackets'
 
     # instantiate obconversion if necessary
     if obconversion is None:
@@ -99,7 +99,7 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organi
 
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
-        return mol, [''], 'error reading SMILES: no atoms loaded, check input'
+        return mol, '', 'error reading SMILES: no atoms loaded, check input'
 
     # do not inchify organometallics, it disconnects the structures
     organometallic.Match(mol)
@@ -190,7 +190,7 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organi
         carbonsmarts.Init('[#6]')
         carbonsmarts.Match(mol)
         if (len(notorganicsmarts.GetUMapList()) > 0 or len(carbonsmarts.GetUMapList()) == 0):
-            return mol, [''], 'input error: structure is not organic'
+            return mol, '', 'input error: structure is not organic'
 
     # output normalized smiles
     normsmiles = obconversion.WriteString(mol).strip()
@@ -200,7 +200,7 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='organi
     aromaticaftercount = len(re.findall(aromatch, normsmiles))
     if aromaticaftercount < aromaticbeforecount:
         changes.append('error reading SMILES: aromaticity broken')
-        return mol, [''], ', '.join(set(changes))
+        return mol, '', ', '.join(set(changes))
 
     # return results
     return mol, normsmiles, ', '.join(set(changes))
