@@ -117,8 +117,6 @@ if __name__ == "__main__":
                            default='\n',
                            const='',
                            help='Output format: character used to separate rows, default = \\n (newline)')
-    # outseparator = '\t',  # any string
-    # outendline = '\n',  # any string
     # model selection
     argparser.add_argument('-q',
                            '--qsars',
@@ -126,7 +124,7 @@ if __name__ == "__main__":
                            action='store',
                            type=str,
                            nargs='?',
-                           default=str(models.qsarnamelist).replace("['", '').replace("', '", ',').replace("']", ''),
+                           default=str([i.model_name for i in models.qsarlist]).replace("['", '').replace("', '", ',').replace("']", ''),
                            const='',
                            help='Comma-separated list of qsars to apply, if not specified all are applied. Full list: '
                                  'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V. See full docs for explanation'

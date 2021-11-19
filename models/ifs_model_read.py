@@ -277,7 +277,7 @@ class METAQSARModel:
                 print('missing solvent dependency', d)
                 raise AssertionError
 
-    def apply_model(self, solutes=(), solvents=(), qsarlist=None):
+    def apply_model(self, solutes=None, solvents=None, qsarlist=None):
         """Take an openbabel molecule, apply the METAQSARModel and return the result."""
         # first test if this solute and solvent are the same as last calculation and pass last results if so
         if solutes is self.last_solute and solvents is self.last_solvent:
@@ -287,7 +287,7 @@ class METAQSARModel:
             self.link(qsarlist)
         # no mixture handling yet
         # assert that there is only one solute and zero or one solvents
-        assert len(solutes) == 1 and len(solvents) <= 1
+        assert solutes is not None and len(solutes) == 1 and (solvents is None or len(solvents) == 1)
         # pass solute to solute dependency qsar models to calculate values
         solutedependencies = {}
         for d, m in self.model_namespace.solutedependencymodels.items():
