@@ -284,12 +284,23 @@ hhlb = QSARModel('ifsqsar.models.ifs_qsar_hhlb_linr', 'hhlb')
 hhlt = QSARModel('ifsqsar.models.ifs_qsar_hhlt_linr', 'hhlt')
 dsm = QSARModel('ifsqsar.models.ifs_qsar_dsm_linr', 'dsm')
 tm = QSARModel('ifsqsar.models.ifs_qsar_tm_linr', 'tm')
-E = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__E_linr', 'E')
-S = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__S_linr', 'S')
-A = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__A_linr', 'A')
-B = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__B_linr', 'B')
-L = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__L_linr', 'L')
-V = QSARModel('ifsqsar.models.ifs_qsar_V', 'V')
+Ev1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__E_linr', 'E')
+Sv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__S_linr', 'S')
+Av1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__A_linr', 'A')
+Bv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__B_linr', 'B')
+Lv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__L_linr', 'L')
+Vtd = QSARModel('ifsqsar.models.ifs_qsar_V', 'V')
+Ev2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_E_linr', 'E')
+Sv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_S_linr', 'S')
+Av2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_A_linr', 'A')
+Bv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_B_linr', 'B')
+Lv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_L_linr', 'L')
+svd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 's')
+avd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'a')
+bvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'b')
+vvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'v')
+lvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'l')
+cvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
 
 
@@ -308,11 +319,11 @@ def get_qsar_list(qsarlist=None, components=None, version=None):
         if 'solvent' in components:
             solventnumber = components['solvent']
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V, logKow]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, logKow]
     if version is None:
         oldqsarversions = []
     else:
-        oldqsarversions = []  # fill in old versions
+        oldqsarversions = [Ev1, Sv1, Av1, Bv1, Lv1]
     # parse through all the loaded QSARs and check if they should be added to returnlist
     for i in currentqsarversions + oldqsarversions:
         # first check if QSAR is in passed list of names
