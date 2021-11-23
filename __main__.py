@@ -124,10 +124,13 @@ if __name__ == "__main__":
                            action='store',
                            type=str,
                            nargs='?',
-                           default='fhlb,hhlb,hhlt,dsm,tm,E,S,A,B,L,V,logKow',
+                           default='default',
                            const='',
-                           help='Comma-separated list of qsars to apply, if not specified all which are relevant are applied. Full list: '
-                                'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V, logKow. See full docs for explanation'
+                           help='Comma-separated list of qsars to apply. Full list: '
+                                'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V, logKow, logKsa. '
+                                '"single" for all QSARs that handle single SMILES input, '
+                                '"mixture" for all QSARs that handle mixture SMILES input. '
+                                'See full docs for explanation'
                            )
     # output value selection
     argparser.add_argument('-v',
@@ -153,7 +156,15 @@ if __name__ == "__main__":
         ifsqsar.main()
     else:
         # load QSARs
-        if args.qsars != '':
+        if args.qsars == '':
+            qsarmodels = []
+        elif args.qsars == 'default':
+            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V', 'logKow', 'logKsa'])
+        elif args.qsars == 'single':
+            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V', 'logKow'])
+        elif args.qsars == 'mixture':
+            qsarmodels = models.get_qsar_list(qsarlist=['logKsa'])
+        else:
             qsarmodels = models.get_qsar_list(qsarlist=args.qsars.split(','))
         # choose values
         values = []
@@ -169,6 +180,9 @@ if __name__ == "__main__":
         elif args.infile is not None:
             smiles = None
             filename = args.infile
+        else:
+            smiles = ''
+            filename = ''
         # apply models
         if args.outseparator == '':
             outsep = '<nosep>'
@@ -179,7 +193,7 @@ if __name__ == "__main__":
         else:
             outend = args.outendline
         result = ifsqsar.apply_qsars_to_molecule_list(qsarmodels,
-                                                      smileslist=smiles,
+                                                      smiles,
                                                       infilename=filename,
                                                       inheadtrgtrow=args.inheadtrgtrow,
                                                       inheaderrows=args.inheaderrows,

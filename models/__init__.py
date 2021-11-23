@@ -103,7 +103,8 @@ class QSARModel:
         if self.model_namespace is None:
             self.load()
         # only one chemical handled at a time, designated as a solute regardless of property type
-        assert len(solutes) == self.model_namespace.components['solute'] and len(solvents) == self.model_namespace.components['solvent']
+        if len(solutes) != self.model_namespace.components['solute'] or len(solvents) != self.model_namespace.components['solvent']:
+            return np.nan, np.nan, np.nan, 'component type error'
         # add or delete hydrogens depending on model
         if self.model_namespace.molecule_format == 'old_format':
             solutes[0].AddHydrogens()
@@ -260,7 +261,8 @@ class METAQSARModel:
         if self.model_namespace is None:
             self.load()
         # assert that there is the correct number of solutes and solvents
-        assert len(solutes) == self.model_namespace.components['solute'] and len(solvents) == self.model_namespace.components['solvent']
+        if len(solutes) != self.model_namespace.components['solute'] or len(solvents) != self.model_namespace.components['solvent']:
+            return np.nan, np.nan, np.nan, 'component type error'
         # pass solute to solute dependency qsar models to calculate values
         solutedependencies = {}
         for d, m in self.model_namespace.solutedependencymodels.items():
@@ -302,24 +304,17 @@ vvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'v')
 lvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'l')
 cvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
+logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 
 
-def get_qsar_list(qsarlist=None, components=None, version=None):
+def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # calculate number of solutes and solvents in passed components specification
     solutenumber = 0
     solventnumber = 0
-    if components is not None:
-        if 'solute' in components:
-            solutenumber = components['solute']
-        if 'component' in components:
-            solutenumber = components['solute']
-            solventnumber = components['solvent']
-        if 'solvent' in components:
-            solventnumber = components['solvent']
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, logKow]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, logKow, logKsa]
     if version is None:
         oldqsarversions = []
     else:
@@ -328,12 +323,8 @@ def get_qsar_list(qsarlist=None, components=None, version=None):
     for i in currentqsarversions + oldqsarversions:
         # first check if QSAR is in passed list of names
         if qsarlist is None or (qsarlist is not None and i.model_name in qsarlist):
-            # check if the QSAR handles the number of solutes and solvents passed
-            if components is None or \
-                    ((i.model_namespace.components['solute'] is None or solutenumber == i.model_namespace.components['solute']) and
-                     (i.model_namespace.components['solvent'] is None or solventnumber == i.model_namespace.components['solvent'])):
-                # check if QSAR has version in passed specification, take most recent version by default
-                if version is None or (version is not None and i.model_namespace.version[0] == version):
-                    returnlist.append(i)
+            # check if QSAR has version in passed specification, take most recent version by default
+            if version is None or (version is not None and i.model_namespace.version[0] == version):
+                returnlist.append(i)
     return returnlist
 

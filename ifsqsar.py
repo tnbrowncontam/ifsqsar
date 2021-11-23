@@ -9,12 +9,11 @@ from . import smiles_norm
 import re
 
 chargedatom = re.compile('[\[].+?[-+][\]]')
-mixturespec = re.compile('(\{.{,}?\})')
+mixturespec = re.compile('(\{.*?\})')
 
 def apply_qsars_to_molecule(qsarlist,
                             smiles=None,  # SMILES as string
                             converter=None,  # OBConversion
-                            molecule=None,  # OBMol
                             values=('insmi',
                                     'normsmi',
                                     'sminote',
@@ -32,33 +31,28 @@ def apply_qsars_to_molecule(qsarlist,
                             ):
     """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
     # initialize results dict from values iterable
-    result = {'SMILES success': True, 'QSAR list': []}
+    result = {'SMILES success': False, 'QSAR list': []}
     for val in ('insmi', 'normsmi', 'sminote'):
         if val in values:
             result[val] = ''
     if 'OBMol' in values:
         result['OBMol'] = None
-    # try splitting the string as a mixture definition
-    mixturesplit = re.split(mixturespec, smiles)
-    if len(mixturesplit) == 1:
-        ismixture = False
-    else:
-        ismixture = True
-    # single molecule and no OBMol passed so pass to smiles_norm
-    if not ismixture and molecule is None:
+    # check inputs
+    assert type(smiles) == str
+    if converter is not None:
+        assert type(converter) == ob.OBConversion
+    # smiles is a single molecule so pass to smiles_norm
+    if re.search(mixturespec, smiles) is None:
         # generate normalized OBMol
-        assert type(smiles) == str
-        if converter is not None:
-            assert type(converter) == ob.OBConversion
         molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
         if normsmiles == '':
-            result['SMILES success'] = False
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'sminote' in values:
                 result['sminote'] = conversionnote
         else:
+            result['SMILES success'] = True
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
@@ -74,15 +68,85 @@ def apply_qsars_to_molecule(qsarlist,
             if endline in seplist:
                 seplist.remove(endline)
                 result['sminote'] = result['sminote'].replace(endline, seplist[1])
-    # save the OBMol if required
-    if result['SMILES success'] and 'OBMol' in values:
-        result['OBMol'] = molecule
+        # save the OBMol if required
+        if result['SMILES success'] and 'OBMol' in values:
+            result['OBMol'] = molecule
+        # create list of solutes and solvents for passing to QSARs
+        solutelist = (molecule,)
+        solventlist = tuple()
+    # smiles is a mixture so split into solutes and solvents
+    else:
+        # split the input into component type flags and smiles
+        mixturesplit = re.split(mixturespec, smiles)
+        while '' in mixturesplit:
+            mixturesplit.remove('')
+        # parse through split smiles input
+        solutelist = []
+        solventlist = []
+        nextissolutesmiles = False
+        nextissolventsmiles = False
+        normsmi = ''
+        sminote = ''
+        for ms in mixturesplit:
+            if nextissolutesmiles:
+                # generate normalized OBMol for solutes
+                nextissolutesmiles = False
+                molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                solutelist.append(molecule)
+                normsmi = ''.join([normsmi, '{solute}', normsmiles])
+                notelist = [sminote, ''.join(['Notes for Solute (', ms, '): ', conversionnote])]
+                if '' in notelist:
+                    notelist.remove('')
+                sminote = ', '.join(notelist)
+            elif nextissolventsmiles:
+                # generate normalized OBMol for solvents
+                nextissolventsmiles = False
+                molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                solventlist.append(molecule)
+                normsmi = ''.join([normsmi, '{solvent}', normsmiles])
+                notelist = [sminote, ''.join(['Notes for Solvent (', ms, '): ', conversionnote])]
+                if '' in notelist:
+                    notelist.remove('')
+                sminote = ', '.join(notelist)
+            else:
+                splitms = ms.lstrip('{').rstrip('}').split(',')
+                if splitms[0] == 'solute':
+                    nextissolutesmiles = True
+                elif splitms[0] == 'solvent':
+                    nextissolventsmiles = True
+                else:
+                    notelist = [sminote, 'SMILES error: invalid component type specification']
+                    if '' in notelist:
+                        notelist.remove('')
+                    sminote = ', '.join(notelist)
+        # check conversion results and output
+        if normsmi == '':
+            if 'insmi' in values:
+                result['insmi'] = smiles
+            if 'sminote' in values:
+                result['sminote'] = sminote
+        else:
+            result['SMILES success'] = True
+            if 'insmi' in values:
+                result['insmi'] = smiles
+            if 'normsmi' in values:
+                result['normsmi'] = normsmi
+            if 'sminote' in values:
+                result['sminote'] = sminote
+        # make sure that the smiles note does not contain any separators or endlines
+        if 'sminote' in values:
+            seplist = [',', ';', '|', '~']
+            if separator in seplist:
+                seplist.remove(separator)
+                result['sminote'] = result['sminote'].replace(separator, seplist[0])
+            if endline in seplist:
+                seplist.remove(endline)
+                result['sminote'] = result['sminote'].replace(endline, seplist[1])
     # parse through the list of QSARs applying each to the molecule
     smilesflag = False
     for qsar in qsarlist:
         # load the model
         qsar.load()
-        localmolecule = molecule
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}
@@ -104,7 +168,7 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(solutes=(localmolecule,))
+        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(solutes=solutelist, solvents=solventlist)
         if 'units' in values:
             result[qsar.model_name]['units'] = qsar.model_namespace.units
         if 'qsarpred' in values:
@@ -190,15 +254,14 @@ def apply_qsars_to_molecule(qsarlist,
 
 
 def apply_qsars_to_molecule_list(qsarlist,
+                                 smileslist,  # list of SMILES as strings
                                  infilename=None,  # input file name
                                  inheaderrows=1,  # number of header lines
                                  inheadtrgtrow=1,  # header row to select from
                                  inheadersmiles='smiles',  # header value indicating SMILES
                                  inseparator='\t',  # any string
                                  inendline='\n',  # any string
-                                 smileslist=None,  # list of SMILES as strings
                                  converter=None,  # OBConversion
-                                 moleculelist=None,  # list of OBMols
                                  values=('insmi',
                                          'normsmi',
                                          'sminote',
@@ -241,20 +304,11 @@ def apply_qsars_to_molecule_list(qsarlist,
         smileslist = []
         for i in range(inheaderrows, len(filelines)):
             splitline = filelines[i].split(inseparator)
-            smiles = splitline[smiles_index]
-            smileslist.append(smiles)
-    # determine list of structures to parse, either as SMILES or OBMol
-    if moleculelist is not None:
-        structurelist = moleculelist
-    elif smileslist is not None:
-        structurelist = smileslist
-        # if SMILES, instantiate a converter if needed
-        if converter is None:
-            converter = ob.OBConversion()
-            converter.SetInAndOutFormats('smi', 'can')
-    else:
-        print('structure list not found')
-        return
+            smileslist.append(splitline[smiles_index])
+    # instantiate a converter if needed
+    if converter is None:
+        converter = ob.OBConversion()
+        converter.SetInAndOutFormats('smi', 'can')
     # initialize dict to store output
     if outformat == 'dict':
         result = {'QSAR list':[]}
@@ -278,19 +332,11 @@ def apply_qsars_to_molecule_list(qsarlist,
         result = None
     # parse through structures
     first = True
-    for structure in structurelist:
-        # determine how to pass structure
-        smiles = None
-        molecule = None
-        if moleculelist is not None:
-            molecule = structure
-        elif smileslist is not None:
-            smiles = structure
+    for smiles in smileslist:
         # apply qsars to this structure
         singleresult = apply_qsars_to_molecule(qsarlist,
-                                               smiles=smiles,
+                                               smiles,
                                                converter=converter,
-                                               molecule=molecule,
                                                values=values,
                                                outformat=outformat,
                                                header=outheader and first,
