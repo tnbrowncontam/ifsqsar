@@ -80,18 +80,9 @@ def apply_qsars_to_molecule(qsarlist,
     # parse through the list of QSARs applying each to the molecule
     smilesflag = False
     for qsar in qsarlist:
-        # load the model if required
-        if hasattr(qsar, 'load'):
-            qsar.load()
-            localmolecule = molecule
-        # link the model if required
-        elif hasattr(qsar, 'link'):
-            qsar.link(qsarlist)
-            # check that this model does not have any solvent dependencies
-            if len(qsar.model_namespace.solvent_dependencies_list) > 0:
-                continue
-            # format input data
-            localmolecule = (molecule,)
+        # load the model
+        qsar.load()
+        localmolecule = molecule
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}
@@ -113,7 +104,7 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(localmolecule)
+        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(solutes=(localmolecule,))
         if 'units' in values:
             result[qsar.model_name]['units'] = qsar.model_namespace.units
         if 'qsarpred' in values:
@@ -416,7 +407,7 @@ class IFSGUIClass:
         self.frame.pack()
         # import models
         from . import models
-        self.qsarmodels = models.qsarlist.copy()
+        self.qsarmodels = models.get_qsar_list()
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')

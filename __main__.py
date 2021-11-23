@@ -124,10 +124,10 @@ if __name__ == "__main__":
                            action='store',
                            type=str,
                            nargs='?',
-                           default=str([i.model_name for i in models.qsarlist]).replace("['", '').replace("', '", ',').replace("']", ''),
+                           default='fhlb,hhlb,hhlt,dsm,tm,E,S,A,B,L,V,logKow',
                            const='',
-                           help='Comma-separated list of qsars to apply, if not specified all are applied. Full list: '
-                                 'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V. See full docs for explanation'
+                           help='Comma-separated list of qsars to apply, if not specified all which are relevant are applied. Full list: '
+                                'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V, logKow. See full docs for explanation'
                            )
     # output value selection
     argparser.add_argument('-v',
@@ -153,13 +153,8 @@ if __name__ == "__main__":
         ifsqsar.main()
     else:
         # load QSARs
-        qsarmodels = []
         if args.qsars != '':
-            splitlist = args.qsars.split(',')
-            while splitlist[-1] == '':
-                splitlist.pop(-1)
-            for q in splitlist:
-                qsarmodels.append(getattr(models, q))
+            qsarmodels = models.get_qsar_list(qsarlist=args.qsars.split(','))
         # choose values
         values = []
         if args.values != '':

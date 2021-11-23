@@ -1,7 +1,9 @@
 import numpy
 value_names = ('dSm',)
+version = 1
 round_digits = 2
 units = 'J/mol.K'
+components = {'solute': 1, 'solvent': 0}
 molecule_format = 'dev.0.0.5'
 model_type = 'MLR'
 intercept = True

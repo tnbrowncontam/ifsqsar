@@ -1,6 +1,9 @@
 """Meta QSAR for logKow"""
+value_names = ('logKow',)
+version = 1
 round_digits = 2
 units = 'unitless'
+components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []
 smiles_flag = 'neutrals'

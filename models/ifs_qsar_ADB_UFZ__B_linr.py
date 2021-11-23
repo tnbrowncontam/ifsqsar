@@ -1,7 +1,9 @@
 import numpy
 value_names = ('B',)
+version = 1
 round_digits = 3
 units = 'unitless'
+components = {'solute': 1, 'solvent': 0}
 molecule_format = 'old_format'
 model_type = 'MLR'
 intercept = False
