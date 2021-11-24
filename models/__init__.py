@@ -270,7 +270,7 @@ class METAQSARModel:
         # pass solvents to solvent dependency qsar models to calculate values
         solventdependencies = {}
         for d, m in self.model_namespace.solventdependencymodels.items():
-            solutedependencies[d] = tuple(m.apply_model(solvents))
+            solventdependencies[d] = tuple(m.apply_model(solvents))
         # call the metamodel with the dependency outputs to calculate meta result
         prediction, UL, error, ULnote = self.model_namespace.calculate(solutedependencies, solventdependencies)
         # return result
@@ -297,12 +297,12 @@ Sv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_S_linr', 'S')
 Av2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_A_linr', 'A')
 Bv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_B_linr', 'B')
 Lv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_L_linr', 'L')
-svd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 's')
-avd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'a')
-bvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'b')
-vvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'v')
-lvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'l')
-cvd = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 'c')
+ssp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_s_linr', 's')
+asp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_a_linr', 'a')
+bsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_b_linr', 'b')
+vsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_v_linr', 'v')
+lsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_l_linr', 'l')
+csp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_c_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
 logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 
@@ -310,11 +310,8 @@ logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
-    # calculate number of solutes and solvents in passed components specification
-    solutenumber = 0
-    solventnumber = 0
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, logKow, logKsa]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa]
     if version is None:
         oldqsarversions = []
     else:
