@@ -110,17 +110,37 @@ class QSARModel:
             solutes[0].AddHydrogens()
         else:
             solutes[0].DeleteHydrogens()
-        # get fragment counts
+        # get fragment counts for MLR
         fragment_counts = []
-        for smarts in self.model_namespace.smartslist:
-            if smarts == 'intercept':
-                fragment_counts.append(1)
-            else:
-                smarts.Match(solutes[0])
-                fragment_counts.append(len(smarts.GetUMapList()))
+        if self.model_namespace.model_type == 'MLR':
+            for smarts in self.model_namespace.smartslist:
+                if smarts == 'intercept':
+                    fragment_counts.append(1)
+                else:
+                    smarts.Match(solutes[0])
+                    fragment_counts.append(len(smarts.GetUMapList()))
+        # get fragment counts for MLRX
+        elif self.model_namespace.model_type == 'MLRX':
+            i = 0
+            matchedatoms = set()
+            for smarts in self.model_namespace.smartslist:
+                if smarts == 'intercept':
+                    fragment_counts.append(1)
+                else:
+                    smarts.Match(solutes[0])
+                    matchlist = smarts.GetUMapList()
+                    matchcount = 0
+                    for match in matchlist:
+                        if len(set(match).intersection(matchedatoms)) == 0:
+                            matchcount += 1
+                        matchedatoms.update(set(match))
+                    fragment_counts.append(matchcount)
+                    if matchcount > 0:
+                        print(self.model_namespace.fragmentlist['smarts'][i].decode('utf-8'), matchcount, self.model_namespace.coefficientarray[i])
+                i += 1
         fragment_counts = np.array(fragment_counts)
         # apply multiple linear regression qsar
-        if self.model_namespace.model_type == 'MLR':
+        if self.model_namespace.model_type in ('MLR', 'MLRX'):
             # apply qsar
             prediction = (fragment_counts * self.model_namespace.coefficientarray).sum()
             error = np.nan
@@ -291,7 +311,7 @@ Sv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__S_linr', 'S')
 Av1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__A_linr', 'A')
 Bv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__B_linr', 'B')
 Lv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__L_linr', 'L')
-Vtd = QSARModel('ifsqsar.models.ifs_qsar_V', 'V')
+Vtd = QSARModel('ifsqsar.models.other_qsar_V', 'V')
 Ev2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_E_linr', 'E')
 Sv2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_S_linr', 'S')
 Av2 = QSARModel('ifsqsar.models.ifs_qsar_pplfer_solutes_A_linr', 'A')
@@ -305,13 +325,14 @@ lsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_l_linr', 'l')
 csp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_c_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
 logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
+MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MV')
 
 
 def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx]
     if version is None:
         oldqsarversions = []
     else:
