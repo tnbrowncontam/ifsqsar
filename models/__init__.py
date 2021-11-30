@@ -113,12 +113,16 @@ class QSARModel:
         # get fragment counts for MLR
         fragment_counts = []
         if self.model_namespace.model_type == 'MLR':
+            i = 0
             for smarts in self.model_namespace.smartslist:
                 if smarts == 'intercept':
                     fragment_counts.append(1)
                 else:
                     smarts.Match(solutes[0])
                     fragment_counts.append(len(smarts.GetUMapList()))
+                if len(smarts.GetUMapList()) > 0:
+                    print(self.model_namespace.fragmentlist['smarts'][i].decode('utf-8'), len(smarts.GetUMapList()), self.model_namespace.coefficientarray[i])
+                i += 1
         # get fragment counts for MLRX
         elif self.model_namespace.model_type == 'MLRX':
             i = 0
@@ -325,14 +329,17 @@ lsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_l_linr', 'l')
 csp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_c_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
 logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
-MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MV')
+MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MVmlrx')
+MVmlr = QSARModel('ifsqsar.models.other_qsar_MV_mlr', 'MVmlr')
+MVmlrRings = QSARModel('ifsqsar.models.other_qsar_MV_mlrRings', 'MVmlrRings')
+MVsolid = METAQSARModel('ifsqsar.models.meta_qsar_MV_solid', 'MVsolid')
 
 
 def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid]
     if version is None:
         oldqsarversions = []
     else:
