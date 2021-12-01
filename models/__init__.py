@@ -314,6 +314,9 @@ hhlb = QSARModel('ifsqsar.models.ifs_qsar_hhlb_linr', 'hhlb')
 hhlt = QSARModel('ifsqsar.models.ifs_qsar_hhlt_linr', 'hhlt')
 dsm = QSARModel('ifsqsar.models.ifs_qsar_dsm_linr', 'dsm')
 tm = QSARModel('ifsqsar.models.ifs_qsar_tm_linr', 'tm')
+tmpplfer = METAQSARModel('ifsqsar.models.meta_qsar_tm_pplfer', 'tmpplfer')
+tmconsensus = METAQSARModel('ifsqsar.models.meta_qsar_tm_consensus', 'tmconsensus')
+tbpplfer = METAQSARModel('ifsqsar.models.meta_qsar_tb_pplfer', 'tbpplfer')
 Ev1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__E_linr', 'E')
 Sv1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__S_linr', 'S')
 Av1 = QSARModel('ifsqsar.models.ifs_qsar_ADB_UFZ__A_linr', 'A')
@@ -337,13 +340,14 @@ MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MVmlrx')
 MVmlr = QSARModel('ifsqsar.models.other_qsar_MV_mlr', 'MVmlr')
 MVmlrRings = QSARModel('ifsqsar.models.other_qsar_MV_mlrRings', 'MVmlrRings')
 MVsolid = METAQSARModel('ifsqsar.models.meta_qsar_MV_solid', 'MVsolid')
+state = METAQSARModel('ifsqsar.models.meta_qsar_state', 'state')
 
 
 def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid, state]
     if version is None:
         oldqsarversions = []
     else:

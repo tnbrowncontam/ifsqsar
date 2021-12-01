@@ -6,7 +6,7 @@ round_digits = 2
 units = 'unitless'
 components = {'solute': 1, 'solvent': 1}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L']
-solvent_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 's', 'a', 'b', 'v', 'l', 'c', 'tm']
+solvent_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 's', 'a', 'b', 'v', 'l', 'c', 'state']
 smiles_flag = 'neutrals'
 
 emptrainset = np.array([[0, 0, 0, 0, 2.363, 7.714],
@@ -97,65 +97,23 @@ def calculate(solutedependencies, solventdependencies):
         ULemptra = 3
     else:
         ULemptra = 2
-    # calculate MP and MP error
-    MP = 53.6 * solventdependencies['E'][0] + \
-         27.8 * solventdependencies['S'][0] + \
-         107.9 * solventdependencies['A'][0] + \
-         -19.2 * solventdependencies['B'][0] + \
-         7.1 * solventdependencies['L'][0] + \
-         -90.6
-    MP = (MP + (solventdependencies['tm'][0] - 273.15)) / 2
-    MPerr = (solventdependencies['L'][0] * 7.1)**2 * ((solventdependencies['L'][2] / solventdependencies['L'][0])**2 + (0.7 / 7.1)**2) + \
-            3.0**2
-    if solventdependencies['E'][0] != 0:
-        MPerr += (solventdependencies['E'][0] * 53.6)**2 * ((solventdependencies['E'][2] / solventdependencies['E'][0])**2 + (3.6 / 53.6)**2)
-    if solventdependencies['S'][0] != 0:
-        MPerr += (solventdependencies['S'][0] * 27.8)**2 * ((solventdependencies['S'][2] / solventdependencies['S'][0])**2 + (4.1 / 27.8)**2)
-    if solventdependencies['A'][0] != 0:
-        MPerr += (solventdependencies['A'][0] * 107.9)**2 * ((solventdependencies['A'][2] / solventdependencies['A'][0])**2 + (4.9 / 107.9)**2)
-    if solventdependencies['B'][0] != 0:
-        MPerr += (solventdependencies['B'][0] * -19.2)**2 * ((solventdependencies['B'][2] / solventdependencies['B'][0])**2 + (4.4 / -19.2)**2)
-    MPerr = ((0.5 * MPerr**0.5)**2 + (0.5 * solventdependencies['tm'][2])**2)**0.5
-    # calculate BP and BPerr
-    BP = 13.0 * solventdependencies['E'][0] + \
-         43.8 * solventdependencies['S'][0] + \
-         59.8 * solventdependencies['A'][0] + \
-         18.2 * solventdependencies['B'][0] + \
-         26.9 * solventdependencies['V'][0] + \
-         29.2 * solventdependencies['L'][0] + \
-         -33.0
-    BPerr = (solventdependencies['V'][0] * 8.2)**2 + \
-            (solventdependencies['L'][0] * 29.2)**2 * ((solventdependencies['L'][2] / solventdependencies['L'][0])**2 + (2.4 / 29.2)**2) + \
-            2.8**2
-    if solventdependencies['E'][0] != 0:
-        BPerr += (solventdependencies['E'][0] * 13.0)**2 * ((solventdependencies['E'][2] / solventdependencies['E'][0])**2 + (3.6 / 13.0)**2)
-    if solventdependencies['S'][0] != 0:
-        BPerr += (solventdependencies['S'][0] * 43.8)**2 * ((solventdependencies['S'][2] / solventdependencies['S'][0])**2 + (3.3 / 43.8)**2)
-    if solventdependencies['A'][0] != 0:
-        BPerr += (solventdependencies['A'][0] * 59.8)**2 * ((solventdependencies['A'][2] / solventdependencies['A'][0])**2 + (3.3 / 59.8)**2)
-    if solventdependencies['B'][0] != 0:
-        BPerr += (solventdependencies['B'][0] * 18.2)**2 * ((solventdependencies['B'][2] / solventdependencies['B'][0])**2 + (2.8 / 18.2)**2)
-    BPerr = BPerr**0.5
-    # decide if solvent is liquid or not
-    if MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULemptra <= 1:
+    # get state of solvent and set error scaling
+    if solventdependencies['state'][3] == 'likely liquid':
         domainnotes.append('solvent phase: likely liquid, prediction error scaling = 1')
         phaseerrorscaling = 1
-    elif (MP <= 25 and BP  >= 25 and ULemptra <= 1) or \
-            (MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULemptra > 1) or \
-            (MP-1.96*MPerr <= 25 < MP and ULemptra <= 1) or \
-            (BP+1.96*BPerr >= 25 > BP and ULemptra <= 1):
+    elif solventdependencies['state'][3] == 'maybe liquid':
         domainnotes.append('solvent phase: maybe liquid, prediction error scaling = 1.25')
         phaseerrorscaling = 1.25
-    elif (MP-1.96*MPerr > 25 and ULemptra > 1):
+    elif solventdependencies['state'][3] == 'likely solid':
         domainnotes.append('solvent phase: likely solid, prediction error scaling = 2')
         phaseerrorscaling = 2
-    elif MP+1.96*MPerr > 25:
+    elif solventdependencies['state'][3] == 'maybe solid':
         domainnotes.append('solvent phase: maybe solid, prediction error scaling = 1.5')
         phaseerrorscaling = 1.5
-    elif (BP+1.96*BPerr < 25 and ULemptra > 1):
+    elif solventdependencies['state'][3] == 'likely gas':
         domainnotes.append('solvent phase: likely gas, prediction error scaling = 1.5')
         phaseerrorscaling = 1.5
-    elif BP-1.96*BPerr < 25:
+    elif solventdependencies['state'][3] == 'maybe gas':
         domainnotes.append('solvent phase: maybe gas, prediction error scaling = 1.25')
         phaseerrorscaling = 1.25
     else:
@@ -172,7 +130,7 @@ def calculate(solutedependencies, solventdependencies):
             ULslt += 2**2
         elif solutedependencies[sltdes][1] > 4:
             ULslt += 3**2
-    ULslt = np.ceil(ULslt/4)**0.5
+    ULslt = np.ceil((ULslt/4)**0.5)
     # calculate aggregate UL of system parameters from QSPRs
     ULslvqspr = 0
     for slvpar in ['s', 'a', 'b', 'v', 'l', 'c']:
@@ -184,7 +142,7 @@ def calculate(solutedependencies, solventdependencies):
             ULslvqspr += 2**2
         elif solventdependencies[slvpar][1] > 4:
             ULslvqspr += 3**2
-    ULslvqspr = np.ceil(ULslvqspr/6)**0.5
+    ULslvqspr = np.ceil((ULslvqspr/6)**0.5)
     # calculate relative solute descriptors, UL and error
     # Vri
     Vri = 1 / solventdependencies['V'][0]
