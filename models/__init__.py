@@ -73,6 +73,10 @@ class QSARModel:
         for smarts in self.model_namespace.fragmentlist['smarts']:
             if smarts == b'intercept':
                 self.model_namespace.smartslist.append('intercept')
+            elif smarts == b'sssr':
+                self.model_namespace.smartslist.append('sssr')
+            elif smarts == b'MW':
+                self.model_namespace.smartslist.append('MW')
             else:
                 pattern = ob.OBSmartsPattern()
                 pattern.Init(smarts.decode('utf-8'))
@@ -113,23 +117,26 @@ class QSARModel:
         # get fragment counts for MLR
         fragment_counts = []
         if self.model_namespace.model_type == 'MLR':
-            i = 0
             for smarts in self.model_namespace.smartslist:
                 if smarts == 'intercept':
                     fragment_counts.append(1)
+                elif smarts == 'sssr':
+                    fragment_counts.append(len(solutes[0].GetSSSR()))
+                elif smarts == 'MW':
+                    fragment_counts.append(len(solutes[0].GetMolWt()))
                 else:
                     smarts.Match(solutes[0])
                     fragment_counts.append(len(smarts.GetUMapList()))
-                if len(smarts.GetUMapList()) > 0:
-                    print(self.model_namespace.fragmentlist['smarts'][i].decode('utf-8'), len(smarts.GetUMapList()), self.model_namespace.coefficientarray[i])
-                i += 1
         # get fragment counts for MLRX
         elif self.model_namespace.model_type == 'MLRX':
-            i = 0
             matchedatoms = set()
             for smarts in self.model_namespace.smartslist:
                 if smarts == 'intercept':
                     fragment_counts.append(1)
+                elif smarts == 'sssr':
+                    fragment_counts.append(len(solutes[0].GetSSSR()))
+                elif smarts == 'MW':
+                    fragment_counts.append(len(solutes[0].GetMolWt()))
                 else:
                     smarts.Match(solutes[0])
                     matchlist = smarts.GetUMapList()
@@ -139,9 +146,6 @@ class QSARModel:
                             matchcount += 1
                         matchedatoms.update(set(match))
                     fragment_counts.append(matchcount)
-                    if matchcount > 0:
-                        print(self.model_namespace.fragmentlist['smarts'][i].decode('utf-8'), matchcount, self.model_namespace.coefficientarray[i])
-                i += 1
         fragment_counts = np.array(fragment_counts)
         # apply multiple linear regression qsar
         if self.model_namespace.model_type in ('MLR', 'MLRX'):
