@@ -362,6 +362,9 @@ MVmlrRings = QSARModel('ifsqsar.models.other_qsar_MV_mlrRings', 'MVmlrRings')
 MVliqcorr = QSARModel('ifsqsar.models.other_qsar_MV_liq_corr', 'MVliqcorr')
 MVsolid = METAQSARModel('ifsqsar.models.meta_qsar_MV_solid', 'MVsolid')
 MVliquid = METAQSARModel('ifsqsar.models.meta_qsar_MV_liquid', 'MVliquid')
+MW = QSARModel('ifsqsar.models.other_qsar_MW', 'MW')
+densitysolid = METAQSARModel('ifsqsar.models.meta_qsar_density_solid', 'densitysolid')
+densityliquid = METAQSARModel('ifsqsar.models.meta_qsar_density_liquid', 'densityliquid')
 state = METAQSARModel('ifsqsar.models.meta_qsar_state', 'state')
 
 
@@ -369,7 +372,10 @@ def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa, MVmlrx, MVmlr, MVmlrRings, MVliqcorr, MVsolid, MVliquid, state]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd,
+                           ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa,
+                           MVmlrx, MVmlr, MVmlrRings, MVliqcorr, MVsolid, MVliquid,
+                           MW, densitysolid, densityliquid, state]
     if version is None:
         oldqsarversions = []
     else:

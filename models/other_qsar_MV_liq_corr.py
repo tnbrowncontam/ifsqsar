@@ -20,7 +20,7 @@ coefficientarrays = numpy.array([(0.90,),
 
 
 def post_processing(prediction, error):
-    local_prediction = round(prediction, round_digits)
+    local_prediction = round(1/prediction, round_digits)
     local_error = round(error, round_digits)
     return local_prediction, local_error
 
