@@ -330,6 +330,11 @@ class METAQSARModel:
 fhlb = QSARModel('ifsqsar.models.ifs_qsar_fhlb_linr', 'fhlb')
 hhlb = QSARModel('ifsqsar.models.ifs_qsar_hhlb_linr', 'hhlb')
 hhlt = QSARModel('ifsqsar.models.ifs_qsar_hhlt_linr', 'hhlt')
+biowin3usmmlrx = QSARModel('ifsqsar.models.other_qsar_biowin3_usm_mlrx', 'biowin3usmmlrx')
+biowin3usmmlra = QSARModel('ifsqsar.models.other_qsar_biowin3_usm_mlra', 'biowin3usmmlra')
+biowin4psmmlrx = QSARModel('ifsqsar.models.other_qsar_biowin4_psm_mlrx', 'biowin4psmmlrx')
+biowin4psmmlra = QSARModel('ifsqsar.models.other_qsar_biowin4_psm_mlra', 'biowin4psmmlra')
+HLbiodeg = METAQSARModel('ifsqsar.models.meta_qsar_hlbiodeg', 'HLbiodeg')
 dsm = QSARModel('ifsqsar.models.ifs_qsar_dsm_linr', 'dsm')
 tm = QSARModel('ifsqsar.models.ifs_qsar_tm_linr', 'tm')
 tmpplfer = METAQSARModel('ifsqsar.models.meta_qsar_tm_pplfer', 'tmpplfer')
@@ -375,10 +380,13 @@ def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd,
-                           ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logVPliquid, logSwliquid, logSoliquid,
+    currentqsarversions = [fhlb, hhlb, hhlt, biowin3usmmlrx, biowin3usmmlra, biowin4psmmlrx, biowin4psmmlra, HLbiodeg,
+                           dsm, tm, tmpplfer, tbpplfer, tmconsensus, state,
+                           Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp,
+                           logKow, logKoa, logKaw, logVPliquid, logSwliquid, logSoliquid,
                            MVmlrx, MVmlr, MVmlrRings, MVliqcorr, MVsolid, MVliquid,
-                           MW, densitysolid, densityliquid, state, logKsa]
+                           MW, densitysolid, densityliquid,
+                           logKsa]
     if version is None:
         oldqsarversions = []
     else:
