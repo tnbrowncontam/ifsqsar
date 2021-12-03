@@ -2,7 +2,7 @@
 value_names = ('MVsolid',)
 version = 1
 round_digits = 2
-units = 'unitless'
+units = 'cm^3/mol'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['MVmlrx', 'MVmlr', 'MVmlrRings']
 solvent_dependencies_list = []

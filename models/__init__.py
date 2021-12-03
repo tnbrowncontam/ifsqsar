@@ -123,7 +123,7 @@ class QSARModel:
                 elif smarts == 'sssr':
                     fragment_counts.append(len(solutes[0].GetSSSR()))
                 elif smarts == 'MW':
-                    fragment_counts.append(len(solutes[0].GetMolWt()))
+                    fragment_counts.append(solutes[0].GetMolWt())
                 else:
                     smarts.Match(solutes[0])
                     fragment_counts.append(len(smarts.GetUMapList()))
@@ -136,7 +136,7 @@ class QSARModel:
                 elif smarts == 'sssr':
                     fragment_counts.append(len(solutes[0].GetSSSR()))
                 elif smarts == 'MW':
-                    fragment_counts.append(len(solutes[0].GetMolWt()))
+                    fragment_counts.append(solutes[0].GetMolWt())
                 else:
                     smarts.Match(solutes[0])
                     matchlist = smarts.GetUMapList()
@@ -146,9 +146,27 @@ class QSARModel:
                             matchcount += 1
                         matchedatoms.update(set(match))
                     fragment_counts.append(matchcount)
+        # get fragment counts for MLRA
+        elif self.model_namespace.model_type == 'MLRA':
+            for smarts in self.model_namespace.smartslist:
+                if smarts == 'intercept':
+                    fragment_counts.append(1)
+                elif smarts == 'sssr':
+                    if len(solutes[0].GetSSSR()) > 0:
+                        fragment_counts.append(1)
+                    else:
+                        fragment_counts.append(0)
+                elif smarts == 'MW':
+                    fragment_counts.append(solutes[0].GetMolWt())
+                else:
+                    smarts.Match(solutes[0])
+                    if len(smarts.GetUMapList()) > 0:
+                        fragment_counts.append(1)
+                    else:
+                        fragment_counts.append(0)
         fragment_counts = np.array(fragment_counts)
         # apply multiple linear regression qsar
-        if self.model_namespace.model_type in ('MLR', 'MLRX'):
+        if self.model_namespace.model_type in ('MLR', 'MLRX', 'MLRA'):
             # apply qsar
             prediction = (fragment_counts * self.model_namespace.coefficientarray).sum()
             error = np.nan
@@ -341,7 +359,9 @@ logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MVmlrx')
 MVmlr = QSARModel('ifsqsar.models.other_qsar_MV_mlr', 'MVmlr')
 MVmlrRings = QSARModel('ifsqsar.models.other_qsar_MV_mlrRings', 'MVmlrRings')
+MVliqcorr = QSARModel('ifsqsar.models.other_qsar_MV_liq_corr', 'MVliqcorr')
 MVsolid = METAQSARModel('ifsqsar.models.meta_qsar_MV_solid', 'MVsolid')
+MVliquid = METAQSARModel('ifsqsar.models.meta_qsar_MV_liquid', 'MVliquid')
 state = METAQSARModel('ifsqsar.models.meta_qsar_state', 'state')
 
 
@@ -349,7 +369,7 @@ def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid, state]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa, MVmlrx, MVmlr, MVmlrRings, MVliqcorr, MVsolid, MVliquid, state]
     if version is None:
         oldqsarversions = []
     else:

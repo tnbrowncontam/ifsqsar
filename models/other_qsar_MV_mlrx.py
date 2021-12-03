@@ -7,6 +7,8 @@ components = {'solute': 1, 'solvent': 0}
 molecule_format = 'dev.0.0.5'
 model_type = 'MLRX'
 intercept = False
+smiles_flag = 'neutrals'
+domain = False
 fragmentlist = numpy.array([
                             ('[CH0D4$(*-[c,n])](-[NH0D3R0v5](=O)=O)(-[NH0D3R0v5](=O)=O)-[NH0D3R0v5](=O)=O', '10 atom, general, table 6', 0.0),
                             ('[CH0D4$(*-n)](-[NH0D3R0v3](-F)-F)(-[NH0D3R0v5](=O)=O)-[NH0D3R0v5](=O)=O', '10 atom, general, table 6', 0.0),
@@ -236,8 +238,6 @@ fragmentlist = numpy.array([
                             ('[SH0D1R0v2$(*=*)]', '1 atom, general, table 1', 0.0),
                             ('I', '1 atom, general, table 1 (extrapolated)', 0.0),
                             ], dtype=[('smarts', 'S150'), ('description', 'S30'), ('fragstdev', float)])
-smiles_flag = 'neutrals'
-domain = False
 coefficientarrays = numpy.array([
                                  (80.17,),
                                  (83.04,),
