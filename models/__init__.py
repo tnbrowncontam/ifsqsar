@@ -335,6 +335,8 @@ vsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_v_linr', 'v')
 lsp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_l_linr', 'l')
 csp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_c_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
+logKoa = METAQSARModel('ifsqsar.models.meta_qsar_logkoa_pplfer', 'logKoa')
+logKaw = METAQSARModel('ifsqsar.models.meta_qsar_logkaw_pplfer', 'logKaw')
 logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MVmlrx')
 MVmlr = QSARModel('ifsqsar.models.other_qsar_MV_mlr', 'MVmlr')
@@ -347,7 +349,7 @@ def get_qsar_list(qsarlist=None, version=None):
     """function for getting lists of QSARs meeting selection criteria"""
     returnlist = []
     # decide if old versions are included in parse list
-    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid, state]
+    currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd, ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa, MVmlrx, MVmlr, MVmlrRings, MVsolid, state]
     if version is None:
         oldqsarversions = []
     else:
