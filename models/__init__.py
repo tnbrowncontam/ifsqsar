@@ -355,6 +355,9 @@ csp = QSARModel('ifsqsar.models.ifs_qsar_pplfer_system_2_c_linr', 'c')
 logKow = METAQSARModel('ifsqsar.models.meta_qsar_logkow_pplfer', 'logKow')
 logKoa = METAQSARModel('ifsqsar.models.meta_qsar_logkoa_pplfer', 'logKoa')
 logKaw = METAQSARModel('ifsqsar.models.meta_qsar_logkaw_pplfer', 'logKaw')
+logVPliquid = METAQSARModel('ifsqsar.models.meta_qsar_logVP_liquid', 'logVPliquid')
+logSwliquid = METAQSARModel('ifsqsar.models.meta_qsar_logSw_liquid', 'logSwliquid')
+logSoliquid = METAQSARModel('ifsqsar.models.meta_qsar_logSo_liquid', 'logSoliquid')
 logKsa = METAQSARModel('ifsqsar.models.meta_qsar_logksa_pplfer', 'logKsa')
 MVmlrx = QSARModel('ifsqsar.models.other_qsar_MV_mlrx', 'MVmlrx')
 MVmlr = QSARModel('ifsqsar.models.other_qsar_MV_mlr', 'MVmlr')
@@ -373,9 +376,9 @@ def get_qsar_list(qsarlist=None, version=None):
     returnlist = []
     # decide if old versions are included in parse list
     currentqsarversions = [fhlb, hhlb, hhlt, dsm, tm, tmpplfer, tbpplfer, tmconsensus, Ev2, Sv2, Av2, Bv2, Lv2, Vtd,
-                           ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logKsa,
+                           ssp, asp, bsp, vsp, lsp, csp, logKow, logKoa, logKaw, logVPliquid, logSwliquid, logSoliquid,
                            MVmlrx, MVmlr, MVmlrRings, MVliqcorr, MVsolid, MVliquid,
-                           MW, densitysolid, densityliquid, state]
+                           MW, densitysolid, densityliquid, state, logKsa]
     if version is None:
         oldqsarversions = []
     else:
