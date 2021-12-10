@@ -144,7 +144,7 @@ class QSARModel:
                     for match in matchlist:
                         if len(set(match).intersection(matchedatoms)) == 0:
                             matchcount += 1
-                        matchedatoms.update(set(match))
+                            matchedatoms.update(set(match))
                     fragment_counts.append(matchcount)
         # get fragment counts for MLRA
         elif self.model_namespace.model_type == 'MLRA':
