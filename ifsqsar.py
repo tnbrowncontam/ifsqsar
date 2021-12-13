@@ -451,9 +451,17 @@ class IFSGUIClass:
         self.frame = self.tk.Frame(self.root)
         self.frame.pack_propagate(0)
         self.frame.pack()
-        # import models
+        # initiate mode variable and import models
+        self.mixturemode = self.tk.StringVar()
+        self.mixturemode.set('purechemical')
         from . import models
-        self.qsarmodels = models.get_qsar_list()
+        self.pure_qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
+                                                         'dsm', 'tmconsensus', 'tbpplfer',
+                                                         'logKow', 'logKoa', 'logKaw',
+                                                         'logVPliquid', 'logSwliquid', 'logSoliquid',
+                                                         'MVliquid', 'MW', 'densityliquid', 'state',
+                                                         'E', 'S', 'A', 'B', 'V', 'L'])
+        self.mixture_qsarmodels = models.get_qsar_list(qsarlist=['logKsa'])
         # setup openbabel converter
         self.obcon = ob.OBConversion()
         self.obcon.SetInAndOutFormats('smi', 'can')
@@ -471,6 +479,15 @@ class IFSGUIClass:
         if hasattr(self, 'textinput'):
             self.textinput.destroy()
             delattr(self, 'textinput')
+        if hasattr(self, 'framebatchradio'):
+            self.framebatchradio.destroy()
+            delattr(self, 'framebatchradio')
+        if hasattr(self, 'modebatchradiopure'):
+            self.modebatchradiopure.destroy()
+            delattr(self, 'modebatchradiopure')
+        if hasattr(self, 'modebatchradiomixt'):
+            self.modebatchradiomixt.destroy()
+            delattr(self, 'modebatchradiomixt')
         if hasattr(self, 'buttonoutput'):
             self.buttonoutput.destroy()
             delattr(self, 'buttonoutput')
@@ -494,11 +511,18 @@ class IFSGUIClass:
         self.labelsmiles.grid(row=0, column=0)
         self.entrysmiles = self.tk.Entry(self.frame, width=50, font='TkTextFont 10')
         self.entrysmiles.grid(row=0, column=1)
+        # single mode - radio buttons to select input type
+        self.framesingleradio = self.tk.Frame(self.frame)
+        self.framesingleradio.grid(row=1, column=1)
+        self.modesingleradiopure = self.tk.Radiobutton(self.framesingleradio, text='pure chemical', font='TkDefaultFont 10', variable=self.mixturemode, value='purechemical')
+        self.modesingleradiopure.grid(row=0, column=0)
+        self.modesingleradiomixt = self.tk.Radiobutton(self.framesingleradio, text='solute-solvent/mixture', font='TkDefaultFont 10', variable=self.mixturemode, value='mixture')
+        self.modesingleradiomixt.grid(row=0, column=1)
         # single mode - text box to show results
         self.labelresult = self.tk.Label(self.frame, text='Model Results', font='TkDefaultFont 10')
-        self.labelresult.grid(row=1, column=0)
+        self.labelresult.grid(row=2, column=0)
         self.frametext = self.tk.Frame(self.frame)
-        self.frametext.grid(row=1, column=1)
+        self.frametext.grid(row=2, column=1)
         self.scrbar = self.tk.Scrollbar(self.frametext)
         self.scrbar.pack(side=self.tk.RIGHT, fill=self.tk.Y)
         self.textresult = IFSGUIClass._ReadOnlyText(self.frametext, height=5, width=48, font='TkTextFont 10')
@@ -507,7 +531,7 @@ class IFSGUIClass:
         self.textresult.config(yscrollcommand=self.scrbar.set)
         # single mode - buttons to switch to batch mode and display info
         self.framesingle = self.tk.Frame(self.frame)
-        self.framesingle.grid(row=2, column=0)
+        self.framesingle.grid(row=3, column=0)
         self.buttongotobatch = self.tk.Button(self.framesingle, text='Batch Mode', font='TkDefaultFont 10',
                                          height=1, width=15, command=self.setup_batch_mode)
         self.buttongotobatch.grid(row=0, column=0)
@@ -517,7 +541,7 @@ class IFSGUIClass:
         # single mode - button to calculate results
         self.buttoncalcsingle = self.tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
                                           height=2, width=25, command=self.calculate_single)
-        self.buttoncalcsingle.grid(row=2, column=1)
+        self.buttoncalcsingle.grid(row=3, column=1)
 
     def setup_batch_mode(self):
         """Delete any single mode widgets present and load batch mode widgets."""
@@ -528,6 +552,15 @@ class IFSGUIClass:
         if hasattr(self, 'entrysmiles'):
             self.entrysmiles.destroy()
             delattr(self, 'entrysmiles')
+        if hasattr(self, 'framesingleradio'):
+            self.framesingleradio.destroy()
+            delattr(self, 'framesingleradio')
+        if hasattr(self, 'modesingleradiopure'):
+            self.modesingleradiopure.destroy()
+            delattr(self, 'modesingleradiopure')
+        if hasattr(self, 'modesingleradiomixt'):
+            self.modesingleradiomixt.destroy()
+            delattr(self, 'modesingleradiomixt')
         if hasattr(self, 'labelresult'):
             self.labelresult.destroy()
             delattr(self, 'labelresult')
@@ -561,25 +594,32 @@ class IFSGUIClass:
         self.buttoninput.grid(row=0, column=0)
         self.textinput = IFSGUIClass._ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
         self.textinput.grid(row=0, column=1)
+        # batch mode - radio buttons to select input type
+        self.framebatchradio = self.tk.Frame(self.frame)
+        self.framebatchradio.grid(row=1, column=1)
+        self.modebatchradiopure = self.tk.Radiobutton(self.framebatchradio, text='pure chemical', font='TkDefaultFont 10', variable=self.mixturemode, value='purechemical')
+        self.modebatchradiopure.grid(row=0, column=0)
+        self.modebatchradiomixt = self.tk.Radiobutton(self.framebatchradio, text='solute-solvent/mixture', font='TkDefaultFont 10', variable=self.mixturemode, value='mixture')
+        self.modebatchradiomixt.grid(row=0, column=1)
         # batch mode - button to select output file
         self.buttonoutput = self.tk.Button(self.frame, text='Select Ouput File', font='TkDefaultFont 10',
                                       height=1, width=15, command=self.select_output_file)
-        self.buttonoutput.grid(row=1, column=0)
+        self.buttonoutput.grid(row=2, column=0)
         self.textoutput = IFSGUIClass._ReadOnlyText(self.frame, height=1, width=50, font='TkTextFont 10')
-        self.textoutput.grid(row=1, column=1)
+        self.textoutput.grid(row=2, column=1)
         # batch mode - buttons to switch to single mode and display info
         self.framebatch = self.tk.Frame(self.frame)
-        self.framebatch.grid(row=2, column=0)
+        self.framebatch.grid(row=3, column=0)
         self.buttongotosingle = self.tk.Button(self.framebatch, text='Single Mode', font='TkDefaultFont 10',
                                           height=1, width=15, command=self.setup_single_mode)
         self.buttongotosingle.grid(row=0, column=0)
         self.buttoninfo = self.tk.Button(self.framebatch, text='Info', font='TkDefaultFont 10',
                                     height=1, width=15, command=self.info)
-        self.buttoninfo.grid(row=1, column=0)
+        self.buttoninfo.grid(row=3, column=0)
         # batch mode - button to calculate results
         self.buttoncalcbatch = self.tk.Button(self.frame, text='Apply IFS QSARs', font='TkDefaultFont 10',
                                          height=2, width=25, command=self.calculate_batch)
-        self.buttoncalcbatch.grid(row=2, column=1)
+        self.buttoncalcbatch.grid(row=3, column=1)
 
     def toggle_disabled(self, setstate):
         """Disable or enable all widgets."""
@@ -647,7 +687,11 @@ class IFSGUIClass:
         # get smiles from the gui, apply models and write results to gui
         smiles = self.entrysmiles.get()
         self.toggle_disabled(self.tk.DISABLED)
-        results = apply_qsars_to_molecule(self.qsarmodels, smiles=smiles, converter=self.obcon, outformat='columns')
+        if self.mixturemode.get() == 'purechemical':
+            localqsarlist = self.pure_qsarmodels
+        elif self.mixturemode.get() == 'mixture':
+            localqsarlist = self.mixture_qsarmodels
+        results = apply_qsars_to_molecule(localqsarlist, smiles=smiles, converter=self.obcon, outformat='columns')
         # display results
         self.textresult.delete('1.0', self.tk.END)
         self.textresult.insert('1.0', results)
@@ -682,7 +726,11 @@ class IFSGUIClass:
         else:
             print('file type not recognized: ', outextension)
             return
-        apply_qsars_to_molecule_list(self.qsarmodels,
+        if self.mixturemode.get() == 'purechemical':
+            localqsarlist = self.pure_qsarmodels
+        elif self.mixturemode.get() == 'mixture':
+            localqsarlist = self.mixture_qsarmodels
+        apply_qsars_to_molecule_list(localqsarlist,
                                      infilename=self.inputfilename,
                                      inheaderrows=1,
                                      inheadtrgtrow=1,

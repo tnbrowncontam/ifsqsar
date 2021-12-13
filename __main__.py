@@ -159,9 +159,20 @@ if __name__ == "__main__":
         if args.qsars == '':
             qsarmodels = []
         elif args.qsars == 'default':
-            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V', 'logKow', 'logKsa'])
+            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
+                                                        'dsm', 'tmconsensus', 'tbpplfer',
+                                                        'logKow', 'logKoa', 'logKaw',
+                                                        'logVPliquid', 'logSwliquid', 'logSoliquid',
+                                                        'MVliquid', 'MW', 'densityliquid', 'state',
+                                                        'E', 'S', 'A', 'B', 'V', 'L',
+                                                        'logKsa'])
         elif args.qsars == 'single':
-            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'dsm', 'tm', 'E', 'S', 'A', 'B', 'L', 'V', 'logKow'])
+            qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
+                                                        'dsm', 'tmconsensus', 'tbpplfer',
+                                                        'logKow', 'logKoa', 'logKaw',
+                                                        'logVPliquid', 'logSwliquid', 'logSoliquid',
+                                                        'MVliquid', 'MW', 'densityliquid', 'state',
+                                                        'E', 'S', 'A', 'B', 'V', 'L'])
         elif args.qsars == 'mixture':
             qsarmodels = models.get_qsar_list(qsarlist=['logKsa'])
         else:
