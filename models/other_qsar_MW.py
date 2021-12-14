@@ -1,6 +1,8 @@
+"""Calculates MW so that it is accessible to METAQSARs"""
 import numpy
 value_names = ('MW',)
 version = 1
+citation = 'MW'
 round_digits = 6
 units = 'g/mol'
 components = {'solute': 1, 'solvent': 0}

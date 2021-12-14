@@ -2,6 +2,10 @@
 import numpy as np
 value_names = ('logKsa',)
 version = 1
+citation = 'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review.'
 round_digits = 2
 units = 'unitless'
 components = {'solute': 1, 'solvent': 1}
@@ -336,5 +340,5 @@ def calculate(solutedependencies, solventdependencies):
         if solutedependencies['B'][0] != 0 and bemp != 0:
             logKsaerr += (solutedependencies['B'][0]*bemp)**2 * ((solutedependencies['B'][2]/solutedependencies['B'][0])**2 + (bemperr/bemp)**2)
         logKsaerr = logKsaerr**0.5
-    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), ', '.join(domainnotes)
+    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), ', '.join(domainnotes), citation
 

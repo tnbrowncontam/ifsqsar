@@ -1,6 +1,11 @@
+"""IFS QSAR for PPLFER logK[solvent-air] system parameter c"""
 import numpy
 value_names = ('c',)
 version = 1
+citation = 'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review.'
 round_digits = 3
 units = 'unitless'
 components = {'solute': 1, 'solvent': 0}

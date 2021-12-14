@@ -1,6 +1,10 @@
+"""Partial approximate clone of QSRP for ultimate aerobic biodegradation (BIOWIN3), intended for internal use"""
 import numpy
 value_names = ('biowin3usmmlra',)
 version = 1
+citation = 'Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beauman, J.; Tirado, N., '\
+           'Group contribution method for predicting probability and rate of aerobic biodegradation. '\
+           'Environ Sci Technol 1994, 28 (3), 459-65.'
 round_digits = 2
 units = 'rank'
 components = {'solute': 1, 'solvent': 0}

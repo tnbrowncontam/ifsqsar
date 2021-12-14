@@ -1,6 +1,10 @@
+"""IFS QSAR for temperature of melting (tm) (melting point)"""
 import numpy
 value_names = ('Tm',)
 version = 1
+citation = 'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
+           'Application of an Iterative Fragment Selection (IFS) Method to Estimate Entropies of Fusion and Melting '\
+           'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'
 round_digits = 2
 units = 'K'
 components = {'solute': 1, 'solvent': 0}

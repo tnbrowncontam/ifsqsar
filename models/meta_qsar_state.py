@@ -2,6 +2,15 @@
 import numpy as np
 value_names = ('state',)
 version = 1
+citation = 'tm and tb from PPLFERs: '\
+           'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review. '\
+           'tm from QSPR: '\
+           'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
+           'Application of an Iterative Fragment Selection (IFS) Method to Estimate Entropies of Fusion and Melting'\
+           'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'
 round_digits = np.nan
 units = ''
 components = {'solute': 1, 'solvent': 0}
@@ -1409,4 +1418,4 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnote = 'unclassified'
 
-    return np.nan, np.nan, np.nan, domainnote
+    return np.nan, np.nan, np.nan, domainnote, citation

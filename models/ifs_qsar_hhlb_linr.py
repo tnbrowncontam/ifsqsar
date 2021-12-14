@@ -1,6 +1,10 @@
+"""IFS QSAR for biotransformation half-life in human (hhlb)"""
 import numpy
-value_names = ('HHLB',)
+value_names = ('hhlb',)
 version = 1
+citation = 'Arnot, J. A.;  Brown, T. N.; Wania, F., '\
+           'Estimating screening-level organic chemical half-lives in humans.'\
+           'Environ Sci Technol 2014, 48 (1), 723-30.'
 round_digits = 2
 units = 'hours'
 components = {'solute': 1, 'solvent': 0}

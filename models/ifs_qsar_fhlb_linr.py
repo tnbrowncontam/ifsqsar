@@ -1,6 +1,10 @@
+"""IFS QSAR for biotransformation half-life in fish (fhlb)"""
 import numpy
-value_names = ('FHLB',)
+value_names = ('fhlb',)
 version = 1
+citation = 'Brown, T. N.;  Arnot, J. A.; Wania, F., '\
+           'Iterative fragment selection: a group contribution approach to predicting fish biotransformation '\
+           'half-lives. Environ Sci Technol 2012, 46 (15), 8253-60.'
 round_digits = 2
 units = 'hours'
 components = {'solute': 1, 'solvent': 0}

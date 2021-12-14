@@ -1,7 +1,11 @@
-"""Meta QSAR for tmpplfer"""
+"""Meta QSAR for temperature of melting from PPLFER (tmpplfer) (melting point)"""
 import numpy as np
 value_names = ('tmpplfer',)
 version = 1
+citation = 'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters.'\
+           'J Solution Chem 2021, In Review.'
 round_digits = 2
 units = 'K'
 components = {'solute': 1, 'solvent': 0}
@@ -2326,4 +2330,4 @@ def calculate(solutedependencies, solventdependencies):
         MPerr = 146.4675109
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(MP, round_digits), int(MPUL), round(MPerr, round_digits), ', '.join(domainnotes)
+    return round(MP, round_digits), int(MPUL), round(MPerr, round_digits), ', '.join(domainnotes), citation

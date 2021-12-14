@@ -1,7 +1,16 @@
-"""Meta QSAR for tmconsensus"""
+"""Meta QSAR for temperature of melting, consensus of two models (tmconsensus) (melting point)"""
 import numpy as np
 value_names = ('tmconsensus',)
 version = 1
+citation = 'tm from PPLFER: '\
+           'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review. '\
+           'tm from QSPR: '\
+           'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
+           'Application of an Iterative Fragment Selection (IFS) Method to Estimate Entropies of Fusion and Melting'\
+           'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'
 round_digits = 2
 units = 'K'
 components = {'solute': 1, 'solvent': 0}
@@ -18,5 +27,5 @@ def calculate(solutedependencies, solventdependencies):
     domainnotes.append(solutedependencies['tm'][3])
     domainnotes.append('tmpplfer notes:')
     domainnotes.append(solutedependencies['tmpplfer'][3])
-    return round(MP, round_digits), int(MPUL), round(MPerr, round_digits), ', '.join(domainnotes)
+    return round(MP, round_digits), int(MPUL), round(MPerr, round_digits), ', '.join(domainnotes), citation
 

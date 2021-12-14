@@ -1,6 +1,10 @@
+"""Partial clone of QSRP for MV, intended for internal use"""
 import numpy
 value_names = ('MVmlrx',)
 version = 1
+citation = 'Kotomin, A. A.; Kozlov, A. S., '\
+           'Calculation of densities of organic compounds from contributions of molecular fragments. '\
+           'Russ J Appl Chem 2006, 79 (6), 957-966.'
 round_digits = 2
 units = 'cm^3/mol'
 components = {'solute': 1, 'solvent': 0}

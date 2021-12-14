@@ -1,6 +1,11 @@
+"""Preliminary IFS QSAR for PPLFER solute descriptor S"""
 import numpy
 value_names = ('S',)
 version = 1
+citation = 'Approximately as implemented in : '\
+           'Ulrich, N.;  Endo, S.;  Brown, T. N.;  Watanabe, N.;  Bronner, G.;  Abraham, M. H.; Goss, K. U., '\
+           'UFZ-LSER database v 3.2 [Internet]. 2017. '\
+           '(http://www.ufz.de/index.php?en=31698)'
 round_digits = 3
 units = 'unitless'
 components = {'solute': 1, 'solvent': 0}

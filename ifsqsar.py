@@ -22,7 +22,8 @@ def apply_qsars_to_molecule(qsarlist,
                                     'qsarpred',
                                     'UL',
                                     'error',
-                                    'ULnote'
+                                    'ULnote',
+                                    'citation'
                                     ),  # iterable of values to be output
                             outformat='rows',  # 'dict', 'columns', 'rows'
                             header=True,  # True or False
@@ -160,6 +161,8 @@ def apply_qsars_to_molecule(qsarlist,
             result[qsar.model_name]['error'] = np.nan
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = ''
+        if 'citation' in values:
+            result[qsar.model_name]['citation'] = ''
         # check if SMILES conforms to flag in model and skip if not
         if qsar.model_namespace.smiles_flag == 'neutrals' and not re.search(chargedatom, result['normsmi']) is None:
             smilesflag = True
@@ -168,7 +171,7 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note = qsar.apply_model(solutes=solutelist, solvents=solventlist)
+        qsar_prediction, uncertainty_level, error, note, citation = qsar.apply_model(solutes=solutelist, solvents=solventlist)
         if 'units' in values:
             result[qsar.model_name]['units'] = qsar.model_namespace.units
         if 'qsarpred' in values:
@@ -187,6 +190,16 @@ def apply_qsars_to_molecule(qsarlist,
             if endline in seplist:
                 seplist.remove(endline)
                 result[qsar.model_name]['ULnote'] = result[qsar.model_name]['ULnote'].replace(endline, seplist[1])
+        if 'citation' in values:
+            result[qsar.model_name]['citation'] = citation
+            # make sure that the note does not contain any separators or endlines
+            seplist = [',', ';', '|', '~']
+            if separator in seplist:
+                seplist.remove(separator)
+                result[qsar.model_name]['citation'] = result[qsar.model_name]['citation'].replace(separator, seplist[0])
+            if endline in seplist:
+                seplist.remove(endline)
+                result[qsar.model_name]['citation'] = result[qsar.model_name]['citation'].replace(endline, seplist[1])
     if smilesflag:
         result['normsmi'] = ''
         result['sminote'] = 'error: neutral structure required, ' + result['sminote']
@@ -204,7 +217,7 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, result[val], endline])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     if header:
                         outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
                     else:
@@ -225,7 +238,7 @@ def apply_qsars_to_molecule(qsarlist,
                         outstring = ''.join([outstring, separator, val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
+                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                         if first:
                             outstring = ''.join([outstring, qsar, ' ', val])
                             first = False
@@ -243,7 +256,7 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, separator, result[val]])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     if first:
                         outstring = ''.join([outstring, str(result[qsar][val])])
                         first = False
@@ -270,7 +283,8 @@ def apply_qsars_to_molecule_list(qsarlist,
                                          'qsarpred',
                                          'UL',
                                          'error',
-                                         'ULnote'
+                                         'ULnote',
+                                         'citation'
                                          ),  # iterable of values to be output
                                  outfilename=None,  # output file name
                                  outkeepdata=True,  # also output all of the input file contents
@@ -320,7 +334,7 @@ def apply_qsars_to_molecule_list(qsarlist,
             result['QSAR list'].append(qsar.model_name)
             result[qsar.model_name] = {}
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
+                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     result[qsar.model_name][val] = []
     # initial columns to store output
     elif outformat == 'columns':
@@ -350,7 +364,7 @@ def apply_qsars_to_molecule_list(qsarlist,
                     result[val].append(singleresult[val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote'):
+                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                         result[qsar][val].append(singleresult[qsar][val])
         # concatenate to columns
         elif outformat == 'columns':
@@ -746,7 +760,8 @@ class IFSGUIClass:
                                              'qsarpred',
                                              'UL',
                                              'error',
-                                             'ULnote'),
+                                             'ULnote',
+                                             'citation'),
                                      outfilename=self.outputfilename,
                                      outkeepdata=True,
                                      outformat='rows',

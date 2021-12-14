@@ -2,6 +2,10 @@
 import numpy as np
 value_names = ('logVPliquid',)
 version = 1
+citation = 'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review.'
 round_digits = 2
 units = 'Pa'
 components = {'solute': 1, 'solvent': 0}
@@ -339,5 +343,5 @@ def calculate(solutedependencies, solventdependencies):
     # convert log Ksa to logVP
     logVP = np.log10(8.31446261815324) + np.log10(293.15) - logVP - np.log10(solutedependencies['MVliquid'][0]) + np.log10(1000000)
     logVPerr = (logVPerr**2 + (solutedependencies['MVliquid'][2] / (solutedependencies['MVliquid'][0] * np.log(10)))**2)**0.5
-    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), ', '.join(domainnotes)
+    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), ', '.join(domainnotes), citation
 

@@ -2,6 +2,16 @@
 import numpy as np
 value_names = ('logKaw',)
 version = 1
+citation = 'Solute descriptors: '\
+           'Brown, T. N.; '\
+           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
+           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
+           'J Solution Chem 2021, In Review. '\
+           'PPLFER Equation: '\
+           'Brown, T. N., '\
+           'Empirical Regressions between System Parameters and Solute Descriptors of Polyparameter Linear Free '\
+           'Energy Relationships (PPLFERs) for Predicting Solvent-Air Partitioning. '\
+           'Fluid Phase Equilibria 2021, 113035.'
 round_digits = 2
 units = 'unitless'
 components = {'solute': 1, 'solvent': 0}
@@ -45,5 +55,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), ', '.join(domainnotes)
+    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), ', '.join(domainnotes), citation
 

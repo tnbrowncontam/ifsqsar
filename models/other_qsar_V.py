@@ -1,6 +1,10 @@
+"""Clone of QSPR for PPLFER solute descriptor V"""
 import numpy
 value_names = ('V',)
 version = 1
+citation = 'Mcgowan, J. C., '\
+           'The Estimation of Solubility Parameters and Related Properties of Liquids. '\
+           'J Chem Tech Biot A 1984, 34 (1), 38-42.'
 round_digits = 3
 units = '0.01 cm^3/mol'
 components = {'solute': 1, 'solvent': 0}

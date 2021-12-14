@@ -139,10 +139,10 @@ if __name__ == "__main__":
                            action='store',
                            type=str,
                            nargs='?',
-                           default='insmi,normsmi,sminote,units,qsarpred,UL,error,ULnote',
+                           default='insmi,normsmi,sminote,units,qsarpred,UL,error,ULnote,citation',
                            const='',
                            help='Comma-separated list of values to return. Full list: '
-                                 'insmi, normsmi, sminote, units, qsarpred, UL, ULnote, error. See full docs for explanation'
+                                 'insmi, normsmi, sminote, units, qsarpred, UL, ULnote, error, citation. See full docs for explanation'
                            )
     # parse the options passed then decide actions
     args = argparser.parse_args()
