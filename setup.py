@@ -1,3 +1,9 @@
+"""
+ifsqsar/setup.py
+developed by Trevor N. Brown
+setup file for ifsqsar
+"""
+
 import setuptools
 
 with open('README.md', 'r') as f:
@@ -5,7 +11,7 @@ with open('README.md', 'r') as f:
 
 setuptools.setup(
     name='ifsqsar',
-    version='0.0.0dev',
+    version='1.0.0',
     author='Trevor N. Brown',
     author_email='trevor.n.brown@gmail.com',
     description='A package for applying IFS QSARs',
@@ -15,7 +21,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     classifiers=[
         'Programming Language :: Python :: 3',
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
         'Operating System :: OS Independent',
         'Natural Language :: English',

@@ -1,6 +1,8 @@
 """
-ifsqsar.py
-Implements a simple GUI for applying group contribution QSARS (IFS) developed by Trevor N. Brown.
+ifsqsar/ifsqsar.py
+developed by Trevor N. Brown
+Implements a python API for applying IFS QSARs,
+and a simple GUI that built on top of the API
 """
 
 from openbabel import openbabel as ob
@@ -30,7 +32,8 @@ def apply_qsars_to_molecule(qsarlist,
                             separator='\t',  # any string
                             endline='\n',  # any string
                             ):
-    """Apply a list of QSARs to a molecule as a SMILES or loaded as an OBMol."""
+    """Main interface to IFSQSAR functionality, apply a list of QSARs to a molecule as a SMILES,
+    and return formatted output"""
     # initialize results dict from values iterable
     result = {'SMILES success': False, 'QSAR list': []}
     for val in ('insmi', 'normsmi', 'sminote'):
@@ -293,10 +296,8 @@ def apply_qsars_to_molecule_list(qsarlist,
                                  outseparator='\t',  # any string
                                  outendline='\n',  # any string
                                  ):
-    """apply_model_to_file(model,filename)
-    -take a model object and apply it to smiles in a file
-    -output a new file with the results
-    v0.0.3 - original coding"""
+    """Take a list of SMILES, or a delimited file containing SMILES, and pass them to
+    apply_qsars_to_molecule, then concatenate the results"""
     # load data from file
     filelines = None
     if infilename is not None:
@@ -792,7 +793,7 @@ class IFSGUIClass:
         self.textoutput.insert('1.0', self.outputfilename)
 
 
-# main tk gui loop
 def main():
+    """Main loop for tk GUI"""
     app_manager = IFSGUIClass()
 

@@ -1,5 +1,8 @@
 """
-
+ifsqsar/__main__.py
+developed by Trevor N. Brown
+Implements a command line interface (CLI) that accesses
+the functionality of the ifsqsar python API
 """
 
 if __name__ == "__main__":

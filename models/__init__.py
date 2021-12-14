@@ -1,10 +1,17 @@
+"""
+ifsqsar/models subpackage
+developed by Trevor N. Brown
+Stores all data and model-specific code for QSARs as python modules,
+and implements a generic API for accessing them
+"""
+
 from openbabel import openbabel as ob
 import numpy as np
 import importlib
 
 
 def _normcdfapprox(x):
-    """Returns normal distribution CDF."""
+    """Returns normal distribution CDF"""
     # approximation from:
     # Hector Vazquez-Leal, Roberto Castaneda-Sheissa, Uriel Filobello-Nino,
     # Arturo Sarmiento-Reyes, and Jesus Sanchez Orea, "High Accurate Simple
@@ -15,7 +22,7 @@ def _normcdfapprox(x):
 
 
 def _calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, simil_cut=None):
-    """Calculate Tanimoto similarity coefficient between two arrays of fragment counts."""
+    """Calculate Tanimoto similarity coefficient between two arrays of fragment counts"""
     # all b-values = 1 meaning:
     #  1) a-values * b-values = a-values
     #  2) b-values**2 = b-values
@@ -52,11 +59,11 @@ def _calculate_fragment_similarity(counts_array_i, counts_array_j, stdev_array, 
 
 
 class QSARModel:
-    """Class that loads an arbitrary Model from a Model file and applies it
-    to any molecules passed to it as an openbabel mol"""
+    """Class that loads a QSAR stored as a python module and applies it
+    to molecules passed to it as openbabel mols"""
 
     def __init__(self, model_module, model_name):
-        """Save model name and create model namespace."""
+        """Save model name and create model namespace"""
         # define Model namespace
         self.model_namespace = None
         self.model_module = model_module
@@ -65,7 +72,7 @@ class QSARModel:
         self.last_result = (None, None, None, None, None)
 
     def load(self):
-        """Import the model module."""
+        """Import the QSAR python module"""
         if self.model_namespace is not None:
             return
         self.model_namespace = importlib.import_module(self.model_module)
@@ -99,7 +106,7 @@ class QSARModel:
                 self.model_namespace.neg_dom_check_init.append((pattern1, pattern2, description.decode('utf-8')))
 
     def apply_model(self, solutes, solvents=tuple()):
-        """Take an openbabel molecule, apply the QSARModel and return the result."""
+        """Take openbabel mol in a list, apply the QSAR and return the results"""
         # first test if this molecule is last molecule and pass last results if so
         if solutes is self.last_molecule:
             return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4]
@@ -266,11 +273,11 @@ class QSARModel:
 
 
 class METAQSARModel:
-    """Class that loads an arbitrary Metamodel from a Metamodel file and applies it
-    to any molecules passed to it as an openbabel mol"""
+    """Class that loads a Meta QSAR, which combines data from its dependencies
+    to make a new model prediction for openbabel mol(s)"""
 
     def __init__(self, model_module, model_name):
-        """Save model name and create model namespace."""
+        """Save model name and create model namespace"""
 
         # define Model namespace
         self.model_namespace = None
@@ -281,7 +288,7 @@ class METAQSARModel:
         self.last_result = (None, None, None, None, None)
 
     def load(self):
-        """Import the model module and link the QSAR dependencies."""
+        """Import the QSAR python module and link the QSAR dependencies"""
         # check if model has been linked
         if self.model_namespace is not None:
             return
@@ -299,7 +306,7 @@ class METAQSARModel:
             self.model_namespace.solventdependencymodels[qsar.model_name] = qsar
 
     def apply_model(self, solutes=tuple(), solvents=tuple()):
-        """Take an openbabel molecule, apply the METAQSARModel and return the result."""
+        """Take openbabel mol(s) in lists of solutes and solvents, apply the Meta QSAR and return the results"""
         # first test if this solute and solvent are the same as last calculation and pass last results if so
         if solutes is self.last_solute and solvents is self.last_solvent:
             return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4]
@@ -377,7 +384,8 @@ state = METAQSARModel('ifsqsar.models.meta_qsar_state', 'state')
 
 
 def get_qsar_list(qsarlist=None, version=None):
-    """function for getting lists of QSARs meeting selection criteria"""
+    """Main interface for getting lists of QSARs, which can be filtered by
+    selection criteria set by the optional arguments"""
     returnlist = []
     # decide if old versions are included in parse list
     currentqsarversions = [fhlb, hhlb, hhlt, biowin3usmmlrx, biowin3usmmlra, biowin4psmmlrx, biowin4psmmlra, HLbiodeg,
