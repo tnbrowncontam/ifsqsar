@@ -17,6 +17,7 @@ units = 'mg/L'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['logVPliquid', 'logKaw', 'MW']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 
@@ -30,11 +31,11 @@ def calculate(solutedependencies, solventdependencies):
     # calculate total error
     logSwerr = (solutedependencies['logVPliquid'][2]**2 + solutedependencies['logKaw'][2]**2)**0.5
     # set domain notes
-    domainnotes = []
+    domainnotes = [propagated_domain_notes]
     if logSwUL <= 1:
         domainnotes.append('aggregate solute descriptor UL is in the AD')
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logSw, round_digits), logSwUL, round(logSwerr, round_digits), ', '.join(domainnotes), citation
+    return round(logSw, round_digits), logSwUL, round(logSwerr, round_digits), '; '.join(domainnotes), citation
 

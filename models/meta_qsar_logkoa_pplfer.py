@@ -17,6 +17,7 @@ units = 'unitless'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 
@@ -38,7 +39,7 @@ def calculate(solutedependencies, solventdependencies):
             logKoaUL += 2**2
         elif solutedependencies[sltdes][1] > 4:
             logKoaUL += 3**2
-    logKoaUL = np.ceil((logKoaUL/4)**0.5)
+    logKoaUL = int(np.ceil((logKoaUL/4)**0.5))
     logKoaerr = (solutedependencies['V'][0] * 0.08)**2 + \
                 (solutedependencies['L'][0] * 0.79)**2 * ((solutedependencies['L'][2] / solutedependencies['L'][0])**2 + (0.02 / 0.79)**2) + \
                 0.03**2
@@ -49,7 +50,7 @@ def calculate(solutedependencies, solventdependencies):
     if solutedependencies['B'][0] != 0:
         logKoaerr += (solutedependencies['B'][0] * 0.73)**2 * ((solutedependencies['B'][2] / solutedependencies['B'][0])**2 + (0.04 / 0.73)**2)
     logKoaerr = logKoaerr ** 0.5
-    domainnotes = []
+    domainnotes = [propagated_domain_notes]
     if logKoaUL <= 1:
         domainnotes.append('aggregate solute descriptor UL is in the AD')
     else:

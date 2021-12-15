@@ -324,6 +324,23 @@ class METAQSARModel:
         solventdependencies = {}
         for d, m in self.model_namespace.solventdependencymodels.items():
             solventdependencies[d] = tuple(m.apply_model(solvents))
+        # generate propagated domain notes
+        domainnotes = []
+        for k, v in solutedependencies.items():
+            if np.isnan(solutedependencies[k][1]):
+                continue
+            domainnotes.append(''.join([k, '=', str(solutedependencies[k][1])]))
+        if len(domainnotes):
+            self.model_namespace.propagated_domain_notes = ''.join(['solute dependency ULs: ', ', '.join(domainnotes)])
+        domainnotes = []
+        for k, v in solventdependencies.items():
+            if np.isnan(solventdependencies[k][1]):
+                continue
+            domainnotes.append(''.join([k, '=', str(solventdependencies[k][1])]))
+        if len(domainnotes):
+            self.model_namespace.propagated_domain_notes = '; '.join([self.model_namespace.propagated_domain_notes,
+                                                                      ''.join(['solvent dependency ULs: ',
+                                                                               ', '.join(domainnotes)])])
         # call the metamodel with the dependency outputs to calculate meta result
         prediction, UL, error, ULnote, citation = self.model_namespace.calculate(solutedependencies, solventdependencies)
         # return result

@@ -11,6 +11,7 @@ units = 'Pa'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 's', 'a', 'b', 'v', 'l', 'c', 'state', 'MVliquid']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 emptrainset = np.array([[0, 0, 0, 0, 2.363, 7.714],
@@ -84,7 +85,7 @@ xtxi = np.linalg.inv(np.matmul(emptrainset.T, emptrainset))
 
 def calculate(solutedependencies, solventdependencies):
     # determine if the solvent is a liquid
-    domainnotes = []
+    domainnotes = [propagated_domain_notes]
     # calculate leverage of the solvent vs. the empirical correlations training dataset
     x = np.array([solutedependencies['E'][0],
                   solutedependencies['S'][0],
@@ -343,5 +344,5 @@ def calculate(solutedependencies, solventdependencies):
     # convert log Ksa to logVP
     logVP = np.log10(8.31446261815324) + np.log10(293.15) - logVP - np.log10(solutedependencies['MVliquid'][0]) + np.log10(1000000)
     logVPerr = (logVPerr**2 + (solutedependencies['MVliquid'][2] / (solutedependencies['MVliquid'][0] * np.log(10)))**2)**0.5
-    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), ', '.join(domainnotes), citation
+    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), '; '.join(domainnotes), citation
 

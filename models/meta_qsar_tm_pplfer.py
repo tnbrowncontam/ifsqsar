@@ -11,6 +11,7 @@ units = 'K'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 emptrainset = np.array([[0.08, 0.08, 0, 0.07, 2.1791, 7.006],
@@ -2280,7 +2281,7 @@ emptrainset = np.array([[0.08, 0.08, 0, 0.07, 2.1791, 7.006],
 xtxi = np.linalg.inv(np.matmul(emptrainset.T, emptrainset))
 
 def calculate(solutedependencies, solventdependencies):
-    domainnotes = []
+    domainnotes = [propagated_domain_notes]
     # calculate MP
     MP = 53.6 * solutedependencies['E'][0] + \
          27.8 * solutedependencies['S'][0] + \
@@ -2330,4 +2331,4 @@ def calculate(solutedependencies, solventdependencies):
         MPerr = 146.4675109
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(MP, round_digits), int(MPUL), round(MPerr, round_digits), ', '.join(domainnotes), citation
+    return round(MP, round_digits), MPUL, round(MPerr, round_digits), '; '.join(domainnotes), citation

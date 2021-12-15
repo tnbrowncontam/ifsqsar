@@ -16,6 +16,7 @@ units = ''
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 'tmconsensus', 'tbpplfer']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 emptrainset = np.array([[1.01, 0.94, 0, 0.2, 1.0323, 4.68],

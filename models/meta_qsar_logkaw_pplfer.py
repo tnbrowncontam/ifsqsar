@@ -17,6 +17,7 @@ units = 'unitless'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []
+propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
 
@@ -38,7 +39,7 @@ def calculate(solutedependencies, solventdependencies):
             logKawUL += 2**2
         elif solutedependencies[sltdes][1] > 4:
             logKawUL += 3**2
-    logKawUL = np.ceil((logKawUL/4)**0.5)
+    logKawUL = int(np.ceil((logKawUL/4)**0.5))
     logKawerr = (solutedependencies['V'][0] * 0.06)**2 + \
                 (solutedependencies['L'][0] * -0.38)**2 * ((solutedependencies['L'][2] / solutedependencies['L'][0])**2 + (0.02 / -0.38)**2) + \
                 0.03**2
@@ -49,11 +50,11 @@ def calculate(solutedependencies, solventdependencies):
     if solutedependencies['B'][0] != 0:
         logKawerr += (solutedependencies['B'][0] * -4.78)**2 * ((solutedependencies['B'][2] / solutedependencies['B'][0])**2 + (0.04 / -4.78)**2)
     logKawerr = logKawerr ** 0.5
-    domainnotes = []
+    domainnotes = [propagated_domain_notes]
     if logKawUL <= 1:
         domainnotes.append('aggregate solute descriptor UL is in the AD')
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), ', '.join(domainnotes), citation
+    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), '; '.join(domainnotes), citation
 
