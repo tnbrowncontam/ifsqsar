@@ -341,5 +341,5 @@ def calculate(solutedependencies, solventdependencies):
         if solutedependencies['B'][0] != 0 and bemp != 0:
             logKsaerr += (solutedependencies['B'][0]*bemp)**2 * ((solutedependencies['B'][2]/solutedependencies['B'][0])**2 + (bemperr/bemp)**2)
         logKsaerr = logKsaerr**0.5
-    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), '; '.join(domainnotes), citation
+    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), '; '.join(domainnotes), citation, units
 

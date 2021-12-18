@@ -2331,4 +2331,5 @@ def calculate(solutedependencies, solventdependencies):
         MPerr = 146.4675109
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(MP, round_digits), MPUL, round(MPerr, round_digits), '; '.join(domainnotes), citation
+    return round(MP, round_digits), MPUL, round(MPerr, round_digits), '; '.join(domainnotes), citation, units
+

@@ -1424,4 +1424,5 @@ def calculate(solutedependencies, solventdependencies):
         BPerr = 60.636
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(BP, round_digits), BPUL, round(BPerr, round_digits), '; '.join(domainnotes), citation
+    return round(BP, round_digits), BPUL, round(BPerr, round_digits), '; '.join(domainnotes), citation, units
+

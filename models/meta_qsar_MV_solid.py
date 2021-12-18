@@ -18,5 +18,5 @@ def calculate(solutedependencies, solventdependencies):
     # Sum the different fragment types defined in Kotomin and Kozolov 2006
     MV = solutedependencies['MVmlrx'][0] + solutedependencies['MVmlr'][0] + solutedependencies['MVmlrRings'][0]
 
-    return round(MV, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation
+    return round(MV, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units
 

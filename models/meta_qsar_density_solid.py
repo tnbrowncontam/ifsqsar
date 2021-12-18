@@ -17,5 +17,5 @@ smiles_flag = 'neutrals'
 def calculate(solutedependencies, solventdependencies):
     density = solutedependencies['MW'][0] / solutedependencies['MVsolid'][0]
 
-    return round(density, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation
+    return round(density, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units
 

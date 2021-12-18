@@ -109,13 +109,13 @@ class QSARModel:
         """Take openbabel mol in a list, apply the QSAR and return the results"""
         # first test if this molecule is last molecule and pass last results if so
         if solutes is self.last_molecule:
-            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4]
+            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4], self.last_result[5]
         # check if model has been loaded
         if self.model_namespace is None:
             self.load()
         # only one chemical handled at a time, designated as a solute regardless of property type
         if len(solutes) != self.model_namespace.components['solute'] or len(solvents) != self.model_namespace.components['solvent']:
-            return np.nan, np.nan, np.nan, 'component type error', ''
+            return np.nan, np.nan, np.nan, 'component type error', '', ''
         # add or delete hydrogens depending on model
         if self.model_namespace.molecule_format == 'old_format':
             solutes[0].AddHydrogens()
@@ -263,13 +263,13 @@ class QSARModel:
                     prediction = self.model_namespace.max_train
                 post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
                 self.last_molecule = solutes
-                self.last_result = (post_proc_prediction, ul, post_proc_error, ', '.join(note), self.model_namespace.citation)
-                return post_proc_prediction, ul, post_proc_error, ', '.join(note), self.model_namespace.citation
+                self.last_result = (post_proc_prediction, ul, post_proc_error, ', '.join(note), self.model_namespace.citation, self.model_namespace.units)
+                return post_proc_prediction, ul, post_proc_error, ', '.join(note), self.model_namespace.citation, self.model_namespace.units
             else:
                 post_proc_prediction, post_proc_error = self.model_namespace.post_processing(prediction, error)
                 self.last_molecule = solutes
-                self.last_result = (post_proc_prediction, np.nan, post_proc_error, '', self.model_namespace.citation)
-                return post_proc_prediction, np.nan, post_proc_error, '', self.model_namespace.citation
+                self.last_result = (post_proc_prediction, np.nan, post_proc_error, '', self.model_namespace.citation, self.model_namespace.units)
+                return post_proc_prediction, np.nan, post_proc_error, '', self.model_namespace.citation, self.model_namespace.units
 
 
 class METAQSARModel:
@@ -309,13 +309,13 @@ class METAQSARModel:
         """Take openbabel mol(s) in lists of solutes and solvents, apply the Meta QSAR and return the results"""
         # first test if this solute and solvent are the same as last calculation and pass last results if so
         if solutes is self.last_solute and solvents is self.last_solvent:
-            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4]
+            return self.last_result[0], self.last_result[1], self.last_result[2], self.last_result[3], self.last_result[4], self.last_result[5]
         # check if model has been loaded and dependencies linked
         if self.model_namespace is None:
             self.load()
         # assert that there is the correct number of solutes and solvents
         if len(solutes) != self.model_namespace.components['solute'] or len(solvents) != self.model_namespace.components['solvent']:
-            return np.nan, np.nan, np.nan, 'component type error', ''
+            return np.nan, np.nan, np.nan, 'component type error', '', ''
         # pass solute to solute dependency qsar models to calculate values
         solutedependencies = {}
         for d, m in self.model_namespace.solutedependencymodels.items():
@@ -342,12 +342,12 @@ class METAQSARModel:
                                                                       ''.join(['solvent dependency ULs: ',
                                                                                ', '.join(domainnotes)])])
         # call the metamodel with the dependency outputs to calculate meta result
-        prediction, UL, error, ULnote, citation = self.model_namespace.calculate(solutedependencies, solventdependencies)
+        prediction, UL, error, ULnote, citation, units = self.model_namespace.calculate(solutedependencies, solventdependencies)
         # return result
         self.last_solute = solutes
         self.last_solvent = solvents
-        self.last_result = (prediction, UL, error, ULnote, citation)
-        return prediction, UL, error, ULnote, citation
+        self.last_result = (prediction, UL, error, ULnote, citation, units)
+        return prediction, UL, error, ULnote, citation, units
 
 
 # instantiate qsar models

@@ -174,9 +174,9 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note, citation = qsar.apply_model(solutes=solutelist, solvents=solventlist)
+        qsar_prediction, uncertainty_level, error, note, citation, units = qsar.apply_model(solutes=solutelist, solvents=solventlist)
         if 'units' in values:
-            result[qsar.model_name]['units'] = qsar.model_namespace.units
+            result[qsar.model_name]['units'] = units
         if 'qsarpred' in values:
             result[qsar.model_name]['qsarpred'] = qsar_prediction
         if 'UL' in values:

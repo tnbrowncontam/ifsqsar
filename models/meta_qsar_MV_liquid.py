@@ -18,5 +18,5 @@ def calculate(solutedependencies, solventdependencies):
     # Apply solid -> liquid correction defined in Kotomin and Kozolov 2006
     MV = solutedependencies['MVsolid'][0] * solutedependencies['MVliqcorr'][0]
 
-    return round(MV, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation
+    return round(MV, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units
 

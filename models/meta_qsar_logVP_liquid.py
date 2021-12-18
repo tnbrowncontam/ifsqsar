@@ -344,5 +344,5 @@ def calculate(solutedependencies, solventdependencies):
     # convert log Ksa to logVP
     logVP = np.log10(8.31446261815324) + np.log10(293.15) - logVP - np.log10(solutedependencies['MVliquid'][0]) + np.log10(1000000)
     logVPerr = (logVPerr**2 + (solutedependencies['MVliquid'][2] / (solutedependencies['MVliquid'][0] * np.log(10)))**2)**0.5
-    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), '; '.join(domainnotes), citation
+    return round(logVP, round_digits), logVPUL, round(phaseerrorscaling * logVPerr, round_digits), '; '.join(domainnotes), citation, units
 

@@ -1419,4 +1419,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnote = 'unclassified'
 
-    return np.nan, np.nan, np.nan, domainnote, citation
+    return np.nan, np.nan, np.nan, domainnote, citation, units
+

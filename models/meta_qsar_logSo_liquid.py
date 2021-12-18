@@ -37,5 +37,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logSo, round_digits), logSoUL, round(logSoerr, round_digits), '; '.join(domainnotes), citation
+    return round(logSo, round_digits), logSoUL, round(logSoerr, round_digits), '; '.join(domainnotes), citation, units
 

@@ -23,5 +23,5 @@ def calculate(solutedependencies, solventdependencies):
     MP = (solutedependencies['tm'][0] + solutedependencies['tmpplfer'][0]) / 2
     MPUL = int(np.ceil(((solutedependencies['tm'][1]**2 + solutedependencies['tmpplfer'][1]**2) / 2)**0.5))
     MPerr = ((0.5 * solutedependencies['tm'][2])**2 + (0.5 * solutedependencies['tmpplfer'][2])**2)**0.5
-    return round(MP, round_digits), MPUL, round(MPerr, round_digits), propagated_domain_notes, citation
+    return round(MP, round_digits), MPUL, round(MPerr, round_digits), propagated_domain_notes, citation, units
 
