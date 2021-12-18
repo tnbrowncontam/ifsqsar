@@ -130,8 +130,11 @@ if __name__ == "__main__":
                            default='default',
                            const='',
                            help='Comma-separated list of qsars to apply. Full list: '
-                                'fhlb, hhlb, hhlt, dsm, tm, E, S, A, B, L, V, logKow, logKsa. '
-                                '"single" for all QSARs that handle single SMILES input, '
+                                'fhlb, hhlb, hhlt, HLbiodeg, dsm, tm, tmpplfer, tmconsensus,'
+                                'E, S, A, B, L, V, s, a, b, v, l, c, logKow, logKoa, logKaw'
+                                'logVPliquid, logSwliquid, logSoliquid, MVliquid, MVsolid,'
+                                'densityliquid, densitysolid, MW, state, logKsa. '
+                                '"pure" for all QSARs that handle one SMILES input, '
                                 '"mixture" for all QSARs that handle mixture SMILES input. '
                                 'See full docs for explanation'
                            )
@@ -169,7 +172,7 @@ if __name__ == "__main__":
                                                         'MVliquid', 'MW', 'densityliquid', 'state',
                                                         'E', 'S', 'A', 'B', 'V', 'L',
                                                         'logKsa'])
-        elif args.qsars == 'single':
+        elif args.qsars == 'pure':
             qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
                                                         'dsm', 'tmconsensus', 'tbpplfer',
                                                         'logKow', 'logKoa', 'logKaw',

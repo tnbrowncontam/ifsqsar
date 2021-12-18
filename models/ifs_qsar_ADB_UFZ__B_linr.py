@@ -1,4 +1,4 @@
-"""Preliminary IFS QSAR for PPLFER solute descriptor B"""
+"""Preliminary IFS QSAR for PPLFER solute descriptor B (version 1)"""
 import numpy
 value_names = ('B',)
 version = 1
