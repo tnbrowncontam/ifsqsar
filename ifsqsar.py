@@ -89,15 +89,15 @@ def apply_qsars_to_molecule(qsarlist,
         solventlist = []
         nextissolutesmiles = False
         nextissolventsmiles = False
-        normsmi = ''
+        normsmiles = ''
         sminote = ''
         for ms in mixturesplit:
             if nextissolutesmiles:
                 # generate normalized OBMol for solutes
                 nextissolutesmiles = False
-                molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
                 solutelist.append(molecule)
-                normsmi = ''.join([normsmi, '{solute}', normsmiles])
+                normsmiles = ''.join([normsmiles, '{solute}', normsmi])
                 notelist = [sminote, ''.join(['Notes for Solute (', ms, '): ', conversionnote])]
                 if '' in notelist:
                     notelist.remove('')
@@ -105,9 +105,9 @@ def apply_qsars_to_molecule(qsarlist,
             elif nextissolventsmiles:
                 # generate normalized OBMol for solvents
                 nextissolventsmiles = False
-                molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
                 solventlist.append(molecule)
-                normsmi = ''.join([normsmi, '{solvent}', normsmiles])
+                normsmiles = ''.join([normsmiles, '{solvent}', normsmi])
                 notelist = [sminote, ''.join(['Notes for Solvent (', ms, '): ', conversionnote])]
                 if '' in notelist:
                     notelist.remove('')
@@ -124,7 +124,7 @@ def apply_qsars_to_molecule(qsarlist,
                         notelist.remove('')
                     sminote = ', '.join(notelist)
         # check conversion results and output
-        if normsmi == '':
+        if normsmiles == '':
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'sminote' in values:
@@ -134,7 +134,7 @@ def apply_qsars_to_molecule(qsarlist,
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
-                result['normsmi'] = normsmi
+                result['normsmi'] = normsmiles
             if 'sminote' in values:
                 result['sminote'] = sminote
         # make sure that the smiles note does not contain any separators or endlines
@@ -167,7 +167,7 @@ def apply_qsars_to_molecule(qsarlist,
         if 'citation' in values:
             result[qsar.model_name]['citation'] = ''
         # check if SMILES conforms to flag in model and skip if not
-        if qsar.model_namespace.smiles_flag == 'neutrals' and not re.search(chargedatom, result['normsmi']) is None:
+        if qsar.model_namespace.smiles_flag == 'neutrals' and not re.search(chargedatom, normsmiles) is None:
             smilesflag = True
             continue
         # continue if SMILES was not successfully converted
