@@ -35,7 +35,7 @@ def apply_qsars_to_molecule(qsarlist,
     """Main interface to IFSQSAR functionality, apply a list of QSARs to a molecule as a SMILES,
     and return formatted output"""
     # initialize results dict from values iterable
-    result = {'SMILES success': False, 'QSAR list': []}
+    result = {'SMILES success': True, 'QSAR list': []}
     for val in ('insmi', 'normsmi', 'sminote'):
         if val in values:
             result[val] = ''
@@ -51,12 +51,12 @@ def apply_qsars_to_molecule(qsarlist,
         molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
         if normsmiles == '':
+            result['SMILES success'] = False
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'sminote' in values:
                 result['sminote'] = conversionnote
         else:
-            result['SMILES success'] = True
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
@@ -96,22 +96,28 @@ def apply_qsars_to_molecule(qsarlist,
                 # generate normalized OBMol for solutes
                 nextissolutesmiles = False
                 molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                if normsmi == '':
+                    result['SMILES success'] = False
                 solutelist.append(molecule)
                 normsmiles = ''.join([normsmiles, '{solute}', normsmi])
-                notelist = [sminote, ''.join(['Notes for Solute (', ms, '): ', conversionnote])]
-                if '' in notelist:
-                    notelist.remove('')
-                sminote = ', '.join(notelist)
+                if conversionnote != '':
+                    notelist = [sminote, ''.join(['Notes for Solute (', ms, '): ', conversionnote])]
+                    if '' in notelist:
+                        notelist.remove('')
+                    sminote = ', '.join(notelist)
             elif nextissolventsmiles:
                 # generate normalized OBMol for solvents
                 nextissolventsmiles = False
                 molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                if normsmi == '':
+                    result['SMILES success'] = False
                 solventlist.append(molecule)
                 normsmiles = ''.join([normsmiles, '{solvent}', normsmi])
-                notelist = [sminote, ''.join(['Notes for Solvent (', ms, '): ', conversionnote])]
-                if '' in notelist:
-                    notelist.remove('')
-                sminote = ', '.join(notelist)
+                if conversionnote != '':
+                    notelist = [sminote, ''.join(['Notes for Solvent (', ms, '): ', conversionnote])]
+                    if '' in notelist:
+                        notelist.remove('')
+                    sminote = ', '.join(notelist)
             else:
                 splitms = ms.lstrip('{').rstrip('}').split(',')
                 if splitms[0] == 'solute':
@@ -124,13 +130,12 @@ def apply_qsars_to_molecule(qsarlist,
                         notelist.remove('')
                     sminote = ', '.join(notelist)
         # check conversion results and output
-        if normsmiles == '':
+        if not result['SMILES success']:
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'sminote' in values:
                 result['sminote'] = sminote
         else:
-            result['SMILES success'] = True
             if 'insmi' in values:
                 result['insmi'] = smiles
             if 'normsmi' in values:
@@ -166,10 +171,6 @@ def apply_qsars_to_molecule(qsarlist,
             result[qsar.model_name]['ULnote'] = ''
         if 'citation' in values:
             result[qsar.model_name]['citation'] = ''
-        # check if SMILES conforms to flag in model and skip if not
-        if qsar.model_namespace.smiles_flag == 'neutrals' and not re.search(chargedatom, normsmiles) is None:
-            smilesflag = True
-            continue
         # continue if SMILES was not successfully converted
         if not result['SMILES success']:
             continue
