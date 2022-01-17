@@ -13,7 +13,7 @@ citation = 'Solute descriptors: '\
            'Energy Relationships (PPLFERs) for Predicting Solvent-Air Partitioning. '\
            'Fluid Phase Equilibria 2021, 113035.'
 round_digits = 2
-units = 'unitless'
+units = 'log L[a]/L[o]'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []

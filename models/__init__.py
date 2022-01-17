@@ -1,8 +1,7 @@
 """
 ifsqsar/models subpackage
 developed by Trevor N. Brown
-Stores all data and model-specific code for QSARs as python modules,
-and implements a generic API for accessing them
+Stores all data and model-specific code for QSARs as python modules and implements a generic API for accessing them
 """
 
 from openbabel import openbabel as ob
@@ -401,8 +400,32 @@ state = METAQSARModel('ifsqsar.models.meta_qsar_state', 'state')
 
 
 def get_qsar_list(qsarlist=None, version=None):
-    """Main interface for getting lists of QSARs, which can be filtered by
-    selection criteria set by the optional arguments"""
+    """Main interface for getting lists of QSARs which can be filtered by optional selection criteria.
+
+    Arguments:
+        qsarlist -- a list of models names (strings) from below (default is all current models)
+            "fhlb" -- biotransformation half-life in fish
+            "hhlb" -- biotransformation half-life in humans
+            "hhlt" -- total elimination half-life in humans
+            "HLbiodeg" -- aqueous aerobic biodegradation half-life
+            "dsm" -- entropy of melting (aka entropy of fusion)
+            "tm" -- melting point (QSPR)
+            "tmpplfer" -- melting point (PPLFER)
+            "tmconsensus" -- melting point (mean of QSPR+PPLFER)
+            "E","S","A","B","L","V" -- Abraham PPLFER solute descriptors
+            "s","a","b","v","l","c" -- Abraham/Goss PPLFER system parameters
+            "logKow","logKoa","logKaw" -- partition coefficients triad of octanol, water, and air
+            "logVPliquid" -- Vapor Pressure of liquids (PPLFER)
+            "logSwliquid" -- Water Solubilility of liquids (PPLFER)
+            "logSoliquid" -- Octanol Solubility of liquids (PPLFER)
+            "MVliquid, MVsolid" -- Molar Volume of liquids and solids
+            "densityliquid, densitysolid" -- density of liquids and solids
+            "MW" -- Molecular Weight
+            "state" -- chemical state (gas, liquid or solid)
+            "logKsa" -- solvent-air partitioning (solute-solvent pair, needs mixture spec. SMILES)
+        version -- version number of QSARs as integer, by default the most recent version is returned
+    """
+
     returnlist = []
     # decide if old versions are included in parse list
     currentqsarversions = [fhlb, hhlb, hhlt, biowin3usmmlrx, biowin3usmmlra, biowin4psmmlrx, biowin4psmmlra, HLbiodeg,

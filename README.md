@@ -20,7 +20,6 @@ Ph.D. supervisor, Postdoc supervisor, and P.I., respectively.
 Funding sources that have supported relevant publications include:  
 - CEFIC-LRI (ECO13, ECO30, B22)
 - ACC-LRI
-- ECETOC
 - Alexander von Humboldt Foundation Fellowship 
 
 ********************************************************************************
@@ -218,8 +217,8 @@ IFSQSAR Options:
                          logKoa : log Koa (PPLFER)  
                          logKaw : log Kaw (PPLFER)  
                          logVPliquid : log Vapor Pressure of liquids (PPLFER)  
-                         logSwliquid : log Water Solubil. of liquids (PPFFER)  
-                         logSoliquid : log Octanol Solubil. of liquids (PPFFER)  
+                         logSwliquid : log Water Solubil. of liquids (PPLFER)  
+                         logSoliquid : log Octanol Solubil. of liquids (PPLFER)  
                          MVliquid : Molar Volume of liquids  
                          MVsolid : Molar Volume of solids  
                          densityliquid : density of liquids  
@@ -459,7 +458,7 @@ In this section:
 - tmconsensus - melting point, consensus of the other two QSARs  
 - state - physical state of the chemical: gas, liquid or solid  
 - logKsa - solvent-air partitioning of a solute-solvent pair  
-- logVP, logSw, logSo - commonly used pure liquid phase chemical properties  
+- logVPliquid, logSwliquid, logSoliquid - pure phase chemical properties  
 
 **General description of IFS QSARs**
 
@@ -477,24 +476,26 @@ which is described in section 6. INTERPRETING QSAR DOMAIN INFORMATION.
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in fish (fhlb) measured in days for a reference 10g fish
 at a temperature of 288K. In IFSQSAR the model outputs have been converted to
-linear (as opposed to log) scale half-lives in hours. The QSAR is trained on a
-dataset derived from bioaccumulation tests with biotransformation back-
-calculated with a one-compartment PK model. The training and validation datasets
-contain 412 and 207 chemicals, respectively. The validation statistics are
-r-sq[external] = 0.748 and RMSE of predictions = 0.584, with the data spanning
-about 5 log units. Full details are available in reference [5].
+linear (as opposed to log) scale half-lives in hours, and the uncertainty is
+provided as a confidence factor (Cf). The QSAR is trained on a dataset derived
+from bioaccumulation tests with biotransformation back-calculated with a one-
+compartment PK model. The training and validation datasets contain 412 and 207
+chemicals, respectively. The validation statistics are r-sq[external] = 0.748
+and RMSE of predictions = 0.584, with the data spanning about 5 log units. Full
+details are available in reference [5].
 
 **hhlb - QSAR for human biotransformation half-life**
 
 The model predicts the base-10 logarithm of the whole-body biotransformation
 half-life of chemicals in humans, (hhlb) measured in hours for a generic 70kg
 human. In IFSQSAR the model outputs have been converted to linear (as opposed to
-log) scale half-lives in hours. As with the fhlb, the QSAR is trained on
-biotransformation half-lives backed out of whole body elimination data with a
-one compartment PK model. The data is mostly pharmaceuticals measured in humans,
-with the remainder environmental contaminants measured in humans. The training
-and validation datasets both contain 470 chemicals. The validation statistics
-are r-sq[external] = 0.73 and RMSE of predictions = 0.75, with the data spanning
+log) scale half-lives in hours, and the uncertainty is provided as a confidence
+factor (Cf). As with the fhlb, the QSAR is trained on biotransformation half-
+lives backed out of whole body elimination data with a one compartment PK model.
+The data is mostly pharmaceuticals measured in humans, with the remainder
+environmental contaminants measured in humans. The training and validation
+datasets both contain 470 chemicals. The validation statistics are
+r-sq[external] = 0.73 and RMSE of predictions = 0.75, with the data spanning
 about 7.5 log units. Full details are available in reference [8].
 
 **hhlt - QSAR for human total elimination half-life**
@@ -502,13 +503,13 @@ about 7.5 log units. Full details are available in reference [8].
 The model predicts the base-10 logarithm of the whole-body total elimination
 half-life of chemicals in humans, (hhlt) measured in hours for a generic 70kg
 human. In IFSQSAR the model outputs have been converted to linear (as opposed to
-log) scale half-lives in hours. The QSAR is trained with the same dataset as the
-hhlb, except as whole-body elimination half-lives, with some additional data
-that could not be transformed into biotransformation half-lives. The training
-and validation datasets contain 552 and 553 chemicals, respectively. The
-validation statistics are r-sq[external] = 0.72 and RMSE of predictions = 0.70,
-with the data spanning about 7.5 log units. Full details are available in
-reference [8].
+log) scale half-lives in hours, and the uncertainty is provided as a confidence
+factor (Cf). The QSAR is trained with the same dataset as the hhlb, except as
+whole-body elimination half-lives, with some additional data that could not be
+transformed into biotransformation half-lives. The training and validation
+datasets contain 552 and 553 chemicals, respectively. The validation statistics
+are r-sq[external] = 0.72 and RMSE of predictions = 0.70, with the data spanning
+about 7.5 log units. Full details are available in reference [8].
 
 **E, S, A, B, V, L - QSPRs for Abraham PPLFER solute descriptors**
 A separate IFS QSPR has been developed for each descriptor, excluding V which is
@@ -602,10 +603,10 @@ inconsistencies in how fragments are detected and counted in EPI Suite.
 Biodegradation half-lives are calculated in a Meta QSAR using regressions
 between between the log of half-lives and BIOWIN outputs calibrated by Arnot
 et al 2005 [17], and taking the average of the log-scale values. See below for
-a description of Meta QSARs. Outputs are converted to linear scale hours, the
-same as for the fish and human elimination half-lives. An estimate of the
-overall prediction uncertainties was made based on the variability and
-uncertainty of the data, QSARs and regressions.
+a description of Meta QSARs. Outputs are converted to linear scale hours, and
+the uncertainty is provided as confidence factor, same as for the fish and human
+elimination half-lives. An estimate of the overall uncertainties was made based
+on the variability and uncertainty of the data, QSARs and regressions.
 
 **General description of Meta QSARs**
 

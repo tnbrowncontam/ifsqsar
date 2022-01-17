@@ -7,7 +7,7 @@ citation = 'Brown, T. N.; '\
            'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
            'J Solution Chem 2021, In Review.'
 round_digits = 2
-units = 'Pa'
+units = 'log Pa'
 components = {'solute': 1, 'solvent': 0}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 's', 'a', 'b', 'v', 'l', 'c', 'state', 'MVliquid']
 solvent_dependencies_list = []

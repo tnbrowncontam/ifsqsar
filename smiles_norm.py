@@ -1,8 +1,7 @@
 """
 ifsqsar/smiles_norm.py
 developed by Trevor N. Brown
-Implements a function that takes a chemical structure as a SMILES and converts it to a standardized
-representation and returns it as an openbabel mol
+Implements a function that takes a SMILES and converts it to a standardized form and returns it as an openbabel OBMol
 """
 
 from openbabel import openbabel as ob
@@ -106,7 +105,6 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
 
     # remove all but the largest contiguous fragment
     if '.' in vsmiles:
-        print('.')
         obconversion.AddOption('r', obconversion.GENOPTIONS)
         mol.DoTransformations(obconversion.GetOptions(obconversion.GENOPTIONS), obconversion)
         obconversion.RemoveOption('r', obconversion.GENOPTIONS)

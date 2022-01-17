@@ -1,8 +1,8 @@
 """
 ifsqsar/ifsqsar.py
 developed by Trevor N. Brown
-Implements a python API for applying IFS QSARs,
-and a simple GUI that built on top of the API
+Implements a python API for applying IFS QSARs and a simple GUI that built on top of the API
+The primary elements of the API are the functions apply_qsars_to_molecule and apply_qsars_to_molecule_list
 """
 
 from openbabel import openbabel as ob
@@ -14,7 +14,7 @@ chargedatom = re.compile('[\[].+?[-+][\]]')
 mixturespec = re.compile('(\{.*?\})')
 
 def apply_qsars_to_molecule(qsarlist,
-                            smiles=None,  # SMILES as string
+                            smiles,  # SMILES as string
                             converter=None,  # OBConversion
                             values=('insmi',
                                     'normsmi',
@@ -32,8 +32,31 @@ def apply_qsars_to_molecule(qsarlist,
                             separator='\t',  # any string
                             endline='\n',  # any string
                             ):
-    """Main interface to IFSQSAR functionality, apply a list of QSARs to a molecule as a SMILES,
-    and return formatted output"""
+    """Apply a list of QSARs to a molecule as a SMILES and return formatted output.
+
+    Required Arguments:
+        qsarlist -- list of QSAR objects obtained from get_qsar_list function of the models subpackage
+        smiles -- structure of the molecule to be predicted as a SMILES string
+
+    Optional Arguments:
+        converter -- openbabel OBConversion instance, saves a little load time if passed
+        values -- tuple of outputs to be returned, all are included by default:
+            "insmi" -- input SMILES
+            "normsmi" -- normalized SMILES
+            "sminote" -- warnings or errors from SMILES normalization
+            "OBMol" -- openbabel OBMol instance of normsmi, only for dict format
+            "units" -- units of the predicted value
+            "qsarpred" -- predicted value
+            "UL" -- Uncertainty Level (UL) assigned by applicability domain checks
+            "error" -- estimated prediction uncertainty
+            "ULnote" -- applicability domain warnings
+            "citation" -- literature to cite for the predicted value
+        outformat -- "rows" (default) or "columns" for formatted text output, or "dict" for a dict
+        header -- include header line in formatted text output, default=True
+        separator -- column separator for formatted text output, default="\\t" (tab)
+        endline -- row separator for formatted text output, default="\\n" (newline)
+
+    """
     # initialize results dict from values iterable
     result = {'SMILES success': True, 'QSAR list': []}
     for val in ('insmi', 'normsmi', 'sminote'):
@@ -271,7 +294,7 @@ def apply_qsars_to_molecule(qsarlist,
 
 
 def apply_qsars_to_molecule_list(qsarlist,
-                                 smileslist,  # list of SMILES as strings
+                                 smileslist=None,  # list of SMILES as strings
                                  infilename=None,  # input file name
                                  inheaderrows=1,  # number of header lines
                                  inheadtrgtrow=1,  # header row to select from
@@ -297,8 +320,39 @@ def apply_qsars_to_molecule_list(qsarlist,
                                  outseparator='\t',  # any string
                                  outendline='\n',  # any string
                                  ):
-    """Take a list of SMILES, or a delimited file containing SMILES, and pass them to
-    apply_qsars_to_molecule, then concatenate the results"""
+    """Apply a list of QSARs to a list of SMILES, pass them to apply_qsars_to_molecule, then concatenate the results.
+
+    Required Arguments:
+        qsarlist -- list of QSARs obtained from get_qsar_list function of the models subpackage
+
+    Optional Arguments:
+        smileslist -- a list of SMILES, either smileslist or infilename must be specified
+        infilename -- name of delimited input file containing SMILES
+        inheaderrows -- number of lines of headers at the start of the input file, default=1
+        inheadtrgtrow -- 1-indexed header row to use, default=1
+        inheadersmiles -- name of column in inheadtrgtrow that contains SMILES, default='smiles'
+                          (not case sensitive)
+        inseparator -- column separator for input file, default="\\t" (tab)
+        inendline -- row separator for input file, default="\\n" (newline)
+        converter -- openbabel OBConversion instance, saves a little load time if passed
+        values -- tuple of outputs to be returned, all are included by default:
+            "insmi" -- input SMILES
+            "normsmi" -- normalized SMILES
+            "sminote" -- warnings or errors from SMILES normalization
+            "OBMol" -- openbabel OBMol instance of normsmi, only for dict format
+            "units" -- units of the predicted value
+            "qsarpred" -- predicted value
+            "UL" -- Uncertainty Level (UL) assigned by applicability domain checks
+            "error" -- estimated prediction uncertainty
+            "ULnote" -- applicability domain warnings
+            "citation" -- literature to cite for the predicted value
+        outfilename -- output file name, default=None which returns concatenated output
+        outkeepdata -- include all of the input file contents in formatted text output, default=True
+        outformat -- "rows" (default) or "columns" for formatted text output, or "dict" for a dict
+        outheader -- include header line in formatted text output, default=True
+        outseparator -- column separator for formatted text output, default="\\t" (tab)
+        outendline -- row separator for formatted text output, default="\\n" (newline)
+        """
     # load data from file
     filelines = None
     if infilename is not None:
@@ -425,8 +479,7 @@ def apply_qsars_to_molecule_list(qsarlist,
 
 
 class IFSGUIClass:
-    """A GUI interface for reading in structures as SMILES and applying
-    QSARs to the structures."""
+    """A GUI interface for reading in structures as SMILES and applying QSARs to the structures."""
 
     tk = __import__('tkinter')
 
