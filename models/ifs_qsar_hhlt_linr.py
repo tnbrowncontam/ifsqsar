@@ -2,6 +2,7 @@
 import numpy
 value_names = ('hhlt',)
 version = 1
+endpoint = 'Whole body total elimination (terminal) half-life in reference human (70kg)'
 citation = 'Arnot, J. A.;  Brown, T. N.; Wania, F., '\
            'Estimating screening-level organic chemical half-lives in humans.'\
            'Environ Sci Technol 2014, 48 (1), 723-30.'

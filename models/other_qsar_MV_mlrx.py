@@ -2,6 +2,7 @@
 import numpy
 value_names = ('MVmlrx',)
 version = 1
+endpoint = 'Molar volume - fraction of model for internal use'
 citation = 'Kotomin, A. A.; Kozlov, A. S., '\
            'Calculation of densities of organic compounds from contributions of molecular fragments. '\
            'Russ J Appl Chem 2006, 79 (6), 957-966.'

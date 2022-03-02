@@ -20,6 +20,7 @@ def apply_qsars_to_molecule(qsarlist,
                                     'normsmi',
                                     'sminote',
                                     'OBMol',
+                                    'endpoint',
                                     'units',
                                     'qsarpred',
                                     'UL',
@@ -45,6 +46,7 @@ def apply_qsars_to_molecule(qsarlist,
             "normsmi" -- normalized SMILES
             "sminote" -- warnings or errors from SMILES normalization
             "OBMol" -- openbabel OBMol instance of normsmi, only for dict format
+            "endpoint" -- a description of the endpoint the model predicts
             "units" -- units of the predicted value
             "qsarpred" -- predicted value
             "UL" -- Uncertainty Level (UL) assigned by applicability domain checks
@@ -182,6 +184,8 @@ def apply_qsars_to_molecule(qsarlist,
         # initialize dict of calculated results
         result['QSAR list'].append(qsar.model_name)
         result[qsar.model_name] = {}
+        if 'endpoint' in values:
+            result[qsar.model_name]['endpoint'] = ''
         if 'units' in values:
             result[qsar.model_name]['units'] = ''
         if 'qsarpred' in values:
@@ -198,7 +202,9 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note, citation, units = qsar.apply_model(solutes=solutelist, solvents=solventlist)
+        qsar_prediction, uncertainty_level, error, note, citation, units, endpoint = qsar.apply_model(solutes=solutelist, solvents=solventlist)
+        if 'endpoint' in values:
+            result[qsar.model_name]['endpoint'] = endpoint
         if 'units' in values:
             result[qsar.model_name]['units'] = units
         if 'qsarpred' in values:
@@ -244,7 +250,7 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, result[val], endline])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     if header:
                         outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
                     else:
@@ -265,7 +271,7 @@ def apply_qsars_to_molecule(qsarlist,
                         outstring = ''.join([outstring, separator, val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                    if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                         if first:
                             outstring = ''.join([outstring, qsar, ' ', val])
                             first = False
@@ -283,7 +289,7 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, separator, result[val]])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     if first:
                         outstring = ''.join([outstring, str(result[qsar][val])])
                         first = False
@@ -306,6 +312,7 @@ def apply_qsars_to_molecule_list(qsarlist,
                                          'normsmi',
                                          'sminote',
                                          'OBMol',
+                                         'endpoint',
                                          'units',
                                          'qsarpred',
                                          'UL',
@@ -340,6 +347,7 @@ def apply_qsars_to_molecule_list(qsarlist,
             "normsmi" -- normalized SMILES
             "sminote" -- warnings or errors from SMILES normalization
             "OBMol" -- openbabel OBMol instance of normsmi, only for dict format
+            "endpoint" -- a description of the endpoint the model predicts
             "units" -- units of the predicted value
             "qsarpred" -- predicted value
             "UL" -- Uncertainty Level (UL) assigned by applicability domain checks
@@ -390,7 +398,7 @@ def apply_qsars_to_molecule_list(qsarlist,
             result['QSAR list'].append(qsar.model_name)
             result[qsar.model_name] = {}
             for val in values:
-                if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                     result[qsar.model_name][val] = []
     # initial columns to store output
     elif outformat == 'columns':
@@ -420,7 +428,7 @@ def apply_qsars_to_molecule_list(qsarlist,
                     result[val].append(singleresult[val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                    if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
                         result[qsar][val].append(singleresult[qsar][val])
         # concatenate to columns
         elif outformat == 'columns':
@@ -811,6 +819,7 @@ class IFSGUIClass:
                                              'normsmi',
                                              'sminote',
                                              'OBMol',
+                                             'endpoint',
                                              'units',
                                              'qsarpred',
                                              'UL',

@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('logKoa',)
 version = 1
+endpoint = 'Log of octanol-air partition coefficient'
 citation = 'Solute descriptors: '\
            'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
@@ -56,5 +57,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logKoa, round_digits), logKoaUL, round(logKoaerr, round_digits), ', '.join(domainnotes), citation, units
+    return round(logKoa, round_digits), logKoaUL, round(logKoaerr, round_digits), ', '.join(domainnotes), citation, units, endpoint
 

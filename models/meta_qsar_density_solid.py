@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('densitysolid',)
 version = 1
+endpoint = 'Density of pure solid'
 citation = 'Kotomin, A. A.; Kozlov, A. S., '\
            'Calculation of densities of organic compounds from contributions of molecular fragments. '\
            'Russ J Appl Chem 2006, 79 (6), 957-966.'
@@ -17,5 +18,5 @@ smiles_flag = 'neutrals'
 def calculate(solutedependencies, solventdependencies):
     density = solutedependencies['MW'][0] / solutedependencies['MVsolid'][0]
 
-    return round(density, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units
+    return round(density, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units, endpoint
 

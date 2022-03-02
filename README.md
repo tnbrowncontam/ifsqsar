@@ -235,6 +235,7 @@ IFSQSAR Options:
                          normsmi  : the normalized SMILES, see section 1  
                          sminote  : notes about SMILES normalization  
                          qsarpred : the value predicted by the QSAR  
+                         endpoint : description of model endpoint  
                          units    : units of QSAR prediction  
                          UL       : Uncertainty Level, see section 6  
                          ULnote   : notes about the Uncertainty Level  

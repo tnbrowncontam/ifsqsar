@@ -2,6 +2,7 @@
 import numpy
 value_names = ('biowin4psmmlra',)
 version = 1
+endpoint = 'BIOWIN 4 - fraction of model for internal use'
 citation = 'Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beauman, J.; Tirado, N., '\
            'Group contribution method for predicting probability and rate of aerobic biodegradation. '\
            'Environ Sci Technol 1994, 28 (3), 459-65.'

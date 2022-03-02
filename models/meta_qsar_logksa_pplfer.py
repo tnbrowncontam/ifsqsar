@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('logKsa',)
 version = 1
+endpoint = 'Log of solvent-air partition coefficient - user-defined solvent'
 citation = 'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
            'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
@@ -341,5 +342,5 @@ def calculate(solutedependencies, solventdependencies):
         if solutedependencies['B'][0] != 0 and bemp != 0:
             logKsaerr += (solutedependencies['B'][0]*bemp)**2 * ((solutedependencies['B'][2]/solutedependencies['B'][0])**2 + (bemperr/bemp)**2)
         logKsaerr = logKsaerr**0.5
-    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), '; '.join(domainnotes), citation, units
+    return round(logKsa, round_digits), logKsaUL, round(phaseerrorscaling * logKsaerr, round_digits), '; '.join(domainnotes), citation, units, endpoint
 

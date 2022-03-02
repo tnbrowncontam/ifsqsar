@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('logSoliquid',)
 version = 1
+endpoint = 'Log of solubility in octanol for liquid or super-cooled liquid solute'
 citation = 'Solute descriptors and VP: '\
            'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
@@ -37,5 +38,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logSo, round_digits), logSoUL, round(logSoerr, round_digits), '; '.join(domainnotes), citation, units
+    return round(logSo, round_digits), logSoUL, round(logSoerr, round_digits), '; '.join(domainnotes), citation, units, endpoint
 

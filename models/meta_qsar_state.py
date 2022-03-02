@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('state',)
 version = 1
+endpoint = 'Chemical state at room temperature (25degC)'
 citation = 'tm and tb from PPLFERs: '\
            'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
@@ -1419,5 +1420,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnote = 'unclassified'
 
-    return np.nan, np.nan, np.nan, domainnote, citation, units
+    return np.nan, np.nan, np.nan, domainnote, citation, units, endpoint
 

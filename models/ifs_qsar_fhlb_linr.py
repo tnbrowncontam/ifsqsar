@@ -2,6 +2,7 @@
 import numpy
 value_names = ('fhlb',)
 version = 1
+endpoint = 'Whole body biotransformation half-life in reference fish (0.01kg, 15degC)'
 citation = 'Brown, T. N.;  Arnot, J. A.; Wania, F., '\
            'Iterative fragment selection: a group contribution approach to predicting fish biotransformation '\
            'half-lives. Environ Sci Technol 2012, 46 (15), 8253-60.'

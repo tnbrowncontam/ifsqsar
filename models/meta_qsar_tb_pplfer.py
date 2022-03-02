@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('tbpplfer',)
 version = 1
+endpoint = 'Boiling point - predicted by PPLFER'
 citation = 'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
            'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
@@ -1424,5 +1425,5 @@ def calculate(solutedependencies, solventdependencies):
         BPerr = 60.636
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(BP, round_digits), BPUL, round(BPerr, round_digits), '; '.join(domainnotes), citation, units
+    return round(BP, round_digits), BPUL, round(BPerr, round_digits), '; '.join(domainnotes), citation, units, endpoint
 

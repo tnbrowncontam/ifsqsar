@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('HLbiodeg',)
 version = 1
+endpoint = 'Biodegradation half-life in water (20-25degC)'
 citation = 'BIOWIN3 and BIOWIN4: ' \
            'Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beauman, J.; Tirado, N., '\
            'Group contribution method for predicting probability and rate of aerobic biodegradation. '\
@@ -26,5 +27,5 @@ def calculate(solutedependencies, solventdependencies):
     biowin4 = solutedependencies['biowin4psmmlrx'][0] + solutedependencies['biowin4psmmlra'][0]
     HLbiodeg = ((biowin3 * -1.07 + 4.2) + (biowin4 * -1.46 + 6.51)) / 2
 
-    return round(24*10**HLbiodeg, round_digits), np.nan, round(10**(1.11*1.96), round_digits), domainnotes, citation, units
+    return round(24*10**HLbiodeg, round_digits), np.nan, round(10**(1.11*1.96), round_digits), domainnotes, citation, units, endpoint
 

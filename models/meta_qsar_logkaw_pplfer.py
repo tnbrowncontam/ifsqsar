@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('logKaw',)
 version = 1
+endpoint = "Log of air-water partition coefficient (Henry's Law Constant)"
 citation = 'Solute descriptors: '\
            'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
@@ -56,5 +57,5 @@ def calculate(solutedependencies, solventdependencies):
     else:
         domainnotes.append('aggregate solute descriptor UL is out of the AD')
 
-    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), '; '.join(domainnotes), citation, units
+    return round(logKaw, round_digits), logKawUL, round(logKawerr, round_digits), '; '.join(domainnotes), citation, units, endpoint
 

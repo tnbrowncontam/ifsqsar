@@ -2,6 +2,7 @@
 import numpy
 value_names = ('A',)
 version = 1
+endpoint = 'Abraham PPLFER solute descriptor A - hydrogen bond acidity'
 citation = 'Approximately as implemented in : '\
            'Ulrich, N.;  Endo, S.;  Brown, T. N.;  Watanabe, N.;  Bronner, G.;  Abraham, M. H.; Goss, K. U., '\
            'UFZ-LSER database v 3.2 [Internet]. 2017. '\

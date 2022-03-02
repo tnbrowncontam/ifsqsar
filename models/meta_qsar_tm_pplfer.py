@@ -2,6 +2,7 @@
 import numpy as np
 value_names = ('tmpplfer',)
 version = 1
+endpoint = 'Melting point - predicted by PPLFER'
 citation = 'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
            'Relationship (PPLFER) Solute Descriptors and System Parameters.'\
@@ -2331,5 +2332,5 @@ def calculate(solutedependencies, solventdependencies):
         MPerr = 146.4675109
         domainnotes.append('out of domain, egregious errors likely')
 
-    return round(MP, round_digits), MPUL, round(MPerr, round_digits), '; '.join(domainnotes), citation, units
+    return round(MP, round_digits), MPUL, round(MPerr, round_digits), '; '.join(domainnotes), citation, units, endpoint
 

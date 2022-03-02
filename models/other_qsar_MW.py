@@ -2,6 +2,7 @@
 import numpy
 value_names = ('MW',)
 version = 1
+endpoint = 'Molecular weight'
 citation = 'MW'
 round_digits = 6
 units = 'g/mol'

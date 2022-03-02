@@ -2,10 +2,11 @@
 import numpy
 value_names = ('s',)
 version = 1
+endpoint = 'Abraham/Goss PPLFER system parameter s for solvent-air partitioning as log Ksa'
 citation = 'Brown, T. N.; '\
            'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
            'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
-           'J Solution Chem 2021, In Review.'
+           'J Solution Chem 2022, Accepted.'
 round_digits = 3
 units = 'unitless'
 components = {'solute': 1, 'solvent': 0}

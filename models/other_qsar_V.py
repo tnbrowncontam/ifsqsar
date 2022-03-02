@@ -2,6 +2,7 @@
 import numpy
 value_names = ('V',)
 version = 1
+endpoint = 'Abraham PPLFER solute descriptor V - McGowan Volume'
 citation = 'Mcgowan, J. C., '\
            'The Estimation of Solubility Parameters and Related Properties of Liquids. '\
            'J Chem Tech Biot A 1984, 34 (1), 38-42.'
