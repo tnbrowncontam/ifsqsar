@@ -4,9 +4,9 @@ value_names = ('tbpplfer',)
 version = 1
 endpoint = 'Boiling point - predicted by PPLFER'
 citation = 'Brown, T. N.; '\
-           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
-           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
-           'J Solution Chem 2021, In Review.'
+           'QSPRs for Predicting Equilibrium Partitioning in Solvent-Air Systems '\
+           'from the Chemical Structures of Solutes and Solvents. '\
+           'J Solution Chem 2022, (https://doi.org/10.1007/s10953-022-01162-2).'
 round_digits = 2
 units = 'K'
 components = {'solute': 1, 'solvent': 0}

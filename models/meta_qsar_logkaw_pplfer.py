@@ -2,12 +2,12 @@
 import numpy as np
 value_names = ('logKaw',)
 version = 1
-endpoint = "Log of air-water partition coefficient (Henry's Law Constant)"
+endpoint = 'Log of air-water partition coefficient (Henry\'s Law Constant)'
 citation = 'Solute descriptors: '\
            'Brown, T. N.; '\
-           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
-           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
-           'J Solution Chem 2021, In Review. '\
+           'QSPRs for Predicting Equilibrium Partitioning in Solvent-Air Systems '\
+           'from the Chemical Structures of Solutes and Solvents. '\
+           'J Solution Chem 2022, (https://doi.org/10.1007/s10953-022-01162-2).'\
            'PPLFER Equation: '\
            'Brown, T. N., '\
            'Empirical Regressions between System Parameters and Solute Descriptors of Polyparameter Linear Free '\

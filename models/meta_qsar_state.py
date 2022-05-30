@@ -5,9 +5,9 @@ version = 1
 endpoint = 'Chemical state at room temperature (25degC)'
 citation = 'tm and tb from PPLFERs: '\
            'Brown, T. N.; '\
-           'Development of Iterative Fragment Selection (IFS) QSPRs for Poly-Parameter Linear Free Energy '\
-           'Relationship (PPLFER) Solute Descriptors and System Parameters. '\
-           'J Solution Chem 2021, In Review. '\
+           'QSPRs for Predicting Equilibrium Partitioning in Solvent-Air Systems '\
+           'from the Chemical Structures of Solutes and Solvents. '\
+           'J Solution Chem 2022, (https://doi.org/10.1007/s10953-022-01162-2).'\
            'tm from QSPR: '\
            'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
            'Application of an Iterative Fragment Selection (IFS) Method to Estimate Entropies of Fusion and Melting'\

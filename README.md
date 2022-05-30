@@ -870,6 +870,10 @@ Version 1.0.0
     - state
     - Solvent-air partitioning (solute and solvent input): logKsa
 
+Version 1.0.1
+- Added datasets folder to package for disseminating select datasets
+- Updated citations for Brown 2022
+
 ********************************************************************************
 **9. KNOWN BUGS AND PLANNED FEATURES**
 ********************************************************************************
@@ -937,9 +941,9 @@ Version 1.0.0
     Properties of Liquids. J Chem Tech Biot A 1984, 34 (1), 38-42.
     DOI: 10.1002/jctb.5040340107
 
-13. Brown, T. N., Development of Iterative Fragment Selection (IFS) QSPRs for
-    Poly-Parameter Linear Free Energy Relationship (PPLFER) Solute Descriptors
-    and System Parameters. J Sol Chem 2021, In Review.
+13. Brown, T.N., QSPRs for Predicting Equilibrium Partitioning in Solvent–Air
+    Systems from the Chemical Structures of Solutes and Solvents. Journal of
+    Solution Chemistry, 2022. DOI: 10.1007/s10953-022-01162-2
 
 14. Brown, T. N., Empirical Regressions between System Parameters and Solute
     Descriptors of Polyparameter Linear Free Energy Relationships (PPLFERs) for
