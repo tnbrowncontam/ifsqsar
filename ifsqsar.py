@@ -71,7 +71,9 @@ def apply_qsars_to_molecule(qsarlist,
     if converter is not None:
         assert type(converter) == ob.OBConversion
     # smiles is a single molecule so pass to smiles_norm
+    countchems = [0, 0, 0]
     if re.search(mixturespec, smiles) is None:
+        chemismixture = False
         # generate normalized OBMol
         molecule, normsmiles, conversionnote = smiles_norm.convertsmiles(smiles, converter)
         # check conversion results and output
@@ -103,8 +105,13 @@ def apply_qsars_to_molecule(qsarlist,
         # create list of solutes and solvents for passing to QSARs
         solutelist = (molecule,)
         solventlist = tuple()
+        componentlist = tuple()
+        solutef = (('u', '1'),)
+        solventf = tuple()
+        componentf = tuple()
     # smiles is a mixture so split into solutes and solvents
     else:
+        chemismixture = True
         # split the input into component type flags and smiles
         mixturesplit = re.split(mixturespec, smiles)
         while '' in mixturesplit:
@@ -112,34 +119,55 @@ def apply_qsars_to_molecule(qsarlist,
         # parse through split smiles input
         solutelist = []
         solventlist = []
+        componentlist = []
+        solutef = []
+        solventf = []
+        componentf = []
         nextissolutesmiles = False
         nextissolventsmiles = False
+        nextiscomponentsmiles = False
         normsmiles = ''
         sminote = ''
         for ms in mixturesplit:
             if nextissolutesmiles:
+                countchems[0] += 1
                 # generate normalized OBMol for solutes
                 nextissolutesmiles = False
                 molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
                 if normsmi == '':
                     result['SMILES success'] = False
                 solutelist.append(molecule)
-                normsmiles = ''.join([normsmiles, '{solute}', normsmi])
+                normsmiles = ''.join([normsmiles, '{{solute {}}}'.format(countchems[0]), normsmi])
                 if conversionnote != '':
                     notelist = [sminote, ''.join(['Notes for Solute (', ms, '): ', conversionnote])]
                     if '' in notelist:
                         notelist.remove('')
                     sminote = ', '.join(notelist)
             elif nextissolventsmiles:
+                countchems[1] += 1
                 # generate normalized OBMol for solvents
                 nextissolventsmiles = False
                 molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
                 if normsmi == '':
                     result['SMILES success'] = False
                 solventlist.append(molecule)
-                normsmiles = ''.join([normsmiles, '{solvent}', normsmi])
+                normsmiles = ''.join([normsmiles, '{{solvent {}}}'.format(countchems[1]), normsmi])
                 if conversionnote != '':
                     notelist = [sminote, ''.join(['Notes for Solvent (', ms, '): ', conversionnote])]
+                    if '' in notelist:
+                        notelist.remove('')
+                    sminote = ', '.join(notelist)
+            elif nextiscomponentsmiles:
+                countchems[2] += 1
+                # generate normalized OBMol for solvents
+                nextiscomponentsmiles = False
+                molecule, normsmi, conversionnote = smiles_norm.convertsmiles(ms, converter)
+                if normsmi == '':
+                    result['SMILES success'] = False
+                componentlist.append(molecule)
+                normsmiles = ''.join([normsmiles, '{{component {}}}'.format(countchems[2]), normsmi])
+                if conversionnote != '':
+                    notelist = [sminote, ''.join(['Notes for Component (', ms, '): ', conversionnote])]
                     if '' in notelist:
                         notelist.remove('')
                     sminote = ', '.join(notelist)
@@ -147,13 +175,37 @@ def apply_qsars_to_molecule(qsarlist,
                 splitms = ms.lstrip('{').rstrip('}').split(',')
                 if splitms[0] == 'solute':
                     nextissolutesmiles = True
+                    if len(splitms) > 1:
+                        ftype, fvalue = splitms[1].split(':')
+                        solutef.append((ftype, fvalue))
+                    else:
+                        solutef.append(('u', '0'))
                 elif splitms[0] == 'solvent':
                     nextissolventsmiles = True
+                    if len(splitms) > 1:
+                        ftype, fvalue = splitms[1].split(':')
+                        solventf.append((ftype, fvalue))
+                    else:
+                        solventf.append(('u', '1'))
+                elif splitms[0] == 'component':
+                    nextiscomponentsmiles = True
+                    if len(splitms) > 1:
+                        ftype, fvalue = splitms[1].split(':')
+                        componentf.append((ftype, fvalue))
+                    else:
+                        componentf.append(('u', '1'))
                 else:
                     notelist = [sminote, 'SMILES error: invalid component type specification']
                     if '' in notelist:
                         notelist.remove('')
                     sminote = ', '.join(notelist)
+        # convert lists to tuples
+        solutelist = tuple(solutelist)
+        solventlist = tuple(solventlist)
+        componentlist = tuple(componentlist)
+        solutef = tuple(solutef)
+        solventf = tuple(solventf)
+        componentf = tuple(componentf)
         # check conversion results and output
         if not result['SMILES success']:
             if 'insmi' in values:
@@ -176,8 +228,20 @@ def apply_qsars_to_molecule(qsarlist,
             if endline in seplist:
                 seplist.remove(endline)
                 result['sminote'] = result['sminote'].replace(endline, seplist[1])
+    # if chemical input is a mixture generate column headers
+    qsarpredmixcolumns = []
+    ULmixcolumns = []
+    errormixcolumns = []
+    if chemismixture:
+        for mc in range(countchems[0]):
+            qsarpredmixcolumns.append('qsarpred solute {}'.format(mc+1))
+            ULmixcolumns.append('UL solute {}'.format(mc+1))
+            errormixcolumns.append('error solute {}'.format(mc+1))
+        for mc in range(countchems[2]):
+            qsarpredmixcolumns.append('qsarpred component {}'.format(mc+1))
+            ULmixcolumns.append('UL component {}'.format(mc+1))
+            errormixcolumns.append('error component {}'.format(mc+1))
     # parse through the list of QSARs applying each to the molecule
-    smilesflag = False
     for qsar in qsarlist:
         # load the model
         qsar.load()
@@ -189,11 +253,23 @@ def apply_qsars_to_molecule(qsarlist,
         if 'units' in values:
             result[qsar.model_name]['units'] = ''
         if 'qsarpred' in values:
-            result[qsar.model_name]['qsarpred'] = np.nan
+            if qsar.ismixture and chemismixture:
+                for mc in qsarpredmixcolumns:
+                    result[qsar.model_name][mc] = np.nan
+            else:
+                result[qsar.model_name]['qsarpred'] = np.nan
         if 'UL' in values:
-            result[qsar.model_name]['UL'] = np.nan
+            if qsar.ismixture and chemismixture:
+                for mc in ULmixcolumns:
+                    result[qsar.model_name][mc] = np.nan
+            else:
+                result[qsar.model_name]['UL'] = np.nan
         if 'error' in values:
-            result[qsar.model_name]['error'] = np.nan
+            if qsar.ismixture and chemismixture:
+                for mc in errormixcolumns:
+                    result[qsar.model_name][mc] = np.nan
+            else:
+                result[qsar.model_name]['error'] = np.nan
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = ''
         if 'citation' in values:
@@ -202,17 +278,44 @@ def apply_qsars_to_molecule(qsarlist,
         if not result['SMILES success']:
             continue
         # apply model and store output
-        qsar_prediction, uncertainty_level, error, note, citation, units, endpoint = qsar.apply_model(solutes=solutelist, solvents=solventlist)
+        qsar_prediction, uncertainty_level, error, note, citation, units, endpoint = qsar.apply_model(solutes=solutelist, solvents=solventlist, components=componentlist, solutef=solutef, solventf=solventf, componentf=componentf)
         if 'endpoint' in values:
             result[qsar.model_name]['endpoint'] = endpoint
         if 'units' in values:
             result[qsar.model_name]['units'] = units
         if 'qsarpred' in values:
-            result[qsar.model_name]['qsarpred'] = qsar_prediction
+            if qsar.ismixture and chemismixture:
+                if type(qsar_prediction) == list:
+                    assert len(qsarpredmixcolumns) == len(qsar_prediction)
+                    for mc in range(len(qsarpredmixcolumns)):
+                        result[qsar.model_name][qsarpredmixcolumns[mc]] = qsar_prediction[mc]
+                else:
+                    for mc in range(len(qsarpredmixcolumns)):
+                        result[qsar.model_name][qsarpredmixcolumns[mc]] = qsar_prediction
+            else:
+                result[qsar.model_name]['qsarpred'] = qsar_prediction
         if 'UL' in values:
-            result[qsar.model_name]['UL'] = uncertainty_level
+            if qsar.ismixture and chemismixture:
+                if type(uncertainty_level) == list:
+                    assert len(ULmixcolumns) == len(uncertainty_level)
+                    for mc in range(len(ULmixcolumns)):
+                        result[qsar.model_name][ULmixcolumns[mc]] = uncertainty_level[mc]
+                else:
+                    for mc in range(len(ULmixcolumns)):
+                        result[qsar.model_name][ULmixcolumns[mc]] = uncertainty_level
+            else:
+                result[qsar.model_name]['UL'] = uncertainty_level
         if 'error' in values:
-            result[qsar.model_name]['error'] = error
+            if qsar.ismixture and chemismixture:
+                if type(error) == list:
+                    assert len(errormixcolumns) == len(error)
+                    for mc in range(len(errormixcolumns)):
+                        result[qsar.model_name][errormixcolumns[mc]] = error[mc]
+                else:
+                    for mc in range(len(ULmixcolumns)):
+                        result[qsar.model_name][ULmixcolumns[mc]] = error
+            else:
+                result[qsar.model_name]['error'] = error
         if 'ULnote' in values:
             result[qsar.model_name]['ULnote'] = note
             # make sure that the note does not contain any separators or endlines
@@ -233,9 +336,6 @@ def apply_qsars_to_molecule(qsarlist,
             if endline in seplist:
                 seplist.remove(endline)
                 result[qsar.model_name]['citation'] = result[qsar.model_name]['citation'].replace(endline, seplist[1])
-    if smilesflag:
-        result['normsmi'] = ''
-        result['sminote'] = 'error: neutral structure required, ' + result['sminote']
     # return output as dict of values
     if outformat == 'dict':
         return result
@@ -250,11 +350,51 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, result[val], endline])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'ULnote', 'citation'):
                     if header:
                         outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
                     else:
                         outstring = ''.join([outstring, str(result[qsar][val]), endline])
+                if val in ('qsarpred', 'UL', 'error'):
+                    if val in result[qsar]:
+                        if header:
+                            if type(result[qsar][val]) != str and np.isnan(result[qsar][val]):
+                                outstring = ''.join([outstring, qsar, ' ', val, separator, '', endline])
+                            else:
+                                outstring = ''.join([outstring, qsar, ' ', val, separator, str(result[qsar][val]), endline])
+                        else:
+                            if type(result[qsar][val]) != str and np.isnan(result[qsar][val]):
+                                outstring = ''.join([outstring, '', endline])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][val]), endline])
+                    for s in range(1, 201):
+                        localval = ' '.join([val, 'solute', str(s)])
+                        if localval not in result[qsar]:
+                            break
+                        if header:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, qsar, ' ', localval, separator, '', endline])
+                            else:
+                                outstring = ''.join([outstring, qsar, ' ', localval, separator, str(result[qsar][localval]), endline])
+                        else:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, '', endline])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][localval]), endline])
+                    for c in range(1, 201):
+                        localval = ' '.join([val, 'component', str(c)])
+                        if localval not in result[qsar]:
+                            break
+                        if header:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, qsar, ' ', localval, separator, '', endline])
+                            else:
+                                outstring = ''.join([outstring, qsar, ' ', localval, separator, str(result[qsar][localval]), endline])
+                        else:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, '', endline])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][localval]), endline])
         return outstring
     # return output as a string where the output values are in columns and the chemical is in the row
     elif outformat == 'rows':
@@ -271,12 +411,37 @@ def apply_qsars_to_molecule(qsarlist,
                         outstring = ''.join([outstring, separator, val])
             for qsar in result['QSAR list']:
                 for val in values:
-                    if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                    if val in ('endpoint', 'units', 'ULnote', 'citation'):
                         if first:
                             outstring = ''.join([outstring, qsar, ' ', val])
                             first = False
                         else:
                             outstring = ''.join([outstring, separator, qsar, ' ', val])
+                    if val in ('qsarpred', 'UL', 'error'):
+                        if val in result[qsar]:
+                            if first:
+                                outstring = ''.join([outstring, qsar, ' ', val])
+                                first = False
+                            else:
+                                outstring = ''.join([outstring, separator, qsar, ' ', val])
+                        for s in range(1, 201):
+                            localval = ' '.join([val, 'solute', str(s)])
+                            if localval not in result[qsar]:
+                                break
+                            if first:
+                                outstring = ''.join([outstring, qsar, ' ', localval])
+                                first = False
+                            else:
+                                outstring = ''.join([outstring, separator, qsar, ' ', localval])
+                        for c in range(1, 201):
+                            localval = ' '.join([val, 'component', str(c)])
+                            if localval not in result[qsar]:
+                                break
+                            if first:
+                                outstring = ''.join([outstring, qsar, ' ', localval])
+                                first = False
+                            else:
+                                outstring = ''.join([outstring, separator, qsar, ' ', localval])
             outstring = ''.join([outstring, endline])
         # output values
         first = True
@@ -289,12 +454,55 @@ def apply_qsars_to_molecule(qsarlist,
                     outstring = ''.join([outstring, separator, result[val]])
         for qsar in result['QSAR list']:
             for val in values:
-                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'ULnote', 'citation'):
                     if first:
                         outstring = ''.join([outstring, str(result[qsar][val])])
                         first = False
                     else:
                         outstring = ''.join([outstring, separator, str(result[qsar][val])])
+                if val in ('qsarpred', 'UL', 'error'):
+                    if val in result[qsar]:
+                        if first:
+                            if type(result[qsar][val]) != str and np.isnan(result[qsar][val]):
+                                outstring = ''.join([outstring, ''])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][val])])
+                            first = False
+                        else:
+                            if type(result[qsar][val]) != str and np.isnan(result[qsar][val]):
+                                outstring = ''.join([outstring, separator, ''])
+                            else:
+                                outstring = ''.join([outstring, separator, str(result[qsar][val])])
+                    for s in range(1, 201):
+                        localval = ' '.join([val, 'solute', str(s)])
+                        if localval not in result[qsar]:
+                            break
+                        if first:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, ''])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][localval])])
+                            first = False
+                        else:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, separator, ''])
+                            else:
+                                outstring = ''.join([outstring, separator, str(result[qsar][localval])])
+                    for c in range(1, 201):
+                        localval = ' '.join([val, 'component', str(c)])
+                        if localval not in result[qsar]:
+                            break
+                        if first:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, ''])
+                            else:
+                                outstring = ''.join([outstring, str(result[qsar][localval])])
+                            first = False
+                        else:
+                            if type(result[qsar][localval]) != str and np.isnan(result[qsar][localval]):
+                                outstring = ''.join([outstring, separator, ''])
+                            else:
+                                outstring = ''.join([outstring, separator, str(result[qsar][localval])])
         outstring = ''.join([outstring, endline])
         return outstring
 
@@ -331,6 +539,7 @@ def apply_qsars_to_molecule_list(qsarlist,
 
     Required Arguments:
         qsarlist -- list of QSARs obtained from get_qsar_list function of the models subpackage
+                    pass None to get the default list
 
     Optional Arguments:
         smileslist -- a list of SMILES, either smileslist or infilename must be specified
@@ -388,82 +597,178 @@ def apply_qsars_to_molecule_list(qsarlist,
         converter = ob.OBConversion()
         converter.SetInAndOutFormats('smi', 'can')
     # initialize dict to store output
-    if outformat == 'dict':
-        result = {'QSAR list':[]}
-        for val in ('insmi', 'normsmi', 'OBMol'):
-            if val in values:
-                result[val] = []
-        for qsar in qsarlist:
-            # initialize dict of calculated results
-            result['QSAR list'].append(qsar.model_name)
-            result[qsar.model_name] = {}
-            for val in values:
-                if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
-                    result[qsar.model_name][val] = []
-    # initial columns to store output
-    elif outformat == 'columns':
-        result = []
-    # initialize rows to store output
-    elif outformat == 'rows':
-        result = ''
-    else:
-        result = None
+    result = {'QSAR list':[]}
+    for val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
+        if val in values:
+            result[val] = []
+    for qsar in qsarlist:
+        # initialize dict of calculated results
+        result['QSAR list'].append(qsar.model_name)
+        result[qsar.model_name] = {}
+        for val in values:
+            if val in ('endpoint', 'units', 'ULnote', 'citation'):
+                result[qsar.model_name][val] = []
     # parse through structures
-    first = True
-    for smiles in smileslist:
+    orderedcolumnlist = []
+    for smiles in range(len(smileslist)):
         # apply qsars to this structure
         singleresult = apply_qsars_to_molecule(qsarlist,
-                                               smiles,
+                                               smileslist[smiles],
                                                converter=converter,
                                                values=values,
-                                               outformat=outformat,
-                                               header=outheader and first,
+                                               outformat='dict',
                                                separator=outseparator,
                                                endline=outendline,
                                                )
         # concatenate to output dict
-        if outformat == 'dict':
+        for val in values:
+            if val in ('insmi', 'normsmi', 'sminote', 'OBMol'):
+                if val not in orderedcolumnlist:
+                    orderedcolumnlist.append(val)
+                result[val].append(singleresult[val])
+        for qsar in result['QSAR list']:
             for val in values:
-                if val in ('insmi', 'normsmi', 'OBMol'):
-                    result[val].append(singleresult[val])
-            for qsar in result['QSAR list']:
-                for val in values:
-                    if val in ('endpoint', 'units', 'qsarpred', 'UL', 'error', 'ULnote', 'citation'):
+                if val in ('endpoint', 'units', 'ULnote', 'citation'):
+                    if (qsar, val) not in orderedcolumnlist:
+                        orderedcolumnlist.append((qsar, val))
+                    elif val == 'citation' and (qsar, val) in orderedcolumnlist:
+                        orderedcolumnlist.remove((qsar, val))
+                        orderedcolumnlist.append((qsar, val))
+                    result[qsar][val].append(singleresult[qsar][val])
+                if val in ('qsarpred', 'UL', 'error'):
+                    if val in singleresult[qsar]:
+                        if val not in result[qsar]:
+                            orderedcolumnlist.append((qsar, val))
+                            result[qsar][val] = []
+                            for i in range(smiles):
+                                result[qsar][val].append(np.nan)
                         result[qsar][val].append(singleresult[qsar][val])
-        # concatenate to columns
-        elif outformat == 'columns':
-            if first:
-                result = singleresult.split(outendline)
-                if result[-1] == '':
-                    result.pop(-1)
-            else:
-                splitresult = singleresult.split(outendline)
-                if splitresult[-1] == '':
-                    splitresult.pop(-1)
-                assert len(result) == len(splitresult)
-                result = [''.join([c[0], outseparator, c[1]]) for c in zip(result, splitresult)]
-        # concatenate to rows
-        elif outformat == 'rows':
-            result = ''.join([result, singleresult])
-        # reset first
-        if first:
-            first = False
-    # concatenate column output
-    if outformat == 'columns':
-        result = outendline.join(result)
+                    for s in range(1, 201):
+                        localval = ' '.join([val, 'solute', str(s)])
+                        if localval not in singleresult[qsar]:
+                            break
+                        if localval not in result[qsar]:
+                            orderedcolumnlist.append((qsar, localval))
+                            result[qsar][localval] = []
+                            for i in range(smiles):
+                                result[qsar][localval].append(np.nan)
+                        result[qsar][localval].append(singleresult[qsar][localval])
+                    for c in range(1, 201):
+                        localval = ' '.join([val, 'component', str(c)])
+                        if localval not in singleresult[qsar]:
+                            break
+                        if localval not in result[qsar]:
+                            orderedcolumnlist.append((qsar, localval))
+                            result[qsar][localval] = []
+                            for i in range(smiles):
+                                result[qsar][localval].append(np.nan)
+                        result[qsar][localval].append(singleresult[qsar][localval])
+        # top up any result lists that aren't full
+        for qsar in result['QSAR list']:
+            for val in ('qsarpred', 'UL', 'error'):
+                if val in values:
+                    if val in result[qsar]:
+                        for i in range(1+smiles-len(result[qsar][val])):
+                            result[qsar][val].append(np.nan)
+                    for s in range(1, 201):
+                        localval = ' '.join([val, 'solute', str(s)])
+                        if localval not in result[qsar]:
+                            break
+                        for i in range(1+smiles-len(result[qsar][localval])):
+                            result[qsar][localval].append(np.nan)
+                    for c in range(1, 201):
+                        localval = ' '.join([val, 'component', str(c)])
+                        if localval not in result[qsar]:
+                            break
+                        for i in range(1+smiles-len(result[qsar][localval])):
+                            result[qsar][localval].append(np.nan)
+    # return results dict if outformat is dict
+    outline = ''
+    if outformat == 'dict':
+        return result
+    # create column output
+    elif outformat == 'columns':
+        for column in orderedcolumnlist:
+            if column == 'OBMol':
+                continue
+            if type(column) == str:
+                if outheader:
+                    outline = ''.join([outline, column])
+                for chem in result[column]:
+                    if type(chem) != str and np.isnan(chem):
+                        outline = outseparator.join([outline, ''])
+                    else:
+                        outline = outseparator.join([outline, str(chem)])
+                outline = ''.join([outline, outendline])
+            elif type(column) == tuple:
+                if outheader:
+                    outline = ''.join([outline, ' '.join([column[0], column[1]])])
+                for chem in result[column[0]][column[1]]:
+                    if type(chem) != str and np.isnan(chem):
+                        outline = outseparator.join([outline, ''])
+                    else:
+                        outline = outseparator.join([outline, str(chem)])
+                outline = ''.join([outline, outendline])
+    # create rows output
+    elif outformat == 'rows':
+        if outheader:
+            first = True
+            for column in orderedcolumnlist:
+                if column == 'OBMol':
+                    continue
+                if type(column) == str:
+                    if first:
+                        outline = column
+                        first = False
+                    else:
+                        outline = outseparator.join([outline, column])
+                elif type(column) == tuple:
+                    if first:
+                        outline = ' '.join([column[0], column[1]])
+                        first = False
+                    else:
+                        outline = outseparator.join([outline, ' '.join([column[0], column[1]])])
+            outline = ''.join([outline, outendline])
+        for chem in range(len(smileslist)):
+            first = True
+            for column in orderedcolumnlist:
+                if column == 'OBMol':
+                    continue
+                if type(column) == str:
+                    if first:
+                        outline = ''.join([outline, str(result[column][chem])])
+                        first = False
+                    else:
+                        outline = outseparator.join([outline, str(result[column][chem])])
+                elif type(column) == tuple:
+                    if first:
+                        if type(result[column[0]][column[1]][chem]) != str and np.isnan(result[column[0]][column[1]][chem]):
+                            outline = ''.join([outline, ''])
+                        else:
+                            outline = ''.join([outline, str(result[column[0]][column[1]][chem])])
+                        first = False
+                    else:
+                        if type(result[column[0]][column[1]][chem]) != str and np.isnan(result[column[0]][column[1]][chem]):
+                            outline = outseparator.join([outline, ''])
+                        else:
+                            outline = outseparator.join([outline, str(result[column[0]][column[1]][chem])])
+            outline = ''.join([outline, outendline])
     # if not outputting to file return result
     if outfilename is None:
-        return result
+        if outformat == 'dict:':
+            return result
+        else:
+            return outline
     else:
         assert outformat == 'rows'
         # replace tokens for empty delimiters
         if outseparator == '<nosep>':
-            result = result.replace('<nosep>', '')
+            outline = outline.replace('<nosep>', '')
         if outendline == '<noend>':
-            result = result.replace('<noend>', '')
+            outline = outline.replace('<noend>', '')
         # output with data from input file
         if outkeepdata and filelines is not None:
-            resultlines = result.split(outendline)
+            resultlines = outline.split(outendline)
             # first append header line if kept
             infileoffset = inheaderrows
             resultoffset = 0
@@ -483,7 +788,7 @@ def apply_qsars_to_molecule_list(qsarlist,
         # output result without input data
         else:
             with open(outfilename, 'w') as outfile:
-                outfile.write(result)
+                outfile.write(outline)
 
 
 class IFSGUIClass:
@@ -533,11 +838,13 @@ class IFSGUIClass:
         self.mixturemode.set('purechemical')
         from . import models
         self.pure_qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
-                                                         'dsm', 'tmconsensus', 'tbpplfer',
-                                                         'logKow', 'logKoa', 'logKaw',
-                                                         'logVPliquid', 'logSwliquid', 'logSoliquid',
-                                                         'MVliquid', 'MW', 'densityliquid', 'state',
-                                                         'E', 'S', 'A', 'B', 'V', 'L'])
+                                                              'dsm', 'tmconsensus', 'tbpplfer',
+                                                              'logKow', 'logKoa', 'logKaw', 'logKoo',
+                                                              'logVPliquid', 'logSwliquid', 'logSoliquid',
+                                                              'MVliquid', 'densityliquid', 'MW',
+                                                              'state',
+                                                              'E', 'S', 'A', 'B', 'V', 'L',
+                                                              's', 'a', 'b', 'v', 'l', 'c'])
         self.mixture_qsarmodels = models.get_qsar_list(qsarlist=['logKsa'])
         # setup openbabel converter
         self.obcon = ob.OBConversion()

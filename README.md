@@ -2,7 +2,7 @@
 **IFSQSAR - A python package for applying QSARs**  
 https://github.com/tnbrowncontam/ifsqsar  
 Created and maintained by Trevor N. Brown  
-Version 1.0.0
+Version 1.1.0
 
 IFSQSAR is free to use and redistribute, but is provided "as is" with no implied
 warranties or guarantees. The user accepts responsibility for using the software
@@ -20,7 +20,7 @@ Ph.D. supervisor, Postdoc supervisor, and P.I., respectively.
 Funding sources that have supported relevant publications include:  
 - CEFIC-LRI (ECO13, ECO30, B22)
 - ACC-LRI
-- Alexander von Humboldt Foundation Fellowship 
+- Alexander von Humboldt Foundation Fellowship
 
 ********************************************************************************
 **CONTENTS**
@@ -130,9 +130,9 @@ the "{solvent}" tag, all concatenated together with no spaces.
 ********************************************************************************
 
 In this section:
-- Invoking the command line  
+- Invoking the command line
 - Command line interface options
-- Usage examples 
+- Usage examples
 
 **Invoking the command line**
 
@@ -191,7 +191,8 @@ IFSQSAR Options:
 - -q, --qsars          : Comma-separated list of QSARs to apply, if option is
                          not invoked all are applied. If option is invoked with
                          no list then none are applied. See section 5 to read
-                         about the details of each QSAR. Full list:  
+                         about the details of each QSAR.  
+                         Full list:  
                          fhlb : biotransformation half-life in fish  
                          hhlb : biotransformation half-life in humans  
                          hhlt : total elimination half-life in humans  
@@ -214,8 +215,10 @@ IFSQSAR Options:
                          l : Abraham/Goss PPLFER system parameter  
                          c : Abraham/Goss PPLFER system parameter  
                          logKow : log Kow (PPLFER)  
+                         logKowdry : log Kow (dry octanol) (PPLFER)    
                          logKoa : log Koa (PPLFER)  
                          logKaw : log Kaw (PPLFER)  
+                         logKoo : log Koo, octanol wet-dry conversion factor(PPLFER)  
                          logVPliquid : log Vapor Pressure of liquids (PPLFER)  
                          logSwliquid : log Water Solubil. of liquids (PPLFER)  
                          logSoliquid : log Octanol Solubil. of liquids (PPLFER)  
@@ -230,7 +233,8 @@ IFSQSAR Options:
                          mixture: only logKsa  
 - -v, --values         : Comma-separated list of values to return. If option is
                          not invoked all are included. If option is invoked with
-                         no list then none are included. Full list:  
+                         no list then none are included.  
+                         Full list:  
                          insmi    : the SMILES input by the user  
                          normsmi  : the normalized SMILES, see section 1  
                          sminote  : notes about SMILES normalization  
@@ -391,16 +395,18 @@ Python users should import the ifsqsar package with the syntax:
 The main python interface is the ifsqsar.apply_qsars_to_molecule_list function.
 The CLI is built on top of this function and provides access to most of its
 functionality. Options are available to specify the format of input files, the
-format of output, and what will be output. See the function full documentation.
-Users can also access the ifsqsar.apply_qsars_to_molecule function which
-applies IFS QSARs to single molecules, but without any file IO options.
+format of output, and what will be output. See the function for full
+documentation. Users can also access the ifsqsar.apply_qsars_to_molecule
+function which applies IFS QSARs to single molecules, but without any file IO
+options.
 
 Using the ifsqsar.apply_qsars_to_molecule_list function from python provides
 access to two additional options not available from the CLI. In addition to
 printing the results or writing them to file the results can be returned as
 a dict so that the values are directly accessible. In this format, in addition
-to the normalized SMILES and model outputs the generated openbabel OBMol object
-can be included in the output.
+to the normalized SMILES and model outputs the generated IFSMol object can be
+included in the output. IFSMol is a subclass of openbabel OBMol and has all
+of its attributes.
 
 The QSARs are stored in the models subpackage, which can be imported using the
 syntax:
@@ -410,11 +416,11 @@ syntax:
 A list of QSAR objects must be passed to ifsqsar.apply_qsars_to_molecule_list
 as the first positional argument. The get_qsar_list function in the models
 subpackage creates a list of QSARs from a list of strings of QSAR names. Calling
-get_qsar_list without any arguments will return the full list of QSARs,
-excluding older version of the QSARs. Older versions of the QSARs can be
-accessed by specifying the version number in the optional version argument. As
-an example, the overall python code to make a prediction of log Kow for
-cyclohexane would look like this:
+get_qsar_list without any arguments will return the default list of QSARs,
+excluding older version of the QSARs and models only used internally. Older
+versions of the QSARs can be accessed by specifying the version number in the
+optional version argument. As an example, the overall python code to make a
+prediction of log Kow for cyclohexane would look like this:
 
 > from ifsqsar import ifsqsar  
 > from ifsqsar import models  
@@ -425,6 +431,28 @@ Using the ifsqsar package directly from python will be faster than accessing
 the same functionality from the CLI, because every time the CLI is invoked the
 models must be loaded, whereas the models only need to be loaded once when the
 package is imported as a python module.
+
+As outlined in the section in the CLI, the ifsqsar.apply_qsars_to_molecule_list
+function returns ten values, the first three for each chemical structure input,
+and the last seven for each QSAR as applied to each chemical structure:
+- insmi    : the SMILES input by the user  
+- normsmi  : the normalized SMILES, see section 1  
+- sminote  : notes about SMILES normalization  
+- qsarpred : the value predicted by the QSAR  
+- endpoint : description of model endpoint  
+- units    : units of QSAR prediction  
+- UL       : Uncertainty Level, see section 6  
+- ULnote   : notes about the Uncertainty Level  
+- error    : estimated prediction uncertainty  
+- citation : literature to cite for QSAR prediction  
+
+Another IFSQSAR feature accessible only from the python interface is usage and
+manipulation of experimental values stored in each model. Experimental values
+are returned by default, but so far are only available for the solute
+descriptor QSPRs. Functions are provided in the QSPR objects to edit, erase, or
+reset the stored values. Predicted values are also stored in each session to
+speed up the calculation when values may be reused several times, e.g. the
+solute dependencies in various Meta QSPRs.
 
 **Stability of the API**
 
@@ -445,8 +473,8 @@ In this section:
 - fhlb - QSAR for fish biotransformation half-life  
 - hhlb - QSAR for human biotransformation half-life  
 - hhlt - QSAR for human total elimination half-life  
-- E, S, A, B, V, L - QSPRs for Abraham PPLFER solute descriptors
-- s, a, b, v, l, c - QSPRs for Abraham/Goss PPLFER system parameters
+- E, S, A, B, V, L - QSPRs for Abraham PPLFER solute descriptors  
+- s, a, b, v, l, c - QSPRs for Abraham/Goss PPLFER system parameters  
 - dsm - QSPR for Entropy of Melting  
 - tm - QSPR for Melting Point  
 - General description of other literature QSARs  
@@ -455,6 +483,7 @@ In this section:
 - HLbiodeg - biodegradation half-life based on BIOWIN3/4 from EPISuite  
 - General description of Meta QSARs  
 - logKow, logKoa, logKaw - commonly used partition coefficients  
+- logKoo - hypothetical partition ratio between wet and dry octanol  
 - tmpplfer, tbpplfer - melting and boiling point from PPLFER equations  
 - tmconsensus - melting point, consensus of the other two QSARs  
 - state - physical state of the chemical: gas, liquid or solid  
@@ -526,7 +555,9 @@ greater than or equal to zero, because values less than zero are not meaningful.
 The validation statistics are good, with r-sq[external] > 0.80 in all cases. The
 RMSE for the external validation dataset is less than 0.30 for E, S, A, and B;
 and is 0.38 for L which has a greater range of values than the other
-descriptors. Full details are available in reference [13].
+descriptors. Full details are available in reference [13]. These QSPRs are
+version 2. Version 1 of the QSPRs is the versions available on the UZF LSER
+database [9], which can also be accessed in IFSQSAR.
 
 **s, a, b, v, l, c - QSPRs for Abraham/Goss PPLFER system parameters**
 The QSPRs are specifically for the system parameters of PPLFER equations for
@@ -580,19 +611,17 @@ QSARs from the literature.
 **MVliquid, densityliquid - molar volume and density of liquids**  
 **MVsolid, densitysolid - molar volume and density of solids**  
 
-The QSPR for molar volume (MV), and by combining with MW also the density, is
-from Kotomin and Kozlov 2006 [15]. The QSPR is specifically for the MV of solids
-with generic correction factors for the MV of liquids applied based on chemical
-class. Various fragment types are defined which requires separate model files
-for IFS-style fragments, exclusive fragments, and structural alerts. A Meta QSAR
-sums the results of these internal models to produce a prediction. See below for
-a description of Meta QSARs. No AD has been defined for this QSPR.
+Version 1 of the QSPR for molar volume (MV), and by combining with MW also the
+density, is from Kotomin and Kozlov 2006 [15]. This QSPR is missing some
+important functional groups, e.g. phosphorous containing groups, and the liquid
+MV is more useful for common applications. The version 2 QSPR for liquid MV has
+been developed based on the method used to calculate McGowan volume [12, 16].
 
 **HLbiodeg - biodegradation half-life based on BIOWIN3/4 from EPISuite**  
 
 QSARs that reproduce the BIOWIN3 and BIOWIN4 models in EPI Suite [4] have been
 created based on the fragment descriptions and methodology in the original
-publication [16]. The dataset was based on ultimate and primary half-life
+publication [17]. The dataset was based on ultimate and primary half-life
 classifications for 200 chemicals from a survey of experts. Exclusive fragments
 and structural alerts are defined in two model files for each QSAR. The IFSQSAR
 models reproduce the BIOWIN models with +/- 0.01 for 960 out of a validation
@@ -603,7 +632,7 @@ aromatic ring detection between EPI Suite and OpenBabel, and apparent
 inconsistencies in how fragments are detected and counted in EPI Suite.
 Biodegradation half-lives are calculated in a Meta QSAR using regressions
 between between the log of half-lives and BIOWIN outputs calibrated by Arnot
-et al 2005 [17], and taking the average of the log-scale values. See below for
+et al 2005 [18], and taking the average of the log-scale values. See below for
 a description of Meta QSARs. Outputs are converted to linear scale hours, and
 the uncertainty is provided as confidence factor, same as for the fish and human
 elimination half-lives. An estimate of the overall uncertainties was made based
@@ -620,14 +649,23 @@ calculated by propagation of uncertainty as outlined in reference [13]. In some
 cases this was insufficient and UL and prediction uncertainty are calculated
 using different methods.
 
-**logKow, logKoa, logKaw - commonly used partition coefficients**
+**logKow, logKowdry, logKoa, logKaw - commonly used partition coefficients**
 
 Base-10 logarithm of the partition coefficients (partition ratios) of octanol-
-water, octanol-air and air-water systems. These are "dry" systems, i.e. in the
-case of octanol-water the two phases are assumed to be pure, with no mutual
-solubility as would be found if they were in direct contact during experimental
-determination. The system parameters are taken from reference [14] and the UL
-and prediction uncertainty are calculated by propagation of uncertainty.
+water, octanol-air and air-water systems. The octanol-water partition ratio also
+includes a "dry" version where the two phases are assumed to be pure, with no
+mutual solubility as would be found if they were in direct contact during
+experimental determination. The system parameters for logKoa and logKaw are
+taken from reference [14] and the rest are calibrated in reference [16]. The
+estimation of prediction uncertainty was also improved in [16].
+
+**logKoo - hypothetical partition ratio between wet and dry octanol**
+
+Base-10 logarithm of the hypothetical partition coefficient (partition ratio) of
+octanol saturated with water (wet octanol) and pure octanol (dry octanol).
+Calculated by thermodynamic cycle from logKow and logKowdry. Required to ensure
+thermodynamic consistency between logKow, logKoa, and logKaw, because logKow is
+typically wet, and logKoa is typically dry. Calibrated in reference [16].
 
 **tmpplfer, tbpplfer - melting and boiling point from PPLFER equations**
 
@@ -658,7 +696,7 @@ in the AD then this is considered evidence that it is also a liquid. The
 predicted tm (tmconsensus) and tb (tbpplfer) are also checked to see if the
 chemical is a liquid, i.e. tm < room temperature < tb. If the two methods agree
 then a "likely" adjective is assigned to the assigned state, otherwise a "maybe"
-adjective is assigned.
+adjective is assigned. More details are found in [16].
 
 **logKsa - solvent-air partitioning of a solute-solvent pair**
 
@@ -670,22 +708,24 @@ solute is at infinite dilution and the mole fraction of the solvent in the
 liquid phase is equal to unity. The entire workflow for assigning system
 parameters and AD information for the solvent is implemented as described in
 reference [13]. The methods were developed specifically for liquid solvents, so
-applying them to gases or solids is much more uncertain. The state Meta QSAR is
-called as a solvent dependency to determine physical date of the solvent, and
-the prediction uncertainty is multiplied by an additional uncertainty scaling
-factor if the solvent is not a liquid.
+applying them to gases or solids is not valid. The state Meta QSAR is called as
+a solvent dependency to determine physical date of the solvent, and the
+prediction uncertainty is multiplied by an additional uncertainty scaling factor
+if the solvent is not a liquid.
 
 **logVPliquid, logSwliquid, logSoliquid - pure phase chemical properties**
 
-The logVPliquid MetaQSAR is identical to the logKsa Meta QSAR, except that in
-this case the solute is also the solvent, so the SMILES specification for
-mixtures is not required as input. The output is the base-10 logarithm of the
-vapor pressure. The molar volume Meta QSAR (MVliquid) is used to do a unit
-conversion to VP in Pa. The VP is assumed to be for either the liquid state or
-supercooled liquid state. The solubility of the chemical in water (logSwliquid)
-and the solubility of the chemical in octanol (logSoliquid) are calculated from
-the VP by applying thermodynamic cycles using the Meta QSARs for logKaw and
-logKoa.
+Version 1 of the logVPliquid MetaQSAR is identical to the logKsa Meta QSAR
+as described in [13], except that in this case the solute is also the solvent,
+so the SMILES specification for mixtures is not required as input. logSwliquid
+and logSoliquid were then calculated by thermodynamic cycle with logKaw. In
+version 2 PPLFER equations were calibrated on both Sw and VP converted to Sw by
+thermodynamic cycle. Values for solids were also converted to super-cooled
+liquid values for the calibration. Soliquid is calculated by thermodynamic cycle
+from VP and logKoa. The output is the base-10 logarithm of VP, Sw, or So of the
+liquid or super-cooled liquid. VP, Sw, and So may be capped at a maximum value
+(upper boundary condition) to prevent unreasonably large predicted values. More
+details can be found in reference [16]
 
 ********************************************************************************
 **6. INTERPRETING QSAR APPLICABILITY DOMAIN INFORMATION**
@@ -821,9 +861,9 @@ Uncertain.   Note           Explanation
 
    6    prediction less/    For some datasets predictions outside of the
         greater than        experimental range do not make sense. For example,
-        largest/smallest    elimination of chemicals from fish or humans can
-        value in training   only proceed so rapidly, so predicting faster
-        dataset             elimination is not reasonable. In these "bounded"
+        upper or lower      elimination of chemicals from fish or humans can
+        boundary condition  only proceed so rapidly, so predicting faster
+                            elimination is not reasonable. In these "bounded"
                             QSARs predictions outside of the experimental range
                             are set to the value of the closest boundary. The
                             uncertainty is the same as the normal UL 0-3 the
@@ -874,6 +914,20 @@ Version 1.0.1
 - Added datasets folder to package for disseminating select datasets
 - Updated citations for Brown 2022
 
+Version 1.1.0
+- Chemical properties with new versions or updated preliminary models:
+    - logKow is now "wet", and logKowdry was added
+    - logVPliquid, logSwliquid, logSoliquid
+    - MVliquid, MVsolid, densityliquid, densitysolid
+    - state
+- New chemical property added:
+    - logKoo - hypothetical partition ratio between wet and dry octanol
+- Added the capability to return stored experimental values by default
+- Added functions to handle stored experimental values
+- Added experimental values for solute descriptors
+- smarts_norm now returns IFSMol, a subclass of OBMol
+- Various bug fixes
+
 ********************************************************************************
 **9. KNOWN BUGS AND PLANNED FEATURES**
 ********************************************************************************
@@ -884,8 +938,6 @@ Version 1.0.1
 - Planned properties still to be implemented:
     - mixture vapor-liquid equilibrium (VLE)
     - Human skin permeability (Kp) for pure chemicals and mixtures
-    - logVP from PPLFERs for liquids and solids, possible consensus liquid VP
-    - logKow, logKoa for "wet", i.e. water saturated, octanol
     - IFS QSAR for HLbiodeg
 
 ********************************************************************************
@@ -954,12 +1006,15 @@ Version 1.0.1
     from contributions of molecular fragments. Russ J Appl Chem 2006, 79 (6),
     957-966. DOI: 10.1134/S1070427206060176
 
-16. Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beauman, J.;
+16. Brown T.N., Sangion A., Arnot J.A.; Identifying Uncertainty in Physical-
+    Chemical Property Estimation with IFSQSAR. 2024, In Prep.
+
+17. Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beauman, J.;
     Tirado, N., Group contribution method for predicting probability and rate of
     aerobic biodegradation. Environmental science & technology 1994, 28 (3),
     459-65. DOI: 10.1021/es00052a018
 
-17. Arnot, J. A.;  Gouin, T.; Mackay, D. Development and Application of Models
+18. Arnot, J. A.;  Gouin, T.; Mackay, D. Development and Application of Models
     of Chemical Fate in Canada - Practical methods for estimating environmental
     biodegradation rates; 2005.
 

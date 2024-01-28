@@ -8,7 +8,10 @@ citation = 'Boethling, R. S.;  Howard, P. H.;  Meylan, W.;  Stiteler, W.;  Beaum
            'Environ Sci Technol 1994, 28 (3), 459-65.'
 round_digits = 2
 units = 'rank'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 molecule_format = 'v1.0.0'
 model_type = 'MLRA'
 intercept = False
@@ -40,6 +43,7 @@ coefficientarrays = numpy.array([(1,),
                                  (1,),
                                  ], dtype=float)
 
+stored = {}
 
 def post_processing(prediction, error):
     if prediction > 0:

@@ -8,7 +8,10 @@ citation = 'Kotomin, A. A.; Kozlov, A. S., '\
            'Russ J Appl Chem 2006, 79 (6), 957-966.'
 round_digits = 2
 units = 'unitless'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 molecule_format = 'v1.0.0'
 model_type = 'MLRA'
 intercept = True
@@ -23,6 +26,7 @@ coefficientarrays = numpy.array([(0.90,),
                                  (0.02,),
                                  ], dtype=float)
 
+stored = {}
 
 def post_processing(prediction, error):
     local_prediction = round(1/prediction, round_digits)

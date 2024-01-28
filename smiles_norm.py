@@ -7,6 +7,17 @@ Implements a function that takes a SMILES and converts it to a standardized form
 from openbabel import openbabel as ob
 import re
 
+class IFSMol(ob.OBMol):
+    """Subclass of openbabel OBMol. Contains additional data fields
+    used in the QSARModel and METAQSARModel classes"""
+    def __init__(self):
+        self.normsmiles = ''
+        self.sminote = ''
+        self.neutralize = None
+        self.filter = ''
+        super(IFSMol, self).__init__()
+
+
 # initialize smarts for handling silicon implicit hydrogens
 silicon3 = ob.OBSmartsPattern()
 silicon3.Init('[#14v3H0]')
@@ -50,16 +61,20 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
     Returns the new OBMol, a normalized SMILES string and notes on changes made.
     An existing OBConversion instance can be passed so that one does not need to instantiated."""
 
-    # instantiate OBMol
-    mol = ob.OBMol()
+    # instantiate IFSMol
+    mol = IFSMol()
+    mol.neutralize = neutralize
+    mol.filtertype = filtertype
     changes = []
 
     # error checking of the smiles string
     smiles = smiles.lstrip().rstrip()
     if smiles[0] in '()#=-+]1234567890%':
-        return mol, '', 'error reading SMILES: invalid first character in SMILES'
+        mol.sminote = 'error reading SMILES: invalid first character in SMILES'
+        return mol, mol.normsmiles, mol.sminote
     elif smiles.count('(') != smiles.count(')') or smiles.count('[') != smiles.count(']'):
-        return mol, '', 'error reading SMILES: missing brackets'
+        mol.sminote = 'error reading SMILES: missing brackets'
+        return mol, mol.normsmiles, mol.sminote
 
     # instantiate obconversion if necessary
     if obconversion is None:
@@ -101,7 +116,14 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
 
     # check obmol to see if atoms were added, if not then there was a smiles error
     if mol.NumAtoms() == 0:
-        return mol, '', 'SMILES error: no atoms loaded, check input'
+        mol.sminote = 'SMILES error: no atoms loaded, check input'
+        return mol, mol.normsmiles, mol.sminote
+
+    # check if this is water and let it pass despite any filters
+    if smiles == 'O' or smiles == '[OH2]':
+        mol.normsmiles = 'O'
+        mol.sminote = 'water: filters bypassed'
+        return mol, mol.normsmiles, mol.sminote
 
     # remove all but the largest contiguous fragment
     if '.' in vsmiles:
@@ -112,7 +134,7 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
 
     # check for filters
     organometallicatom.Match(mol)
-    if filtertype in ['organic', 'not inorganic']:
+    if filtertype in ['organic', 'not inorganic', 'carbon']:
         anyatom.Match(mol)
         organicatom.Match(mol)
         inorganicatom.Match(mol)
@@ -123,10 +145,18 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
             isinorganic = True
         if filtertype == 'organic' and (isinorganic or
            len(organicatom.GetUMapList()) < len(anyatom.GetUMapList())):
-            return ob.OBMol(), '', 'SMILES error: structure fails organic filter'
+            localmol = IFSMol()
+            localmol.sminote = 'SMILES error: structure fails organic filter'
+            return localmol, localmol.normsmiles, localmol.sminote
         elif filtertype == 'not inorganic' and (isinorganic or
-             len(organicatom.GetUMapList()) + len(organometallicatom.GetUMapList()) < len(anyatom.GetUMapList())):
-            return ob.OBMol(), '', 'SMILES error: structure fails not inorganic filter'
+                                                len(organicatom.GetUMapList()) + len(organometallicatom.GetUMapList()) < len(anyatom.GetUMapList())):
+            localmol = IFSMol()
+            localmol.sminote = 'SMILES error: structure fails not inorganic filter'
+            return localmol, localmol.normsmiles, localmol.sminote
+        elif filtertype == 'carbon' and len(carbonatom.GetUMapList()) == 0:
+            localmol = IFSMol()
+            localmol.sminote = 'SMILES error: structure fails carbon atom filter'
+            return localmol, localmol.normsmiles, localmol.sminote
 
     # do not inchify organometallics, it disconnects the structures
     if len(organometallicatom.GetUMapList()) == 0:
@@ -217,18 +247,24 @@ def convertsmiles(smiles, obconversion=None, neutralize=True, filtertype='not in
     if len(newanychargeatoms) > 0 and not neutralize:
         changes.append('structure contains permanently charged atoms')
     elif len(newanychargeatoms) > 0 and neutralize:
-        return ob.OBMol(), '', 'SMILES error: structure fails neutralize filter, contains permanently charged atoms'
+        localmol = IFSMol()
+        localmol.sminote = 'SMILES error: structure fails neutralize filter, contains permanently charged atoms'
+        return localmol, localmol.normsmiles, localmol.sminote
 
-    # output normalized smiles
+    # output normalized smiles and save to IFSMol for future use
     normsmiles = obconversion.WriteString(mol).strip()
+    mol.normsmiles = normsmiles
 
     # count the aromatic atoms to check if aromaticity was broken by manipulations
     aromaticbeforecount = len(re.findall(aromatch, smiles))
     aromaticaftercount = len(re.findall(aromatch, normsmiles))
     if aromaticaftercount < aromaticbeforecount:
         changes.append('SMILES error: aromaticity broken')
-        return ob.OBMol(), '', ', '.join(changes)
+        localmol = IFSMol()
+        localmol.sminote = ', '.join(changes)
+        return localmol, localmol.normsmiles, localmol.sminote
 
     # return results
-    return mol, normsmiles, ', '.join(changes)
+    mol.sminote = ', '.join(changes)
+    return mol, mol.normsmiles, mol.sminote
 

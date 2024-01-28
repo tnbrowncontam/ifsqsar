@@ -8,7 +8,10 @@ citation = 'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
            'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'
 round_digits = 2
 units = 'K'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 molecule_format = 'v0.0.0'
 model_type = 'MLR'
 intercept = True
@@ -6271,6 +6274,7 @@ neg_dom_check = numpy.array([('[#6]', '[#6;A,a]', 'Carbon atom with aromatic typ
                              ('[!#1]', '[#6,#9,#16,#8,#17,#35,#14,#7,#53,#15]', 'element not in training set'),
                              ], dtype=[('atom', 'S5'), ('indomain', 'S37'), ('description', 'S67')])
 
+stored = {}
 
 def post_processing(prediction, error):
     local_prediction = round(prediction, round_digits)

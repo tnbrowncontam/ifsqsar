@@ -13,18 +13,23 @@ citation = 'BIOWIN3 and BIOWIN4: ' \
            'environmental biodegradation rates; CEMN Report No. 200503, 2005.'
 round_digits = 2
 units = 'hours'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 solute_dependencies_list = ['biowin3usmmlrx', 'biowin3usmmlra', 'biowin4psmmlrx', 'biowin4psmmlra']
 solvent_dependencies_list = []
+component_dependencies_list = []
 propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
+stored = {}
 
-def calculate(solutedependencies, solventdependencies):
+def calculate(solutedependencies, solventdependencies, componentdependencies, solutef, solventf, componentf):
     domainnotes = 'generic error estimated from uncertainties of model fits'
     # estimate HLbiodeg from both biowin survey models and take the average
-    biowin3 = solutedependencies['biowin3usmmlrx'][0] + solutedependencies['biowin3usmmlra'][0]
-    biowin4 = solutedependencies['biowin4psmmlrx'][0] + solutedependencies['biowin4psmmlra'][0]
+    biowin3 = solutedependencies[0]['biowin3usmmlrx'][0] + solutedependencies[0]['biowin3usmmlra'][0]
+    biowin4 = solutedependencies[0]['biowin4psmmlrx'][0] + solutedependencies[0]['biowin4psmmlra'][0]
     HLbiodeg = ((biowin3 * -1.07 + 4.2) + (biowin4 * -1.46 + 6.51)) / 2
 
     return round(24*10**HLbiodeg, round_digits), np.nan, round(10**(1.11*1.96), round_digits), domainnotes, citation, units, endpoint

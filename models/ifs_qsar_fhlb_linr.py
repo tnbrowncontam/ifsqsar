@@ -8,7 +8,10 @@ citation = 'Brown, T. N.;  Arnot, J. A.; Wania, F., '\
            'half-lives. Environ Sci Technol 2012, 46 (15), 8253-60.'
 round_digits = 2
 units = 'hours'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 molecule_format = 'old_format'
 model_type = 'MLR'
 intercept = True
@@ -1431,6 +1434,7 @@ neg_dom_check = numpy.array([('[#17]', '[#17;A]', 'Chlorine atom with aromatic t
                              ('[!#1]', '[#17,#6,#8,#9,#35,#14,#7,#15,#16,#53]', 'element not in training set'),
                              ], dtype=[('atom', 'S5'), ('indomain', 'S37'), ('description', 'S67')])
 
+stored = {}
 
 def post_processing(prediction, error):
     local_prediction = round(24*10**prediction, round_digits)

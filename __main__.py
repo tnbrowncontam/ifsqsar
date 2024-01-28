@@ -128,12 +128,16 @@ if __name__ == "__main__":
                            nargs='?',
                            default='default',
                            const='',
-                           help='Comma-separated list of qsars to apply. Full list: '
-                                'fhlb, hhlb, hhlt, HLbiodeg, dsm, tm, tmpplfer, tmconsensus,'
-                                'E, S, A, B, L, V, s, a, b, v, l, c, logKow, logKoa, logKaw'
-                                'logVPliquid, logSwliquid, logSoliquid, MVliquid, MVsolid,'
-                                'densityliquid, densitysolid, MW, state, logKsa. '
-                                '"pure" for all QSARs that handle one SMILES input, '
+                           help='Comma-separated list of qsars to apply.'
+                                'Single chemical QSARs:'
+                                'fhlb, hhlb, hhlt, HLbiodeg, dsm, tm, tmpplfer, tmconsensus, '
+                                'E, S, A, B, L, V, s, a, b, v, l, c, logKow, logKowdry, logKoa, '
+                                'logKaw, logKoo, logVPliquid, logSwliquid, logSoliquid, '
+                                'MVliquid, MVsolid, densityliquid, densitysolid, '
+                                'MW, state. '
+                                '"pure" for all QSARs that handle one SMILES input. '
+                                'Mixture QSARs:'
+                                'logKsa, '
                                 '"mixture" for all QSARs that handle mixture SMILES input. '
                                 'See full docs for explanation'
                            )
@@ -166,18 +170,22 @@ if __name__ == "__main__":
         elif args.qsars == 'default':
             qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
                                                         'dsm', 'tmconsensus', 'tbpplfer',
-                                                        'logKow', 'logKoa', 'logKaw',
+                                                        'logKow', 'logKoa', 'logKaw', 'logKoo',
                                                         'logVPliquid', 'logSwliquid', 'logSoliquid',
-                                                        'MVliquid', 'MW', 'densityliquid', 'state',
+                                                        'MVliquid', 'densityliquid', 'MW',
+                                                        'state',
                                                         'E', 'S', 'A', 'B', 'V', 'L',
+                                                        's', 'a', 'b', 'v', 'l', 'c',
                                                         'logKsa'])
         elif args.qsars == 'pure':
             qsarmodels = models.get_qsar_list(qsarlist=['fhlb', 'hhlb', 'hhlt', 'HLbiodeg',
                                                         'dsm', 'tmconsensus', 'tbpplfer',
-                                                        'logKow', 'logKoa', 'logKaw',
+                                                        'logKow', 'logKoa', 'logKaw', 'logKoo',
                                                         'logVPliquid', 'logSwliquid', 'logSoliquid',
-                                                        'MVliquid', 'MW', 'densityliquid', 'state',
-                                                        'E', 'S', 'A', 'B', 'V', 'L'])
+                                                        'MVliquid', 'densityliquid', 'MW',
+                                                        'state',
+                                                        'E', 'S', 'A', 'B', 'V', 'L',
+                                                        's', 'a', 'b', 'v', 'l', 'c'])
         elif args.qsars == 'mixture':
             qsarmodels = models.get_qsar_list(qsarlist=['logKsa'])
         else:

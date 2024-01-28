@@ -11,12 +11,20 @@ citation = 'tm and tb from PPLFERs: '\
            'tm from QSPR: '\
            'Brown, T. N.;  Armitage, J. M.; Arnot, J. A., '\
            'Application of an Iterative Fragment Selection (IFS) Method to Estimate Entropies of Fusion and Melting'\
-           'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'
+           'Points of Organic Chemicals. Mol Inform 2019, 38 (8-9), 1800160.'\
+           'Decision tree defined in: '\
+           'Brown T.N., Sangion A., Arnot J.A.; '\
+           'Identifying Uncertainty in Physical-Chemical Property Estimation with IFSQSAR.'\
+           '2024, In Prep.'
 round_digits = np.nan
 units = ''
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L', 'tmconsensus', 'tbpplfer']
 solvent_dependencies_list = []
+component_dependencies_list = []
 propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
@@ -1378,14 +1386,74 @@ emptrainset = np.array([[1.01, 0.94, 0, 0.2, 1.0323, 4.68],
                         ], dtype=float)
 xtxi = np.linalg.inv(np.matmul(emptrainset.T, emptrainset))
 
-def calculate(solutedependencies, solventdependencies):
+stored = {'O': (np.nan, np.nan, np.nan, 'likely liquid', 'well known value', units, endpoint)}
+
+
+def aggregateUL(ULlist, roundup=False):
+    ise = False
+    isu = False
+    is5 = False
+    numul = None
+    numcount = 0
+    for UL in ULlist:
+        if type(UL) is str:
+            if UL == 'E':
+                ise = True
+            elif UL == 'U':
+                isu = True
+            elif UL == 'EU':
+                ise = True
+                isu = True
+            else:
+                if 'E' in UL:
+                    ise = True
+                if 'U' in UL:
+                    isu = True
+                if UL.replace('E', '').replace('U', '') == '5':
+                    is5 = True
+                if numul is None:
+                    numul = float(UL.replace('E', '').replace('U', ''))**2
+                else:
+                    numul += float(UL.replace('E', '').replace('U', ''))**2
+                numcount += 1
+        else:
+            if UL == 5:
+                is5 = True
+            if numul is None:
+                numul = UL**2
+            else:
+                numul += UL**2
+            numcount += 1
+    ulconcat = []
+    if ise:
+        ulconcat.append('E')
+    if isu:
+        ulconcat.append('U')
+    if numul is not None:
+        if is5:
+            ULtot = 5
+        elif roundup:
+            ULtot = int(np.ceil((numul/numcount)**0.5))
+        else:
+            ULtot = (numul/numcount)**0.5
+    else:
+        ULtot = None
+    if len(ulconcat) and ULtot is not None:
+        ulconcat.append(str(ULtot))
+        ULtot = ''.join(ulconcat)
+    elif len(ulconcat) and ULtot is None:
+        ULtot = ''.join(ulconcat)
+    return ULtot
+
+
+def calculate(solutedependencies, solventdependencies, componentdependencies, solutef, solventf, componentf):
     # calculate leverage of the solvent vs. the empirical correlations training dataset
-    x = np.array([solutedependencies['E'][0],
-                  solutedependencies['S'][0],
-                  solutedependencies['A'][0],
-                  solutedependencies['B'][0],
-                  solutedependencies['V'][0],
-                  solutedependencies['L'][0]])
+    x = np.array([solutedependencies[0]['E'][0],
+                  solutedependencies[0]['S'][0],
+                  solutedependencies[0]['A'][0],
+                  solutedependencies[0]['B'][0],
+                  solutedependencies[0]['V'][0],
+                  solutedependencies[0]['L'][0]])
     leverage = np.matmul(np.matmul(x, xtxi), x.T)
     if leverage < 1.5 * 6 / 1355:
         ULliqset = 0
@@ -1396,29 +1464,45 @@ def calculate(solutedependencies, solventdependencies):
     else:
         ULliqset = 2
     # get MP and MP error
-    MP = solutedependencies['tmconsensus'][0] - 273.15
-    MPerr = solutedependencies['tmconsensus'][2]
+    MP = solutedependencies[0]['tmconsensus'][0] - 273.15
+    MPerr = solutedependencies[0]['tmconsensus'][2]
     # get BP and BPerr
-    BP = solutedependencies['tbpplfer'][0] - 273.15
-    BPerr = solutedependencies['tbpplfer'][2]
+    BP = solutedependencies[0]['tbpplfer'][0] - 273.15
+    BPerr = solutedependencies[0]['tbpplfer'][2]
     # decide if solute is liquid or not
-    if MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULliqset <= 1:
+    if BP+0.672*BPerr < 25:  # leverage from liquid dataset is not useful for gases
+        domainnote = 'likely gas'
+    elif MP-1.036*MPerr > 25 and BP-1.036*BPerr > 25 and ULliqset > 1:
+        domainnote = 'likely solid'
+    elif MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULliqset <= 1:
         domainnote = 'likely liquid'
     elif (MP <= 25 and BP  >= 25 and ULliqset <= 1) or \
-            (MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULliqset > 1) or \
-            (MP-1.96*MPerr <= 25 < MP and ULliqset <= 1) or \
-            (BP+1.96*BPerr >= 25 > BP and ULliqset <= 1):
+            (MP+1.96*MPerr <= 25 and BP-1.96*BPerr >= 25 and ULliqset > 1):
         domainnote = 'maybe liquid'
-    elif (MP-1.96*MPerr > 25 and ULliqset > 1):
-        domainnote = 'likely solid'
-    elif MP+1.96*MPerr > 25:
+    elif MP > 25 and BP > 25:
         domainnote = 'maybe solid'
-    elif (BP+1.96*BPerr < 25 and ULliqset > 1):
-        domainnote = 'likely gas'
-    elif BP-1.96*BPerr < 25:
+    elif BP < 25:
         domainnote = 'maybe gas'
-    else:
-        domainnote = 'unclassified'
+    elif MP < -73.15 or BP < 126.85:  # if still unclassified this reliably captures a fraction of the liquids
+        domainnote = 'maybe liquid'
+    else:  # the rest is a little more likely to be a solid than a liquid
+        domainnote = 'maybe solid'
+    # calculate UL
+    ULlist = []
+    for sltdes in ['E', 'S', 'A', 'B', 'L', 'tmconsensus', 'tbpplfer']:
+        if solutedependencies[0][sltdes][1] in ['E', 'U']:
+            ULlist.append(solutedependencies[0][sltdes][1])
+        elif solutedependencies[0][sltdes][1] < 4:
+            ULlist.append(solutedependencies[0][sltdes][1])
+        elif solutedependencies[0][sltdes][1] == 4 and sltdes not in ['L', 'tmconsensus', 'tbpplfer']:
+            ULlist.append(1)
+        elif solutedependencies[0][sltdes][1] == 4:
+            ULlist.append(2)
+        elif solutedependencies[0][sltdes][1] == 5:
+            ULlist.append(5)
+        elif solutedependencies[0][sltdes][1] == 6:
+            ULlist.append(3)
+    ULslt = aggregateUL(ULlist, roundup=True)
 
-    return np.nan, np.nan, np.nan, domainnote, citation, units, endpoint
+    return np.nan, ULslt, np.nan, domainnote, citation, units, endpoint
 

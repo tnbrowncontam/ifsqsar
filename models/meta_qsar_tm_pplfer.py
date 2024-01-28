@@ -9,9 +9,13 @@ citation = 'Brown, T. N.; '\
            'J Solution Chem 2022, (https://doi.org/10.1007/s10953-022-01162-2).'
 round_digits = 2
 units = 'K'
-components = {'solute': 1, 'solvent': 0}
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
 solute_dependencies_list = ['E', 'S', 'A', 'B', 'V', 'L']
 solvent_dependencies_list = []
+component_dependencies_list = []
 propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
@@ -2281,35 +2285,25 @@ emptrainset = np.array([[0.08, 0.08, 0, 0.07, 2.1791, 7.006],
                         ], dtype=float)
 xtxi = np.linalg.inv(np.matmul(emptrainset.T, emptrainset))
 
-def calculate(solutedependencies, solventdependencies):
+stored = {}
+
+def calculate(solutedependencies, solventdependencies, componentdependencies, solutef, solventf, componentf):
     domainnotes = [propagated_domain_notes]
     # calculate MP
-    MP = 53.6 * solutedependencies['E'][0] + \
-         27.8 * solutedependencies['S'][0] + \
-         107.9 * solutedependencies['A'][0] + \
-         -19.2 * solutedependencies['B'][0] + \
-         7.1 * solutedependencies['L'][0] + \
+    MP = 53.6 * solutedependencies[0]['E'][0] + \
+         27.8 * solutedependencies[0]['S'][0] + \
+         107.9 * solutedependencies[0]['A'][0] + \
+         -19.2 * solutedependencies[0]['B'][0] + \
+         7.1 * solutedependencies[0]['L'][0] + \
          -90.6 + \
          273.15
-    # calculate aggregate solute descriptor UL
-    MPUL = 0
-    for sltdes in ['E', 'S', 'A', 'B', 'L']:
-        if solutedependencies[sltdes][1] < 4:
-            MPUL += solutedependencies[sltdes][1]**2
-        elif solutedependencies[sltdes][1] == 4 and sltdes != 'L':
-            MPUL += 1**2
-        elif solutedependencies[sltdes][1] == 4 and sltdes == 'L':
-            MPUL += 2**2
-        elif solutedependencies[sltdes][1] > 4:
-            MPUL += 3**2
-    MPUL = np.ceil((MPUL/5)**0.5)
     # calculate UL from leverage vs. mp training dataset
-    x = np.array([solutedependencies['E'][0],
-                  solutedependencies['S'][0],
-                  solutedependencies['A'][0],
-                  solutedependencies['B'][0],
-                  solutedependencies['V'][0],
-                  solutedependencies['L'][0]])
+    x = np.array([solutedependencies[0]['E'][0],
+                  solutedependencies[0]['S'][0],
+                  solutedependencies[0]['A'][0],
+                  solutedependencies[0]['B'][0],
+                  solutedependencies[0]['V'][0],
+                  solutedependencies[0]['L'][0]])
     leverage = np.matmul(np.matmul(x, xtxi), x.T)
     if leverage < 1.5 * 6 / 1355:
         trainUL = 0
@@ -2319,10 +2313,59 @@ def calculate(solutedependencies, solventdependencies):
         trainUL = 3
     else:
         trainUL = 2
-    # calculate combined UL
-    MPUL = int(np.ceil(((MPUL**2 + trainUL**2)/2)**0.5))
+    # calculate aggregate solute descriptor UL
+    MPUL = 0
+    ecount = 0
+    ucount = 0
+    for sltdes in ['E', 'S', 'A', 'B', 'L']:
+        if solutedependencies[0][sltdes][1] == 'E':
+            ecount += 1
+        elif solutedependencies[0][sltdes][1] == 'U':
+            ucount += 1
+        elif solutedependencies[0][sltdes][1] < 4:
+            MPUL += solutedependencies[0][sltdes][1]**2
+        elif solutedependencies[0][sltdes][1] == 4 and sltdes != 'L':
+            MPUL += 1**2
+        elif solutedependencies[0][sltdes][1] == 4 and sltdes == 'L':
+            MPUL += 2**2
+        elif solutedependencies[0][sltdes][1] > 4:
+            MPUL += 3**2
+    if ecount+ucount < 5:
+        MPUL = np.ceil((MPUL/(5-ecount-ucount))**0.5)
+        MPUL = int(np.ceil(((MPUL ** 2 + trainUL ** 2) / 2) ** 0.5))
+    if solutedependencies[0]['E'][1] == 5 or solutedependencies[0]['S'][1] == 5 or solutedependencies[0]['A'][1] == 5 or solutedependencies[0]['B'][1] == 5 or solutedependencies[0]['L'][1] == 5:
+        MPUL = 5
     # set error based on UL
-    if MPUL < 2:
+    if ecount+ucount > 0:
+        if ecount+ucount < 5:
+            noteconcat = []
+            MPULconcat = []
+            if ecount > 0:
+                MPULconcat.append('E')
+                noteconcat.append('experimental')
+            if ucount > 0:
+                MPULconcat.append('U')
+                noteconcat.append('user')
+            MPULconcat.append(str(MPUL))
+            noteconcat.append('predicted values')
+            if MPUL <= 1:
+                noteconcat.append('in domain')
+                MPerr = 52.76884398
+            else:
+                noteconcat.append('in domain, borderline')
+                MPerr = 52.76884398
+            MPUL = ''.join(MPULconcat)
+            domainnotes.append(', '.join(noteconcat))
+        else:
+            MPULconcat = []
+            if ecount > 0:
+                MPULconcat.append('E')
+            if ucount > 0:
+                MPULconcat.append('U')
+            MPUL = ''.join(MPULconcat)
+            domainnotes.append('experimental or user values, in domain')
+            MPerr = 52.76884398
+    elif MPUL < 2:
         MPerr = 52.76884398
         domainnotes.append('in domain')
     elif MPUL == 2:

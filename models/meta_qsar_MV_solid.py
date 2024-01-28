@@ -8,16 +8,23 @@ citation = 'Kotomin, A. A.; Kozlov, A. S., '\
            'Russ J Appl Chem 2006, 79 (6), 957-966.'
 round_digits = 2
 units = 'cm^3/mol'
-components = {'solute': 1, 'solvent': 0}
-solute_dependencies_list = ['MVmlrx', 'MVmlr', 'MVmlrRings']
+chemical_inputs = {'solute min': 1, 'solute max': 1,
+                   'solvent min': 0, 'solvent max': 0,
+                   'component min': 0, 'component max': 0,
+                   'total min': 1, 'total max': 1}
+solute_dependencies_list = ['MVmlrx', 'MVmlr', 'MVmlrRings', 'MW']
 solvent_dependencies_list = []
+component_dependencies_list = []
 propagated_domain_notes = ''
 smiles_flag = 'neutrals'
 
+stored = {}
 
-def calculate(solutedependencies, solventdependencies):
+def calculate(solutedependencies, solventdependencies, componentdependencies, solutef, solventf, componentf):
     # Sum the different fragment types defined in Kotomin and Kozolov 2006
-    MV = solutedependencies['MVmlrx'][0] + solutedependencies['MVmlr'][0] + solutedependencies['MVmlrRings'][0]
-
+    MV = solutedependencies[0]['MVmlrx'][0] + solutedependencies[0]['MVmlr'][0] + solutedependencies[0]['MVmlrRings'][0]
+    # if there are no fragments output MV corrected to get liquid density of methane
+    if MV == 0:
+        MV = (solutedependencies[0]['MW'][0] / 0.4228) * (0.371/0.4228)
     return round(MV, round_digits), np.nan, round(0, round_digits), propagated_domain_notes, citation, units, endpoint
 
